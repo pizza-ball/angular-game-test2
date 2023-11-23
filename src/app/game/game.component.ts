@@ -15,11 +15,11 @@ export enum gameStates {
   standalone: true,
   imports: [CommonModule, ShmupComponent, MenuComponent],
   templateUrl: './game.component.html',
-  styleUrl: './game.component.scss'
+  styleUrl: './game.component.scss',
 })
 export class GameComponent {
   gameState = gameStates.L1;
-  
+
   @HostListener('document:keydown', ['$event'])
   handleKeyDown(event: KeyboardEvent) {
     this.inputServ.keyDownHandler(event.key.toLowerCase());

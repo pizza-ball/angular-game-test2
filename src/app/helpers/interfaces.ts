@@ -16,22 +16,32 @@ export interface bullet {
   damage: number;
 }
 
-export interface enemy {
-  hitbox: leftCoordHitbox;
-  speed: number;
-  health: number;
-  arrivalSide: string;
-}
-
 export interface destination {
   loc: point,
   //speed: number,
   //timeAtDestMs: number
 }
 
-export interface wayCoolerEnemy {
+export interface enemy {
   hitbox: leftCoordHitbox;
   speed: number;
   health: number;
-  path: destination[]
+  path: destination[];
+  firingSeconds: number[];
 }
+
+export enum bulletBehavior{
+  linear = 'linear',
+  accelerating = 'accelerating',
+  homing = 'homing',
+}
+
+export interface enemyBullet {
+  hitbox: leftCoordHitbox;
+  speed: number;
+  xyVel: point;
+  damage: number;
+  destination: point;
+  behavior: bulletBehavior;
+}
+

@@ -13,13 +13,15 @@ import {
   bullet,
   enemy,
   point,
-  wayCoolerEnemy,
   destination,
+  enemyBullet,
+  bulletBehavior,
 } from '../../helpers/interfaces';
 import { FormsModule } from '@angular/forms';
 import { InputService } from '../services/input/input.service';
 import { SoundService } from '../services/sound/sound.service';
 import { linearMovementEnemy } from '../../helpers/enemies';
+import { MovingStuff } from '../../helpers/moving-stuff';
 const REDGUY_HITBOX_SIZE = 10;
 
 @Component({
@@ -53,8 +55,8 @@ export class ShmupComponent implements AfterViewInit {
   vel = 7;
 
   redGuyBullets: bullet[] = [];
-  // enemies: enemy[] = [];
-  enemies: wayCoolerEnemy[] = [];
+  enemies: linearMovementEnemy[] = [];
+  enemyBullets: enemyBullet[] = [];
 
   stageTimeDisplay = -1;
   tick = 0;
@@ -93,7 +95,7 @@ export class ShmupComponent implements AfterViewInit {
   }
 
   update() {
-    this.animationState = this.inputServ.keysDown.pause ? 'paused' : 'running';
+    this.animationState = this.gamePaused ? 'paused' : 'running';
     if (!this.gamePaused) {
       this.soundServ.setVolume(this.volumeSliderChoice);
       this.tick++;
@@ -139,6 +141,10 @@ export class ShmupComponent implements AfterViewInit {
       this.redGuyDimPx.height / 2 -
       this.redGuyHitBox.height / 2;
 
+    this.preventOutOfBounds();
+  }
+
+  private preventOutOfBounds() {
     if (this.redGuyHitBox.xPos + this.redGuyHitBox.width > this.shmupWidthPx) {
       //reset hitbox position to right edge of screen
       this.redGuyHitBox.xPos = this.shmupWidthPx - this.redGuyHitBox.width;
@@ -210,6 +216,30 @@ export class ShmupComponent implements AfterViewInit {
       this.allowedToFire = false;
       this.soundServ.shootingSound.play();
     }
+
+    //Handle enemy firing
+    this.enemies.forEach((enemy) => {
+      if (enemy.checkToFire(this.tick)) {
+        let newBullet: enemyBullet = {
+          hitbox: {
+            xPos: enemy.hitbox.xPos + enemy.hitbox.width / 2,
+            yPos: enemy.hitbox.yPos + enemy.hitbox.height,
+            width: 10,
+            height: 10,
+          },
+          speed: 3,
+          damage: 1,
+          xyVel: {x:0,y:0},
+          destination: { x: this.redGuyHitBox.xPos, y: this.redGuyHitBox.yPos },
+          behavior: bulletBehavior.linear,
+        };
+        const bulletPoint = {x: newBullet.hitbox.xPos, y: newBullet.hitbox.yPos};
+        const dest = {x: newBullet.destination.x, y: newBullet.destination.y};
+        newBullet.xyVel = MovingStuff.getXYVelocityTowardDestWithGivenSpeed(newBullet.speed, bulletPoint, dest);
+        this.enemyBullets.push(newBullet);
+        this.soundServ.enemyBulletSound.play();
+      }
+    });
   }
 
   moveBullets() {
@@ -220,19 +250,30 @@ export class ShmupComponent implements AfterViewInit {
         shouldPop = true;
       }
     });
-
     if (shouldPop) {
       this.redGuyBullets.shift();
       this.redGuyBullets.shift();
     }
+
+    //Handle enemy bullet paths
+    this.enemyBullets.forEach((bullet) => {
+      if (bullet.behavior === bulletBehavior.linear) {
+        bullet.hitbox.xPos += bullet.xyVel.x;
+        bullet.hitbox.yPos += bullet.xyVel.y;
+      }
+    });
   }
 
   spawnEnemiesOnTimer() {
     if (this.tick === 180 || this.tick === 240 || this.tick === 300) {
-      const rightSide: destination = {loc: {x: 400, y:200}}
-      const up: destination = {loc: {x: 400, y:100}}
-      const leave: destination = {loc: {x: -100, y:100}}
-      let leftToRighter = new linearMovementEnemy([rightSide, up, leave]);
+      const rightSide: destination = { loc: { x: 400, y: 200 } };
+      const up: destination = { loc: { x: 400, y: 100 } };
+      const leave: destination = { loc: { x: -100, y: 100 } };
+      let leftToRighter = new linearMovementEnemy(
+        [rightSide, up, leave],
+        [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6],
+        this.tick
+      );
       leftToRighter.changeStartingPos(-100, 200);
       this.enemies.push(leftToRighter);
     }
@@ -242,18 +283,17 @@ export class ShmupComponent implements AfterViewInit {
     this.enemies.forEach((enemy, i) => {
       if (enemy.path !== undefined && enemy.path.length !== 0) {
         //Find the X and Y distance from the current point, to the destination, then use cos and sin bullshit (expanded using pythagorean) to find speeds
-        const xDist = enemy.path[0].loc.x - enemy.hitbox.xPos;
-        const yDist = enemy.path[0].loc.y - enemy.hitbox.yPos;
 
-        const bottom = Math.sqrt(Math.pow(xDist, 2) + Math.pow(yDist, 2));
+        const enemyPoint = {x: enemy.hitbox.xPos, y: enemy.hitbox.yPos};
+        const dest = {x: enemy.path[0].loc.x, y: enemy.path[0].loc.y};
+        const result = MovingStuff.moveStartPointTowardDestPoint(enemy.speed, enemyPoint, dest);
+        enemy.hitbox.xPos = result.x;
+        enemy.hitbox.yPos = result.y;
 
-        const xRelativeSpeed = (enemy.speed / bottom) * xDist;
-        const yRelativeSpeed = (enemy.speed / bottom) * yDist;
-
-        enemy.hitbox.xPos += xRelativeSpeed;
-        enemy.hitbox.yPos += yRelativeSpeed;
-
-        if (enemy.path[0].loc.x === Math.round(enemy.hitbox.xPos) && enemy.path[0].loc.y === Math.round(enemy.hitbox.yPos)) {
+        if (
+          enemy.path[0].loc.x === Math.round(enemy.hitbox.xPos) &&
+          enemy.path[0].loc.y === Math.round(enemy.hitbox.yPos)
+        ) {
           console.log('out of path!');
           enemy.path.shift();
         }

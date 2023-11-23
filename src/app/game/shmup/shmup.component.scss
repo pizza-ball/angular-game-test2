@@ -1,3 +1,7 @@
+h2{
+    color: white;
+}
+
 #shmupZone{
     border: 1px solid black;
     position: absolute;
@@ -61,6 +65,11 @@
     width: 15px;
     height: 20px;
     background-color: blue;
+    position: absolute;
+}
+
+.enemybullet{
+    background-color: orange;
     position: absolute;
 }
 

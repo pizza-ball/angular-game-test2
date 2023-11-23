@@ -36,6 +36,15 @@
       [style.top.px]="[bullet.hitbox.yPos]"
     ></div>
   </div>
+  <div *ngFor="let bullet of this.enemyBullets">
+    <div
+      class="enemybullet"
+      [style.left.px]="[bullet.hitbox.xPos]"
+      [style.top.px]="[bullet.hitbox.yPos]"
+      [style.width.px]="[bullet.hitbox.width]"
+      [style.height.px]="[bullet.hitbox.height]"
+    ></div>
+  </div>
   <div *ngFor="let enemy of this.enemies">
     <div
       class="enemy"

@@ -40,6 +40,13 @@ export class SoundService {
     volume: 0.5,
   });
 
+  enemyBulletSound = new Howl({
+    src: [
+      this.soundsDirectory + 'kira01.wav',
+    ],
+    volume: 0.5,
+  });
+
   constructor() { 
   }
 
@@ -48,7 +55,8 @@ export class SoundService {
       this.currentTrack.state() === 'loaded' &&
       this.shootingSound.state() === 'loaded' &&
       this.enemyDeath.state() === 'loaded' &&
-      this.damageSound.state() === 'loaded'
+      this.damageSound.state() === 'loaded' &&
+      this.enemyBulletSound.state() === 'loaded'
     ){
       return true;
     }
@@ -73,6 +81,7 @@ export class SoundService {
       this.shootingSound.volume(reducedVol * 0.5);
       this.enemyDeath.volume(reducedVol * 0.5);
       this.damageSound.volume(reducedVol * 0.5);
+      this.enemyBulletSound.volume(reducedVol * 0.7);
     }
   }
 
