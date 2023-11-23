@@ -61,22 +61,22 @@ export class ShmupComponent implements AfterViewInit {
   animationState = "running";
 
   music = new Howl({
-    src: ['../../../assets/secrethoppin.mp3'],
+    src: ['../../../assets/secrethoppin.mp3', 'assets/secrethoppin.mp3'],
     volume: .5,
   });
 
   shootingSound = new Howl({
-    src: ['../../../assets/shooting.wav'],
+    src: ['../../../assets/shooting.wav', 'assets/shooting.wav'],
     volume: .5,
   });
 
   enemyDeath = new Howl({
-    src: ['../../../assets/kira01.wav'],
+    src: ['../../../assets/kira01.wav', 'assets/kira01.wav'],
     volume: .5,
   });
 
   damageSound = new Howl({
-    src: ['../../../assets/damage00.wav'],
+    src: ['../../../assets/damage00.wav', 'assets/damage00.wav'],
     volume: .5,
   });
 
