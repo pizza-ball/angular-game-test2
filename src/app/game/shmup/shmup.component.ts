@@ -60,23 +60,43 @@ export class ShmupComponent implements AfterViewInit {
   frameRate = 0;
   animationState = "running";
 
+  // music = new Howl({
+  //   src: ['../../../assets/secrethoppin.mp3', 'https://pizza-ball.github.io/angular-game-test2/assets/secrethoppin.mp3'],
+  //   volume: .5,
+  // });
+
+  // shootingSound = new Howl({
+  //   src: ['../../../assets/shooting.wav', 'https://pizza-ball.github.io/angular-game-test2/assets/shooting.wav'],
+  //   volume: .5,
+  // });
+
+  // enemyDeath = new Howl({
+  //   src: ['../../../assets/kira01.wav', 'https://pizza-ball.github.io/angular-game-test2/assets/kira01.wav'],
+  //   volume: .5,
+  // });
+
+  // damageSound = new Howl({
+  //   src: ['../../../assets/damage00.wav', 'https://pizza-ball.github.io/angular-game-test2/assets/damage00.wav'],
+  //   volume: .5,
+  // });
+
   music = new Howl({
-    src: ['../../../assets/secrethoppin.mp3', 'https://pizza-ball.github.io/angular-game-test2/assets/secrethoppin.mp3'],
+    src: ['https://pizza-ball.github.io/angular-game-test2/assets/secrethoppin.mp3'],
     volume: .5,
   });
 
   shootingSound = new Howl({
-    src: ['../../../assets/shooting.wav', 'https://pizza-ball.github.io/angular-game-test2/assets/shooting.wav'],
+    src: ['https://pizza-ball.github.io/angular-game-test2/assets/shooting.wav'],
     volume: .5,
   });
 
   enemyDeath = new Howl({
-    src: ['../../../assets/kira01.wav', 'https://pizza-ball.github.io/angular-game-test2/assets/kira01.wav'],
+    src: ['https://pizza-ball.github.io/angular-game-test2/assets/kira01.wav'],
     volume: .5,
   });
 
   damageSound = new Howl({
-    src: ['../../../assets/damage00.wav', 'https://pizza-ball.github.io/angular-game-test2/assets/damage00.wav'],
+    src: ['https://pizza-ball.github.io/angular-game-test2/assets/damage00.wav'],
     volume: .5,
   });
 
@@ -93,10 +113,26 @@ export class ShmupComponent implements AfterViewInit {
     this.keyUpHandler(event.key);
   }
 
-  ngAfterViewInit() {
+  async ngAfterViewInit() {
+    await this.waitForSoundsToLoad();
     this.musicId = this.music.play();
     setInterval(() => this.update(), 16);
     setInterval(() => this.countFrameRate(), 1000);
+  }
+
+  async waitForSoundsToLoad(){
+    return await new Promise(resolve => {
+      const interval = setInterval(() => {
+        if (this.music.state() === 'loaded' &&
+        this.shootingSound.state() === 'loaded' &&
+        this.enemyDeath.state() === 'loaded' &&
+        this.damageSound.state() === 'loaded') {
+          console.log("Music Loading complete");
+          resolve('foo');
+          clearInterval(interval);
+        };
+      }, 1000);
+    });
   }
 
   countFrameRate(){
