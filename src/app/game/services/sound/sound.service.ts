@@ -47,6 +47,13 @@ export class SoundService {
     volume: 0.5,
   });
 
+  playerDeath = new Howl({
+    src: [
+      this.soundsDirectory + 'pldead00.wav',
+    ],
+    volume: 0.5,
+  });
+
   constructor() { 
   }
 
@@ -56,7 +63,8 @@ export class SoundService {
       this.shootingSound.state() === 'loaded' &&
       this.enemyDeath.state() === 'loaded' &&
       this.damageSound.state() === 'loaded' &&
-      this.enemyBulletSound.state() === 'loaded'
+      this.enemyBulletSound.state() === 'loaded' &&
+      this.playerDeath.state() === 'loaded'
     ){
       return true;
     }
@@ -82,18 +90,10 @@ export class SoundService {
       this.enemyDeath.volume(reducedVol * 0.5);
       this.damageSound.volume(reducedVol * 0.5);
       this.enemyBulletSound.volume(reducedVol * 0.7);
+      this.playerDeath.volume(reducedVol * 0.7);
     }
   }
 
-  // toggleMusicPause(paused: boolean) {
-  //   if (paused) {
-  //     this.music.pause();
-  //     this.saveSeek = this.music.seek(this.musicId);
-  //   } else {
-  //     this.music.play(this.musicId);
-  //     this.music.seek(this.saveSeek, this.musicId);
-  //   }
-  // }
   toggleMusicPause(paused: boolean) {
     if (paused) {
       this.currentTrack.pause();

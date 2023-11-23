@@ -8,7 +8,7 @@
     id="shmupZoneBackgroundLayer1"
     style="margin-top: -400px"
     [style.width.px]="[shmupWidthPx]"
-    [style.height.px]="[shmupHeightPx * 2]"
+    [style.height.px]="[shmupHeightPx * 3]"
     [style.animation-play-state]="animationState"
   ></div>
   <!-- <div
@@ -18,16 +18,19 @@
         [style.height.px]="[shmupHeightPx*2]"
         [style.animation-play-state]="[animationState]"
       ></div> -->
-  <h1 *ngIf="this.gamePaused" style="position:absolute;">PAUSED</h1>
+  <h1 *ngIf="this.gamePaused" style="position:absolute; margin-top: 400px; margin-left: 200px;">PAUSED</h1>
+  <h1 *ngIf="this.urDead" style="position:absolute; margin-top: 400px; margin-left: 200px;">U die</h1>
   <div
     id="redguy"
     [style.left.px]="[redGuyPos.xPos]"
     [style.top.px]="[redGuyPos.yPos]"
+    [hidden]="hideRedGuy"
   ></div>
   <div
     id="redguyHitbox"
     [style.left.px]="[redGuyHitBox.xPos]"
     [style.top.px]="[redGuyHitBox.yPos]"
+    [hidden]="hideRedGuy"
   ></div>
   <div *ngFor="let bullet of this.redGuyBullets">
     <div

@@ -2,6 +2,10 @@ h2{
     color: white;
 }
 
+h2{
+    color: white;
+}
+
 #shmupZone{
     border: 1px solid black;
     position: absolute;
@@ -35,7 +39,7 @@ h2{
 
 @keyframes shortScroll {
     0%   {top:0px;}
-    100% {top:500px;}
+    100% {top:1000px;}
 }
 
 #statsZone{
