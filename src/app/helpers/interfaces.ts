@@ -22,3 +22,16 @@ export interface enemy {
   health: number;
   arrivalSide: string;
 }
+
+export interface destination {
+  loc: point,
+  //speed: number,
+  //timeAtDestMs: number
+}
+
+export interface wayCoolerEnemy {
+  hitbox: leftCoordHitbox;
+  speed: number;
+  health: number;
+  path: destination[]
+}

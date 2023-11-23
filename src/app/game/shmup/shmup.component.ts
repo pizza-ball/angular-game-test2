@@ -8,9 +8,18 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Square } from '../../helpers/square';
-import { leftCoordHitbox, bullet, enemy, point } from '../../helpers/interfaces';
-import { Howl } from 'howler';
+import {
+  leftCoordHitbox,
+  bullet,
+  enemy,
+  point,
+  wayCoolerEnemy,
+  destination,
+} from '../../helpers/interfaces';
 import { FormsModule } from '@angular/forms';
+import { InputService } from '../services/input/input.service';
+import { SoundService } from '../services/sound/sound.service';
+import { linearMovementEnemy } from '../../helpers/enemies';
 const REDGUY_HITBOX_SIZE = 10;
 
 @Component({
@@ -22,6 +31,7 @@ const REDGUY_HITBOX_SIZE = 10;
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ShmupComponent implements AfterViewInit {
+  gamePaused = false;
   shmupWidthPx = 515;
   shmupHeightPx = 600;
   redGuyDimPx = { width: 30, height: 50 };
@@ -42,107 +52,50 @@ export class ShmupComponent implements AfterViewInit {
   allowedToFire = true;
   vel = 7;
 
-  keysPressed = {
-    up: false,
-    down: false,
-    right: false,
-    left: false,
-    shoot: false,
-    paused: false
-  };
-
   redGuyBullets: bullet[] = [];
-  enemies: enemy[] = [];
+  // enemies: enemy[] = [];
+  enemies: wayCoolerEnemy[] = [];
 
   stageTimeDisplay = -1;
   tick = 0;
   tickCountLastSecond = 0;
   frameRate = 0;
-  animationState = "running";
+  animationState = 'running';
 
-  // music = new Howl({
-  //   src: ['../../../assets/secrethoppin.mp3', 'https://pizza-ball.github.io/angular-game-test2/assets/secrethoppin.mp3'],
-  //   volume: .5,
-  // });
-
-  // shootingSound = new Howl({
-  //   src: ['../../../assets/shooting.wav', 'https://pizza-ball.github.io/angular-game-test2/assets/shooting.wav'],
-  //   volume: .5,
-  // });
-
-  // enemyDeath = new Howl({
-  //   src: ['../../../assets/kira01.wav', 'https://pizza-ball.github.io/angular-game-test2/assets/kira01.wav'],
-  //   volume: .5,
-  // });
-
-  // damageSound = new Howl({
-  //   src: ['../../../assets/damage00.wav', 'https://pizza-ball.github.io/angular-game-test2/assets/damage00.wav'],
-  //   volume: .5,
-  // });
-
-  music = new Howl({
-    src: ['https://pizza-ball.github.io/angular-game-test2/assets/secrethoppin.mp3'],
-    volume: .5,
-  });
-
-  shootingSound = new Howl({
-    src: ['https://pizza-ball.github.io/angular-game-test2/assets/shooting.wav'],
-    volume: .5,
-  });
-
-  enemyDeath = new Howl({
-    src: ['https://pizza-ball.github.io/angular-game-test2/assets/kira01.wav'],
-    volume: .5,
-  });
-
-  damageSound = new Howl({
-    src: ['https://pizza-ball.github.io/angular-game-test2/assets/damage00.wav'],
-    volume: .5,
-  });
-
-  musicId = 0;
-  saveSeek = 0;
-
-  @HostListener('document:keydown', ['$event'])
-  handleKeyDown(event: KeyboardEvent) {
-    this.keyDownHandler(event.key);
-  }
-
-  @HostListener('document:keyup', ['$event'])
-  handleKeyUp(event: KeyboardEvent) {
-    this.keyUpHandler(event.key);
-  }
+  constructor(public inputServ: InputService, public soundServ: SoundService) {}
 
   async ngAfterViewInit() {
     await this.waitForSoundsToLoad();
-    this.musicId = this.music.play();
+    this.soundServ.playMusic('L1');
+    this.inputServ.$paused.subscribe((val) => {
+      this.gamePaused = val;
+      this.soundServ.toggleMusicPause(val);
+    });
     setInterval(() => this.update(), 16);
     setInterval(() => this.countFrameRate(), 1000);
   }
 
-  async waitForSoundsToLoad(){
-    return await new Promise(resolve => {
+  async waitForSoundsToLoad() {
+    return await new Promise((resolve) => {
       const interval = setInterval(() => {
-        if (this.music.state() === 'loaded' &&
-        this.shootingSound.state() === 'loaded' &&
-        this.enemyDeath.state() === 'loaded' &&
-        this.damageSound.state() === 'loaded') {
-          console.log("Music Loading complete");
-          resolve('foo');
+        if (this.soundServ.isLevel1SoundLoaded()) {
+          console.log('Music Loading complete');
+          resolve('done loading music');
           clearInterval(interval);
-        };
+        }
       }, 1000);
     });
   }
 
-  countFrameRate(){
+  countFrameRate() {
     this.frameRate = this.tick - this.tickCountLastSecond;
     this.tickCountLastSecond = this.tick;
   }
 
   update() {
-    if(!this.keysPressed.paused) {
-      this.music.volume(this.currentSfxVolume() * 0.5);
+    this.animationState = this.inputServ.keysDown.pause ? 'paused' : 'running';
+    if (!this.gamePaused) {
+      this.soundServ.setVolume(this.volumeSliderChoice);
       this.tick++;
       this.timers();
       this.spawnEnemiesOnTimer();
@@ -151,16 +104,6 @@ export class ShmupComponent implements AfterViewInit {
       this.moveBullets();
       this.moveEnemies();
       this.checkBulletEnemyCollision();
-    }
-  }
-
-  toggleMusicPause(paused: boolean) {
-    if (!paused) {
-        this.music.play(this.musicId);
-        this.music.seek(this.saveSeek, this.musicId);
-    } else {
-      this.music.pause();
-      this.saveSeek = this.music.seek(this.musicId);
     }
   }
 
@@ -173,63 +116,17 @@ export class ShmupComponent implements AfterViewInit {
     }
   }
 
-  keyDownHandler(key: string) {
-    if (key === 'd') {
-      this.keysPressed.right = true;
-    }
-    if (key === 'w') {
-      this.keysPressed.up = true;
-    }
-    if (key === 'a') {
-      this.keysPressed.left = true;
-    }
-    if (key === 's') {
-      this.keysPressed.down = true;
-    }
-    if (key === 'k') {
-      this.keysPressed.shoot = true;
-    }
-    if (key === 'p') {
-      this.keysPressed.paused = !this.keysPressed.paused;
-      this.animationState = this.keysPressed.paused ? "paused" : "running";
-      this.toggleMusicPause(this.keysPressed.paused)
-    }
-  }
-
-  keyUpHandler(key: string) {
-    if (key === 'd') {
-      this.keysPressed.right = false;
-    }
-    if (key === 'w') {
-      this.keysPressed.up = false;
-    }
-    if (key === 'a') {
-      this.keysPressed.left = false;
-    }
-    if (key === 's') {
-      this.keysPressed.down = false;
-    }
-    if (key === 'k') {
-      this.keysPressed.shoot = false;
-    }
-  }
-
   handleMovement() {
-    let origPosX = this.redGuyPos.xPos;
-    let origPosY = this.redGuyPos.yPos;
-    let origBoxPosX = this.redGuyHitBox.xPos;
-    let origBoxPosY = this.redGuyHitBox.yPos;
-
-    if (this.keysPressed.right) {
+    if (this.inputServ.keysDown.right) {
       this.redGuyPos.xPos += this.vel;
     }
-    if (this.keysPressed.left) {
+    if (this.inputServ.keysDown.left) {
       this.redGuyPos.xPos -= this.vel;
     }
-    if (this.keysPressed.up) {
+    if (this.inputServ.keysDown.up) {
       this.redGuyPos.yPos -= this.vel;
     }
-    if (this.keysPressed.down) {
+    if (this.inputServ.keysDown.down) {
       this.redGuyPos.yPos += this.vel;
     }
 
@@ -285,7 +182,7 @@ export class ShmupComponent implements AfterViewInit {
   // }
 
   handleFiring() {
-    if (this.keysPressed.shoot && this.allowedToFire) {
+    if (this.inputServ.keysDown.shoot && this.allowedToFire) {
       setTimeout(() => {
         this.allowedToFire = true;
       }, 50);
@@ -311,8 +208,7 @@ export class ShmupComponent implements AfterViewInit {
       };
       this.redGuyBullets.push(freshBullet1, freshBullet2);
       this.allowedToFire = false;
-      this.shootingSound.volume(this.currentSfxVolume() * 0.5);
-      this.shootingSound.play();
+      this.soundServ.shootingSound.play();
     }
   }
 
@@ -333,57 +229,60 @@ export class ShmupComponent implements AfterViewInit {
 
   spawnEnemiesOnTimer() {
     if (this.tick === 180 || this.tick === 240 || this.tick === 300) {
-      this.createNewEnemy();
+      const rightSide: destination = {loc: {x: 400, y:200}}
+      const up: destination = {loc: {x: 400, y:100}}
+      const leave: destination = {loc: {x: -100, y:100}}
+      let leftToRighter = new linearMovementEnemy([rightSide, up, leave]);
+      leftToRighter.changeStartingPos(-100, 200);
+      this.enemies.push(leftToRighter);
     }
-  }
-
-  private createNewEnemy() {
-    let freshEnemy: enemy = {
-      hitbox: {
-        xPos: -50,
-        yPos: 100,
-        width: 80,
-        height: 80,
-      },
-      speed: 3,
-      health: 10,
-      arrivalSide: 'left',
-    };
-    this.enemies.push(freshEnemy);
   }
 
   moveEnemies() {
     this.enemies.forEach((enemy, i) => {
-      if (enemy.arrivalSide === 'left') {
-        enemy.hitbox.xPos += enemy.speed;
+      if (enemy.path !== undefined && enemy.path.length !== 0) {
+        //Find the X and Y distance from the current point, to the destination, then use cos and sin bullshit (expanded using pythagorean) to find speeds
+        const xDist = enemy.path[0].loc.x - enemy.hitbox.xPos;
+        const yDist = enemy.path[0].loc.y - enemy.hitbox.yPos;
+
+        const bottom = Math.sqrt(Math.pow(xDist, 2) + Math.pow(yDist, 2));
+
+        const xRelativeSpeed = (enemy.speed / bottom) * xDist;
+        const yRelativeSpeed = (enemy.speed / bottom) * yDist;
+
+        enemy.hitbox.xPos += xRelativeSpeed;
+        enemy.hitbox.yPos += yRelativeSpeed;
+
+        if (enemy.path[0].loc.x === Math.round(enemy.hitbox.xPos) && enemy.path[0].loc.y === Math.round(enemy.hitbox.yPos)) {
+          console.log('out of path!');
+          enemy.path.shift();
+        }
       }
-      if (enemy.hitbox.xPos > this.shmupWidthPx + 100) {
+
+      if (
+        enemy.hitbox.xPos > this.shmupWidthPx + 100 ||
+        enemy.hitbox.yPos > this.shmupHeightPx + 100
+      ) {
         this.enemies.splice(i, 1);
       }
     });
   }
 
-  checkBulletEnemyCollision(){
+  checkBulletEnemyCollision() {
     this.enemies.forEach((enemy, i) => {
       this.redGuyBullets.forEach((bullet, j) => {
         let bulletSquare = new Square(bullet.hitbox);
         let enemySquare = new Square(enemy.hitbox);
-        if(Square.checkSquareOverlap(bulletSquare, enemySquare)){
+        if (Square.checkSquareOverlap(bulletSquare, enemySquare)) {
           this.redGuyBullets.splice(j, 1);
           enemy.health -= bullet.damage;
-          this.damageSound.volume(this.currentSfxVolume() * 0.5); 
-          this.damageSound.play();
-          if(enemy.health <= 0){
+          this.soundServ.damageSound.play();
+          if (enemy.health <= 0) {
             this.enemies.splice(i, 1);
-            this.enemyDeath.volume(this.currentSfxVolume() * 0.5); 
-            this.enemyDeath.play();
+            this.soundServ.enemyDeath.play();
           }
         }
       });
     });
-  }
-
-  currentSfxVolume(){
-    return this.volumeSliderChoice/100;
   }
 }

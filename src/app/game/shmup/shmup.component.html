@@ -18,7 +18,7 @@
         [style.height.px]="[shmupHeightPx*2]"
         [style.animation-play-state]="[animationState]"
       ></div> -->
-  <h1 *ngIf="this.keysPressed.paused" style="position:absolute;">PAUSED</h1>
+  <h1 *ngIf="this.gamePaused" style="position:absolute;">PAUSED</h1>
   <div
     id="redguy"
     [style.left.px]="[redGuyPos.xPos]"
