@@ -1,33 +1,43 @@
-import { destination, leftCoordHitbox, enemy } from './interfaces';
+import { destination, leftCoordHitbox, enemy, bulletBehavior, point } from './interfaces';
 
-
-export class linearMovementEnemy implements enemy {
+export class Enemy{
   hitbox: leftCoordHitbox = {
-    xPos: -100,
+    xPos: -90,
     yPos: 100,
     width: 30,
     height: 30,
   };
   speed: number = 2;
   health: number = 10;
-  path: destination[];
   firingSeconds: number[];
   timeOfCreationTicks: number = 0;
+  shotType: bulletBehavior;
+  shootWhere: point = {x:0,y:0};
+  firingTicks: number[] = [];
 
   constructor(
-    path: destination[],
     firingSeconds: number[],
     timeOfCreationTicks: number,
+    shotType: bulletBehavior,
+    shootWhere?: point,
     speed?: number,
     health?: number,
     hitbox?: leftCoordHitbox
   ) {
-    this.path = path;
+    this.shotType = shotType;
     this.firingSeconds = firingSeconds;
     this.timeOfCreationTicks = timeOfCreationTicks;
     this.hitbox = hitbox ?? this.hitbox;
     this.speed = speed ?? this.speed;
     this.health = health ?? this.health;
+    this.shootWhere = shootWhere ?? this.shootWhere;
+    this.convertFiringPeriodsToTicks();
+  }
+
+  convertFiringPeriodsToTicks(){
+    for(let i = 0; i < this.firingSeconds.length; i++){
+      this.firingTicks[i] = this.timeOfCreationTicks + (this.firingSeconds[i] * 60);
+    }
   }
 
   changeStartingPos(x: number, y: number){
@@ -36,16 +46,29 @@ export class linearMovementEnemy implements enemy {
   }
 
   checkToFire(currentTick: number): boolean{
-    let result = false;
-    this.firingSeconds.forEach((second)=>{
-        //convert seconds to ticks, add them to the time of creation value to find when they should fire
-        //TODO: refactor this to be calculated ahead of time
-        const secToTicks = this.timeOfCreationTicks + (second * 60);
-        //add
-        if(secToTicks === currentTick){
-            result = true;
-        }
-    });
-    return result;
+    for(let shootTick of this.firingTicks){
+      if(shootTick === currentTick){
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+export class LinearMovementEnemy extends Enemy {
+  path: destination[];
+
+  constructor(
+    path: destination[],
+    firingSeconds: number[],
+    timeOfCreationTicks: number,
+    shotType: bulletBehavior,
+    shootWhere?: point,
+    speed?: number,
+    health?: number,
+    hitbox?: leftCoordHitbox
+  ) {
+    super(firingSeconds, timeOfCreationTicks, shotType, shootWhere, speed, health, hitbox)
+    this.path = path;
   }
 }

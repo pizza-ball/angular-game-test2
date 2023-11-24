@@ -18,8 +18,8 @@ export interface bullet {
 
 export interface destination {
   loc: point,
-  //speed: number,
-  //timeAtDestMs: number
+  timeAtDestMs?: number
+  speed?: number,
 }
 
 export interface enemy {
@@ -31,9 +31,9 @@ export interface enemy {
 }
 
 export enum bulletBehavior{
-  linear = 'linear',
-  accelerating = 'accelerating',
-  homing = 'homing',
+  atPlayer = 'atPlayer',
+  atPoint = 'atPoint',
+  playerHoming = 'playerHoming',
 }
 
 export interface enemyBullet {

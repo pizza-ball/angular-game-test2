@@ -89,8 +89,8 @@ export class SoundService {
       this.shootingSound.volume(reducedVol * 0.5);
       this.enemyDeath.volume(reducedVol * 0.5);
       this.damageSound.volume(reducedVol * 0.5);
-      this.enemyBulletSound.volume(reducedVol * 0.7);
-      this.playerDeath.volume(reducedVol * 0.7);
+      this.enemyBulletSound.volume(reducedVol * 0.9);
+      this.playerDeath.volume(reducedVol * 0.9);
     }
   }
 

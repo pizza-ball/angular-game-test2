@@ -7,11 +7,21 @@ export class MovingStuff{
     
         const bottom = Math.sqrt(Math.pow(xDist, 2) + Math.pow(yDist, 2));
     
-        const xRelativeSpeed = (speed/ bottom) * xDist;
-        const yRelativeSpeed = (speed / bottom) * yDist;
-    
-        start.x += xRelativeSpeed;
-        start.y += yRelativeSpeed;
+        const xRelativeSpeed = (speed/bottom) * xDist;
+        const yRelativeSpeed = (speed/bottom) * yDist;
+
+        //If speed is too high, we don't want to overshoot the target
+        if(Math.abs(xRelativeSpeed) > Math.abs(xDist)){
+            start.x += xDist;
+        } else {
+            start.x += xRelativeSpeed;
+        }
+
+        if(Math.abs(yRelativeSpeed) > Math.abs(yDist)){
+            start.y += yDist;
+        } else {
+            start.y += yRelativeSpeed;
+        }
         return {x: start.x, y: start.y};
     }
 
