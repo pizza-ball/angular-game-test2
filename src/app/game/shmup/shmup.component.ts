@@ -86,7 +86,7 @@ export class ShmupComponent implements AfterViewInit {
   animationState = 'running';
 
   //spawn times are in seconds, later mapped to ticks for precision
-  spawnTimes = [[2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10], [12, 13, 14],[15]];
+  spawnTimes = [[2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10], [12, 13, 14],[15],[17]];
 
   constructor(public inputServ: InputService, public soundServ: SoundService) {}
 
@@ -102,7 +102,7 @@ export class ShmupComponent implements AfterViewInit {
     //setInterval(() => this.update(), 16);
     this.update();
     setInterval(() => this.countFrameRate(), 500);
-    this.soundServ.muteAudioToggle();
+    //this.soundServ.muteAudioToggle();
   }
 
   setupEnemySpawnTimes() {
@@ -273,11 +273,13 @@ export class ShmupComponent implements AfterViewInit {
           target = { x: this.redGuyHitBox.xPos, y: this.redGuyHitBox.yPos };
         } else if (enemy.shotType === bulletBehavior.atPoint) {
           target = { x: enemy.shootWhere.x, y: enemy.shootWhere.y };
+        } else if (enemy.shotType === bulletBehavior.atBottom) {
+          target = { x: enemy.hitbox.xPos + Math.round(enemy.hitbox.width / 3), y: 1000 };
         }
 
         let newBullet: enemyBullet = {
           hitbox: {
-            xPos: enemy.hitbox.xPos + enemy.hitbox.width / 2,
+            xPos: enemy.hitbox.xPos + Math.round(enemy.hitbox.width / 3),
             yPos: enemy.hitbox.yPos + enemy.hitbox.height,
             width: 10,
             height: 10,
@@ -321,7 +323,8 @@ export class ShmupComponent implements AfterViewInit {
     this.enemyBullets.forEach((bullet) => {
       if (
         bullet.behavior === bulletBehavior.atPoint ||
-        bullet.behavior === bulletBehavior.atPlayer
+        bullet.behavior === bulletBehavior.atPlayer ||
+        bullet.behavior === bulletBehavior.atBottom
       ) {
         bullet.hitbox.xPos += bullet.xyVel.x;
         bullet.hitbox.yPos += bullet.xyVel.y;
@@ -373,13 +376,13 @@ export class ShmupComponent implements AfterViewInit {
 
     if (this.spawnTimes[2].includes(this.tick)) {
       const fromAboveL: destination = {
-        loc: { x: 150, y: 100 },
+        loc: { x: 150, y: 150 },
         speed: 8,
         timeAtDestMs: 5000,
       };
       const leaveL: destination = { loc: { x: 150, y: 1000 }, speed: 4 };
       const fromAboveR: destination = {
-        loc: { x: this.shmupWidthPx - 150, y: 100 },
+        loc: { x: this.shmupWidthPx - 150, y: 150 },
         speed: 8,
         timeAtDestMs: 5000,
       };
@@ -391,19 +394,37 @@ export class ShmupComponent implements AfterViewInit {
         [fromAboveL, leaveL],
         [1, 1.5, 2, 2.5, 3, 3.5, 4],
         this.tick,
-        bulletBehavior.atPoint,
-        { x: 150 + DEFAULT_ENEMY_HITBOX_SIZE / 2, y: 1000 }
+        bulletBehavior.atBottom,
+        { x: 0, y: 1000 }
       );
       let topToBottomR = new LinearMovementEnemy(
         [fromAboveR, leaveR],
         [1, 1.5, 2, 2.5, 3, 3.5, 4],
         this.tick,
-        bulletBehavior.atPoint,
-        { x: this.shmupWidthPx - 150 + DEFAULT_ENEMY_HITBOX_SIZE / 2, y: 1000 }
+        bulletBehavior.atBottom,
+        { x: 0, y: 1000 }
       );
       topToBottomL.changeStartingPos(150, -90);
       topToBottomR.changeStartingPos(this.shmupWidthPx - 150, -90);
       this.enemies.push(topToBottomL, topToBottomR);
+    }
+
+    if (this.spawnTimes[3].includes(this.tick)) {
+      const fromAbove: destination = {
+        loc: { x: Math.round(this.shmupWidthPx/2) - 15, y: 200 },
+        speed: 8,
+        timeAtDestMs: 5000,
+      };
+      const leave: destination = { loc: { x: Math.round(this.shmupWidthPx/2) - 15, y: 1000 }, speed: 4, timeAtDestMs: 2000 };
+      let topToBottom = new LinearMovementEnemy(
+        [fromAbove, leave],
+        [1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 2, 2.5, 3, 3.5, 4],
+        this.tick,
+        bulletBehavior.atBottom,
+        { x: 0, y: 1000 }
+      );
+      topToBottom.changeStartingPos(Math.round(this.shmupWidthPx/2) - 15, -50);
+      this.enemies.push(topToBottom);
     }
   }
 
@@ -473,8 +494,7 @@ export class ShmupComponent implements AfterViewInit {
   }
 
   killEnemy(i: number) {
-    let deathSprite = this.enemies[i].hitbox;
-    this.enemyDeathSprites.push(deathSprite);
+    this.enemyDeathSprites.push(this.enemies[i].hitbox);
     this.enemies.splice(i, 1);
     this.soundServ.enemyDeath.play();
   }

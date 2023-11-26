@@ -33,6 +33,7 @@ export interface enemy {
 export enum bulletBehavior{
   atPlayer = 'atPlayer',
   atPoint = 'atPoint',
+  atBottom = 'atBottom',
   playerHoming = 'playerHoming',
 }
 

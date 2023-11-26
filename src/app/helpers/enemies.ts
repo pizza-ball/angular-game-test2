@@ -38,7 +38,7 @@ export class Enemy{
 
   convertFiringPeriodsToTicks(){
     for(let i = 0; i < this.firingSeconds.length; i++){
-      this.firingTicks[i] = this.timeOfCreationTicks + (this.firingSeconds[i] * 60);
+      this.firingTicks[i] = this.timeOfCreationTicks + (Math.round(this.firingSeconds[i] * 60));
     }
   }
 
