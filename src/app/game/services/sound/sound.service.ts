@@ -6,6 +6,7 @@ import { Howl } from 'howler';
 })
 export class SoundService {
 
+  muted = false;
   currentVolume = 0;
   musicId = 0;
   saveSeek = 0;
@@ -102,5 +103,9 @@ export class SoundService {
       this.currentTrack.play(this.musicId);
       this.currentTrack.seek(this.saveSeek, this.musicId);
     }
+  }
+
+  muteAudioToggle(){
+    Howler.mute(!this.muted);
   }
 }

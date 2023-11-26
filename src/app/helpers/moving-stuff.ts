@@ -36,4 +36,16 @@ export class MovingStuff{
         
         return {x: xRelativeSpeed, y: yRelativeSpeed};
     }
+
+    static getRandomPositiveInt(max: number) {
+        return Math.floor(Math.random() * max);
+    }
+
+    static getRandomInt(max: number) {
+        if(Math.floor(Math.random() * 2) === 1){
+            return -1 * Math.floor(Math.random() * max);
+        } else {
+            return Math.floor(Math.random() * max);
+        }
+    }
 }

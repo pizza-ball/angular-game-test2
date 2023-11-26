@@ -1,11 +1,13 @@
 import { destination, leftCoordHitbox, enemy, bulletBehavior, point } from './interfaces';
 
+export const DEFAULT_ENEMY_HITBOX_SIZE = 30;
+
 export class Enemy{
   hitbox: leftCoordHitbox = {
     xPos: -90,
     yPos: 100,
-    width: 30,
-    height: 30,
+    width: DEFAULT_ENEMY_HITBOX_SIZE,
+    height: DEFAULT_ENEMY_HITBOX_SIZE,
   };
   speed: number = 2;
   health: number = 10;

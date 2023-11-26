@@ -20,8 +20,13 @@ import {
 import { FormsModule } from '@angular/forms';
 import { InputService } from '../services/input/input.service';
 import { SoundService } from '../services/sound/sound.service';
-import { Enemy, LinearMovementEnemy } from '../../helpers/enemies';
+import {
+  DEFAULT_ENEMY_HITBOX_SIZE,
+  Enemy,
+  LinearMovementEnemy,
+} from '../../helpers/enemies';
 import { MovingStuff } from '../../helpers/moving-stuff';
+import { animate, style, transition, trigger } from '@angular/animations';
 const REDGUY_HITBOX_SIZE = 10;
 const REDGUY_START_POS = { x: 245, y: 400 };
 
@@ -71,24 +76,41 @@ export class ShmupComponent implements AfterViewInit {
   redGuyBullets: bullet[] = [];
   enemies: Enemy[] = [];
   enemyBullets: enemyBullet[] = [];
+  enemyDeathSprites: leftCoordHitbox[] = [];
 
   stageTimeDisplay = -1;
+  ticksPerSecond = 60;
   tick = 0;
   tickCountLastSecond = 0;
   frameRate = 0;
   animationState = 'running';
 
+  //spawn times are in seconds, later mapped to ticks for precision
+  spawnTimes = [[2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10], [12, 13, 14],[15]];
+
   constructor(public inputServ: InputService, public soundServ: SoundService) {}
 
   async ngAfterViewInit() {
+    this.setupEnemySpawnTimes();
+
     await this.waitForSoundsToLoad();
     this.soundServ.playMusic('L1');
     this.inputServ.$paused.subscribe((val) => {
       this.gamePaused = val;
       this.soundServ.toggleMusicPause(val);
     });
-    setInterval(() => this.update(), 16);
-    setInterval(() => this.countFrameRate(), 1000);
+    //setInterval(() => this.update(), 16);
+    this.update();
+    setInterval(() => this.countFrameRate(), 500);
+    this.soundServ.muteAudioToggle();
+  }
+
+  setupEnemySpawnTimes() {
+    this.spawnTimes = this.spawnTimes.map((array) => {
+      return array.map((element) => {
+        return Math.round(element * this.ticksPerSecond)
+      })
+    });
   }
 
   async waitForSoundsToLoad() {
@@ -104,7 +126,7 @@ export class ShmupComponent implements AfterViewInit {
   }
 
   countFrameRate() {
-    this.frameRate = this.tick - this.tickCountLastSecond;
+    this.frameRate = (this.tick - this.tickCountLastSecond) * 2;
     this.tickCountLastSecond = this.tick;
   }
 
@@ -122,6 +144,8 @@ export class ShmupComponent implements AfterViewInit {
       this.checkBulletEnemyCollision();
       this.checkBulletPlayerCollision();
     }
+
+    setTimeout(() => this.update(), 16);
   }
 
   timers() {
@@ -134,10 +158,10 @@ export class ShmupComponent implements AfterViewInit {
   }
 
   handleMovement() {
-    if(this.redGuyState !== playerState.normal){
+    if (this.redGuyState !== playerState.normal) {
       return;
     }
-    
+
     if (this.inputServ.keysDown.right) {
       this.redGuyPos.xPos += this.vel;
     }
@@ -207,7 +231,11 @@ export class ShmupComponent implements AfterViewInit {
   // }
 
   handleFiring() {
-    if (this.inputServ.keysDown.shoot && this.allowedToFire && this.redGuyState === playerState.normal) {
+    if (
+      this.inputServ.keysDown.shoot &&
+      this.allowedToFire &&
+      this.redGuyState === playerState.normal
+    ) {
       setTimeout(() => {
         this.allowedToFire = true;
       }, 50);
@@ -239,11 +267,11 @@ export class ShmupComponent implements AfterViewInit {
     //Handle enemy firing
     this.enemies.forEach((enemy) => {
       if (enemy.checkToFire(this.tick)) {
+        let target: point = { x: 0, y: 0 };
 
-        let target: point = {x: 0, y: 0};
-        if(enemy.shotType === bulletBehavior.atPlayer){
+        if (enemy.shotType === bulletBehavior.atPlayer) {
           target = { x: this.redGuyHitBox.xPos, y: this.redGuyHitBox.yPos };
-        } else if (enemy.shotType === bulletBehavior.atPoint){
+        } else if (enemy.shotType === bulletBehavior.atPoint) {
           target = { x: enemy.shootWhere.x, y: enemy.shootWhere.y };
         }
 
@@ -291,57 +319,97 @@ export class ShmupComponent implements AfterViewInit {
 
     //Handle enemy bullet paths
     this.enemyBullets.forEach((bullet) => {
-      if (bullet.behavior === bulletBehavior.atPoint || bullet.behavior === bulletBehavior.atPlayer ) {
+      if (
+        bullet.behavior === bulletBehavior.atPoint ||
+        bullet.behavior === bulletBehavior.atPlayer
+      ) {
         bullet.hitbox.xPos += bullet.xyVel.x;
         bullet.hitbox.yPos += bullet.xyVel.y;
       }
     });
   }
 
+  // Values multiplied by tickrate are seconds
   spawnEnemiesOnTimer() {
-    if (this.tick === 180 || this.tick === 240 || this.tick === 300) {
-      const rightSide: destination = { loc: { x: 400, y: 200 }};
-      const up: destination = { loc: { x: 400, y: 100 }};
-      const leave: destination = { loc: { x: -100, y: 100 }};
+    if (this.spawnTimes[0].includes(this.tick)) {
+      const ySpawnPoint = 50 + MovingStuff.getRandomInt(30);
+      const rightSide: destination = {
+        loc: { x: this.shmupWidthPx + 60, y: 400 },
+      };
+      let leftToRighter = new LinearMovementEnemy(
+        [rightSide],
+        [5],
+        this.tick,
+        bulletBehavior.atPlayer
+      );
+      leftToRighter.changeStartingPos(-90, ySpawnPoint);
+      const leftSide: destination = { loc: { x: -60, y: 400 } };
+      let rightToLefter = new LinearMovementEnemy(
+        [leftSide],
+        [5],
+        this.tick,
+        bulletBehavior.atPlayer
+      );
+      rightToLefter.changeStartingPos(this.shmupWidthPx + 90, ySpawnPoint);
+      rightToLefter.health = 4;
+      leftToRighter.health = 4;
+      this.enemies.push(rightToLefter);
+      this.enemies.push(leftToRighter);
+    }
+
+    if (this.spawnTimes[1].includes(this.tick)) {
+      const rightSide: destination = { loc: { x: 400, y: 200 } };
+      const up: destination = { loc: { x: 400, y: 100 } };
+      const leave: destination = { loc: { x: -100, y: 100 } };
       let leftToRighter = new LinearMovementEnemy(
         [rightSide, up, leave],
         [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6],
         this.tick,
-        bulletBehavior.atPlayer,
+        bulletBehavior.atPlayer
       );
       leftToRighter.changeStartingPos(-90, 200);
       this.enemies.push(leftToRighter);
     }
 
-    if (this.tick === 540){
-      const fromAboveL: destination = { loc: { x: 150, y: 100 }, speed: 8, timeAtDestMs: 5000};
-      const leaveL: destination = { loc: { x: 150, y: 1000 }, speed: 4};
-      const fromAboveR: destination = { loc: { x: this.shmupWidthPx-150, y: 100 }, speed: 8, timeAtDestMs: 5000};
-      const leaveR: destination = { loc: { x: this.shmupWidthPx-150, y: 1000 }, speed: 4};
+    if (this.spawnTimes[2].includes(this.tick)) {
+      const fromAboveL: destination = {
+        loc: { x: 150, y: 100 },
+        speed: 8,
+        timeAtDestMs: 5000,
+      };
+      const leaveL: destination = { loc: { x: 150, y: 1000 }, speed: 4 };
+      const fromAboveR: destination = {
+        loc: { x: this.shmupWidthPx - 150, y: 100 },
+        speed: 8,
+        timeAtDestMs: 5000,
+      };
+      const leaveR: destination = {
+        loc: { x: this.shmupWidthPx - 150, y: 1000 },
+        speed: 4,
+      };
       let topToBottomL = new LinearMovementEnemy(
         [fromAboveL, leaveL],
         [1, 1.5, 2, 2.5, 3, 3.5, 4],
         this.tick,
         bulletBehavior.atPoint,
-        {x:150, y:1000},
+        { x: 150 + DEFAULT_ENEMY_HITBOX_SIZE / 2, y: 1000 }
       );
       let topToBottomR = new LinearMovementEnemy(
         [fromAboveR, leaveR],
         [1, 1.5, 2, 2.5, 3, 3.5, 4],
         this.tick,
         bulletBehavior.atPoint,
-        {x:this.shmupWidthPx-150, y:1000},
+        { x: this.shmupWidthPx - 150 + DEFAULT_ENEMY_HITBOX_SIZE / 2, y: 1000 }
       );
       topToBottomL.changeStartingPos(150, -90);
-      topToBottomR.changeStartingPos(this.shmupWidthPx-150, -90);
+      topToBottomR.changeStartingPos(this.shmupWidthPx - 150, -90);
       this.enemies.push(topToBottomL, topToBottomR);
     }
   }
 
   moveEnemies() {
     this.enemies.forEach((enemy, i) => {
-
-      if(enemy instanceof LinearMovementEnemy){
+      if (enemy instanceof LinearMovementEnemy) {
         if (enemy.path !== undefined && enemy.path.length !== 0) {
           this.moveEnemyLinearly(enemy);
         }
@@ -350,7 +418,7 @@ export class ShmupComponent implements AfterViewInit {
       if (
         enemy.hitbox.xPos > this.shmupWidthPx + 100 ||
         enemy.hitbox.yPos > this.shmupHeightPx + 100 ||
-        enemy.hitbox.xPos <  -100 ||
+        enemy.hitbox.xPos < -100 ||
         enemy.hitbox.yPos < -100
       ) {
         this.enemies.splice(i, 1);
@@ -359,9 +427,14 @@ export class ShmupComponent implements AfterViewInit {
   }
 
   private moveEnemyLinearly(enemy: LinearMovementEnemy) {
-    if (enemy.path[0].loc.x === Math.round(enemy.hitbox.xPos) &&
-      enemy.path[0].loc.y === Math.round(enemy.hitbox.yPos)) {
-      if(enemy.path[0].timeAtDestMs === undefined || enemy.path[0].timeAtDestMs <= 0) {
+    if (
+      enemy.path[0].loc.x === Math.round(enemy.hitbox.xPos) &&
+      enemy.path[0].loc.y === Math.round(enemy.hitbox.yPos)
+    ) {
+      if (
+        enemy.path[0].timeAtDestMs === undefined ||
+        enemy.path[0].timeAtDestMs <= 0
+      ) {
         enemy.path.shift();
       } else {
         enemy.path[0].timeAtDestMs -= 16;
@@ -374,7 +447,7 @@ export class ShmupComponent implements AfterViewInit {
     const dest = { x: enemy.path[0].loc.x, y: enemy.path[0].loc.y };
 
     const result = MovingStuff.moveStartPointTowardDestPoint(
-      (enemy.path[0].speed ?  enemy.path[0].speed : enemy.speed),
+      enemy.path[0].speed ? enemy.path[0].speed : enemy.speed,
       enemyPoint,
       dest
     );
@@ -392,12 +465,18 @@ export class ShmupComponent implements AfterViewInit {
           enemy.health -= bullet.damage;
           this.soundServ.damageSound.play();
           if (enemy.health <= 0) {
-            this.enemies.splice(i, 1);
-            this.soundServ.enemyDeath.play();
+            this.killEnemy(i);
           }
         }
       });
     });
+  }
+
+  killEnemy(i: number) {
+    let deathSprite = this.enemies[i].hitbox;
+    this.enemyDeathSprites.push(deathSprite);
+    this.enemies.splice(i, 1);
+    this.soundServ.enemyDeath.play();
   }
 
   checkBulletPlayerCollision() {

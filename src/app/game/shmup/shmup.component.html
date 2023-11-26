@@ -57,6 +57,13 @@
       [style.height.px]="[enemy.hitbox.height]"
     ></div>
   </div>
+  <div *ngFor="let deadEnemy of this.enemyDeathSprites">
+    <div
+      class="deathShape"
+      [style.left.px]="[deadEnemy.xPos]"
+      [style.top.px]="[deadEnemy.yPos]"
+    ></div>
+  </div>
 </div>
 <div id="statsZone" style="margin-top: 15px; margin-left: 575px">
   <h1 style="color: aliceblue">TYPESHIP</h1>
