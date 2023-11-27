@@ -4,6 +4,7 @@
   [style.width.px]="[shmupWidthPx]"
   [style.height.px]="[shmupHeightPx]"
 >
+  <img src="/assets/ratufo.gif"/> <!--Pre-loads this asset-->
   <div
     id="shmupZoneBackgroundLayer1"
     style="margin-top: -400px"
@@ -50,12 +51,18 @@
   </div>
   <div *ngFor="let enemy of this.enemies">
     <div
-      class="enemy"
-      [style.left.px]="[enemy.hitbox.xPos]"
-      [style.top.px]="[enemy.hitbox.yPos]"
-      [style.width.px]="[enemy.hitbox.width]"
-      [style.height.px]="[enemy.hitbox.height]"
-    ></div>
+    class="enemy"
+    [style.left.px]="[enemy.hitbox.xPos]"
+    [style.top.px]="[enemy.hitbox.yPos]"
+    [style.width.px]="[enemy.hitbox.width]"
+    [style.height.px]="[enemy.hitbox.height]"
+  ></div>
+    <img [src]="[enemy.sprite]"
+    [style.left.px]="[enemy.hitbox.xPos]"
+    [style.top.px]="[enemy.hitbox.yPos]"
+    [style.width.px]="[enemy.hitbox.width*2]"
+    [style.height.px]="[enemy.hitbox.height*2]"
+    style="position: absolute; transform: translate(-25%, -25%);"/>
   </div>
   <div *ngFor="let deadEnemy of this.enemyDeathSprites">
     <div

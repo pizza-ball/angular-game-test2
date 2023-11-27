@@ -24,6 +24,7 @@ import {
   DEFAULT_ENEMY_HITBOX_SIZE,
   Enemy,
   LinearMovementEnemy,
+  enemySprites,
 } from '../../helpers/enemies';
 import { MovingStuff } from '../../helpers/moving-stuff';
 import { animate, style, transition, trigger } from '@angular/animations';
@@ -340,6 +341,7 @@ export class ShmupComponent implements AfterViewInit {
         loc: { x: this.shmupWidthPx + 60, y: 400 },
       };
       let leftToRighter = new LinearMovementEnemy(
+        enemySprites.ratBall,
         [rightSide],
         [5],
         this.tick,
@@ -348,6 +350,7 @@ export class ShmupComponent implements AfterViewInit {
       leftToRighter.changeStartingPos(-90, ySpawnPoint);
       const leftSide: destination = { loc: { x: -60, y: 400 } };
       let rightToLefter = new LinearMovementEnemy(
+        enemySprites.ratBall,
         [leftSide],
         [5],
         this.tick,
@@ -365,6 +368,7 @@ export class ShmupComponent implements AfterViewInit {
       const up: destination = { loc: { x: 400, y: 100 } };
       const leave: destination = { loc: { x: -100, y: 100 } };
       let leftToRighter = new LinearMovementEnemy(
+        enemySprites.ratUfo,
         [rightSide, up, leave],
         [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6],
         this.tick,
@@ -391,6 +395,7 @@ export class ShmupComponent implements AfterViewInit {
         speed: 4,
       };
       let topToBottomL = new LinearMovementEnemy(
+        enemySprites.ratUfo,
         [fromAboveL, leaveL],
         [1, 1.5, 2, 2.5, 3, 3.5, 4],
         this.tick,
@@ -398,6 +403,7 @@ export class ShmupComponent implements AfterViewInit {
         { x: 0, y: 1000 }
       );
       let topToBottomR = new LinearMovementEnemy(
+        enemySprites.ratUfo,
         [fromAboveR, leaveR],
         [1, 1.5, 2, 2.5, 3, 3.5, 4],
         this.tick,
@@ -417,6 +423,7 @@ export class ShmupComponent implements AfterViewInit {
       };
       const leave: destination = { loc: { x: Math.round(this.shmupWidthPx/2) - 15, y: 1000 }, speed: 4, timeAtDestMs: 2000 };
       let topToBottom = new LinearMovementEnemy(
+        enemySprites.ratUfo,
         [fromAbove, leave],
         [1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 2, 2.5, 3, 3.5, 4],
         this.tick,
