@@ -11,7 +11,7 @@
     "prepGithubPage": "ng build --output-path docs --base-href /angular-game-test2/",
     "ci:clean": "rimraf ./dist",
     "ci:test": "ng test --watch=false --browsers=ChromeHeadless --code-coverage",
-    "ci:build": "ng build --prod"
+    "ci:build": "ng build"
   },
   "private": true,
   "dependencies": {
