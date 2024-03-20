@@ -4,7 +4,9 @@
   [style.width.px]="[shmupWidthPx]"
   [style.height.px]="[shmupHeightPx]"
 >
-  <img src="/assets/ratufo.gif"/> <!--Pre-loads this asset-->
+  <!--Pre-loads these asset-->
+  <img src="/assets/ratufo.gif" />
+  <img src="/assets/CheeseCannon.gif" />
   <div
     id="shmupZoneBackgroundLayer1"
     style="margin-top: -400px"
@@ -19,8 +21,18 @@
         [style.height.px]="[shmupHeightPx*2]"
         [style.animation-play-state]="[animationState]"
       ></div> -->
-  <h1 *ngIf="this.gamePaused" style="position:absolute; margin-top: 400px; margin-left: 200px;">PAUSED</h1>
-  <h1 *ngIf="this.urDead" style="position:absolute; margin-top: 400px; margin-left: 200px;">U die</h1>
+  <h1
+    *ngIf="this.gamePaused"
+    style="position: absolute; margin-top: 400px; margin-left: 200px"
+  >
+    PAUSED
+  </h1>
+  <h1
+    *ngIf="this.urDead"
+    style="position: absolute; margin-top: 400px; margin-left: 200px"
+  >
+    U die
+  </h1>
   <div
     id="redguy"
     [style.left.px]="[redGuyPos.xPos]"
@@ -50,19 +62,22 @@
     ></div>
   </div>
   <div *ngFor="let enemy of this.enemies">
+    <img
+      [src]="[enemy.sprite]"
+      [style.left.px]="[enemy.hitbox.xPos]"
+      [style.top.px]="[enemy.hitbox.yPos]"
+      [style.width.px]="[enemy.hitbox.width * 2]"
+      [style.height.px]="[enemy.hitbox.height * 2]"
+      style="position: absolute; transform: translate(-25%, -25%)"
+    />
     <div
-    class="enemy"
-    [style.left.px]="[enemy.hitbox.xPos]"
-    [style.top.px]="[enemy.hitbox.yPos]"
-    [style.width.px]="[enemy.hitbox.width]"
-    [style.height.px]="[enemy.hitbox.height]"
-  ></div>
-    <img [src]="[enemy.sprite]"
-    [style.left.px]="[enemy.hitbox.xPos]"
-    [style.top.px]="[enemy.hitbox.yPos]"
-    [style.width.px]="[enemy.hitbox.width*2]"
-    [style.height.px]="[enemy.hitbox.height*2]"
-    style="position: absolute; transform: translate(-25%, -25%);"/>
+      class="enemy"
+      [style.left.px]="[enemy.hitbox.xPos]"
+      [style.top.px]="[enemy.hitbox.yPos]"
+      [style.width.px]="[enemy.hitbox.width]"
+      [style.height.px]="[enemy.hitbox.height]"
+      style="opacity: 0.5"
+    ></div>
   </div>
   <div *ngFor="let deadEnemy of this.enemyDeathSprites">
     <div
@@ -79,7 +94,14 @@
   <h2>Time: {{ (stageTimeDisplay / 100).toFixed(2) }}</h2>
   <h2>FPS: {{ frameRate }}</h2>
   <h2>Volume</h2>
-  <div style="width: 100%;">
-    <input type="range" min="1" max="100" value="volumeSliderChoice" [(ngModel)]="volumeSliderChoice" class="slider">
+  <div style="width: 100%">
+    <input
+      type="range"
+      min="1"
+      max="100"
+      value="volumeSliderChoice"
+      [(ngModel)]="volumeSliderChoice"
+      class="slider"
+    />
   </div>
 </div>

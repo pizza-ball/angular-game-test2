@@ -37,6 +37,11 @@ export enum bulletBehavior{
   playerHoming = 'playerHoming',
 }
 
+export enum bulletPattern{
+  single = 'single',
+  laser = 'laser'
+}
+
 export interface enemyBullet {
   hitbox: leftCoordHitbox;
   speed: number;
@@ -44,5 +49,6 @@ export interface enemyBullet {
   damage: number;
   destination: point;
   behavior: bulletBehavior;
+  pattern: bulletPattern;
 }
 

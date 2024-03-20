@@ -16,6 +16,7 @@ import {
   destination,
   enemyBullet,
   bulletBehavior,
+  bulletPattern,
 } from '../../helpers/interfaces';
 import { FormsModule } from '@angular/forms';
 import { InputService } from '../services/input/input.service';
@@ -270,41 +271,74 @@ export class ShmupComponent implements AfterViewInit {
       if (enemy.checkToFire(this.tick)) {
         let target: point = { x: 0, y: 0 };
 
-        if (enemy.shotType === bulletBehavior.atPlayer) {
+        if (enemy.bulletBehavior === bulletBehavior.atPlayer) {
           target = { x: this.redGuyHitBox.xPos, y: this.redGuyHitBox.yPos };
-        } else if (enemy.shotType === bulletBehavior.atPoint) {
+        } else if (enemy.bulletBehavior === bulletBehavior.atPoint) {
           target = { x: enemy.shootWhere.x, y: enemy.shootWhere.y };
-        } else if (enemy.shotType === bulletBehavior.atBottom) {
+        } else if (enemy.bulletBehavior === bulletBehavior.atBottom) {
           target = { x: enemy.hitbox.xPos + Math.round(enemy.hitbox.width / 3), y: 1000 };
         }
 
-        let newBullet: enemyBullet = {
-          hitbox: {
-            xPos: enemy.hitbox.xPos + Math.round(enemy.hitbox.width / 3),
-            yPos: enemy.hitbox.yPos + enemy.hitbox.height,
-            width: 10,
-            height: 10,
-          },
-          speed: 3,
-          damage: 1,
-          xyVel: { x: 0, y: 0 },
-          destination: target,
-          behavior: enemy.shotType,
-        };
-        const bulletPoint = {
-          x: newBullet.hitbox.xPos,
-          y: newBullet.hitbox.yPos,
-        };
-        const dest = { x: newBullet.destination.x, y: newBullet.destination.y };
-        newBullet.xyVel = MovingStuff.getXYVelocityTowardDestWithGivenSpeed(
-          newBullet.speed,
-          bulletPoint,
-          dest
-        );
-        this.enemyBullets.push(newBullet);
-        this.soundServ.enemyBulletSound.play();
+        this.spawnEnemyBullet(enemy, target);
       }
     });
+  }
+
+  private spawnEnemyBullet(enemy: Enemy, target: point) {
+    if(enemy.bulletPattern === bulletPattern.single){
+      let newBullet: enemyBullet = {
+        hitbox: {
+          xPos: enemy.hitbox.xPos + Math.round(enemy.hitbox.width / 3),
+          yPos: enemy.hitbox.yPos + enemy.hitbox.height,
+          width: 10,
+          height: 10,
+        },
+        speed: 3,
+        damage: 1,
+        xyVel: { x: 0, y: 0 },
+        destination: target,
+        behavior: enemy.bulletBehavior,
+        pattern: enemy.bulletPattern
+      };
+      const bulletPoint = {
+        x: newBullet.hitbox.xPos,
+        y: newBullet.hitbox.yPos,
+      };
+      const dest = { x: newBullet.destination.x, y: newBullet.destination.y };
+      newBullet.xyVel = MovingStuff.getXYVelocityTowardDestWithGivenSpeed(
+        newBullet.speed,
+        bulletPoint,
+        dest
+      );
+      this.enemyBullets.push(newBullet);
+    } else if (enemy.bulletPattern === bulletPattern.laser){
+      let newLaser: enemyBullet = {
+        hitbox: {
+          xPos: enemy.hitbox.xPos + Math.round(enemy.hitbox.width / 3),
+          yPos: enemy.hitbox.yPos + enemy.hitbox.height,
+          width: 10,
+          height: 10,
+        },
+        speed: 5,
+        damage: 1,
+        xyVel: { x: 0, y: 0 },
+        destination: target,
+        behavior: enemy.bulletBehavior,
+        pattern: enemy.bulletPattern
+      };
+      const bulletPoint = {
+        x: newLaser.hitbox.xPos,
+        y: newLaser.hitbox.yPos,
+      };
+      const dest = { x: newLaser.destination.x, y: newLaser.destination.y };
+      newLaser.xyVel = MovingStuff.getXYVelocityTowardDestWithGivenSpeed(
+        newLaser.speed,
+        bulletPoint,
+        dest
+      );
+      this.enemyBullets.push(newLaser);
+    }
+    //this.soundServ.enemyBulletSound.play();
   }
 
   moveBullets() {
@@ -322,14 +356,24 @@ export class ShmupComponent implements AfterViewInit {
 
     //Handle enemy bullet paths
     this.enemyBullets.forEach((bullet) => {
-      if (
-        bullet.behavior === bulletBehavior.atPoint ||
-        bullet.behavior === bulletBehavior.atPlayer ||
-        bullet.behavior === bulletBehavior.atBottom
-      ) {
+      if(bullet.pattern === bulletPattern.single){
         bullet.hitbox.xPos += bullet.xyVel.x;
         bullet.hitbox.yPos += bullet.xyVel.y;
+      } else if (bullet.pattern === bulletPattern.laser){
+        bullet.hitbox.height += bullet.xyVel.y;
+        if(bullet.hitbox.height > this.shmupHeightPx + 100){
+          bullet.hitbox.yPos += bullet.xyVel.y;
+        }
       }
+
+      // if (
+      //   bullet.behavior === bulletBehavior.atPoint ||
+      //   bullet.behavior === bulletBehavior.atPlayer ||
+      //   bullet.behavior === bulletBehavior.atBottom
+      // ) {
+      //   bullet.hitbox.xPos += bullet.xyVel.x;
+      //   bullet.hitbox.yPos += bullet.xyVel.y;
+      // }
     });
   }
 
@@ -345,7 +389,8 @@ export class ShmupComponent implements AfterViewInit {
         [rightSide],
         [5],
         this.tick,
-        bulletBehavior.atPlayer
+        bulletBehavior.atPlayer,
+        bulletPattern.single,
       );
       leftToRighter.changeStartingPos(-90, ySpawnPoint);
       const leftSide: destination = { loc: { x: -60, y: 400 } };
@@ -354,7 +399,8 @@ export class ShmupComponent implements AfterViewInit {
         [leftSide],
         [5],
         this.tick,
-        bulletBehavior.atPlayer
+        bulletBehavior.atPlayer,
+        bulletPattern.single,
       );
       rightToLefter.changeStartingPos(this.shmupWidthPx + 90, ySpawnPoint);
       rightToLefter.health = 4;
@@ -372,7 +418,8 @@ export class ShmupComponent implements AfterViewInit {
         [rightSide, up, leave],
         [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6],
         this.tick,
-        bulletBehavior.atPlayer
+        bulletBehavior.atPlayer,
+        bulletPattern.single,
       );
       leftToRighter.changeStartingPos(-90, 200);
       this.enemies.push(leftToRighter);
@@ -400,6 +447,7 @@ export class ShmupComponent implements AfterViewInit {
         [1, 1.5, 2, 2.5, 3, 3.5, 4],
         this.tick,
         bulletBehavior.atBottom,
+        bulletPattern.single,
         { x: 0, y: 1000 }
       );
       let topToBottomR = new LinearMovementEnemy(
@@ -408,6 +456,7 @@ export class ShmupComponent implements AfterViewInit {
         [1, 1.5, 2, 2.5, 3, 3.5, 4],
         this.tick,
         bulletBehavior.atBottom,
+        bulletPattern.single,
         { x: 0, y: 1000 }
       );
       topToBottomL.changeStartingPos(150, -90);
@@ -423,11 +472,12 @@ export class ShmupComponent implements AfterViewInit {
       };
       const leave: destination = { loc: { x: Math.round(this.shmupWidthPx/2) - 15, y: 1000 }, speed: 4, timeAtDestMs: 2000 };
       let topToBottom = new LinearMovementEnemy(
-        enemySprites.ratUfo,
+        enemySprites.cheeseCanon,
         [fromAbove, leave],
-        [1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 2, 2.5, 3, 3.5, 4],
+        [1],
         this.tick,
         bulletBehavior.atBottom,
+        bulletPattern.laser,
         { x: 0, y: 1000 }
       );
       topToBottom.changeStartingPos(Math.round(this.shmupWidthPx/2) - 15, -50);

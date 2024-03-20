@@ -1,10 +1,11 @@
-import { destination, leftCoordHitbox, enemy, bulletBehavior, point } from './interfaces';
+import { destination, leftCoordHitbox, enemy, bulletBehavior, point, bulletPattern } from './interfaces';
 
 export const DEFAULT_ENEMY_HITBOX_SIZE = 30;
 
 export enum enemySprites {
   ratBall = "/assets/ratbubblerun.gif",
-  ratUfo = "/assets/ratufo.gif"
+  ratUfo = "/assets/ratufo.gif",
+  cheeseCanon = "/assets/CheeseCannon.gif"
 }
 
 export class Enemy{
@@ -19,7 +20,8 @@ export class Enemy{
   health: number = 10;
   firingSeconds: number[];
   timeOfCreationTicks: number = 0;
-  shotType: bulletBehavior;
+  bulletBehavior: bulletBehavior;
+  bulletPattern: bulletPattern;
   shootWhere: point = {x:0,y:0};
   firingTicks: number[] = [];
 
@@ -27,14 +29,16 @@ export class Enemy{
     sprite: enemySprites,
     firingSeconds: number[],
     timeOfCreationTicks: number,
-    shotType: bulletBehavior,
+    bulletBehavior: bulletBehavior,
+    bulletPattern: bulletPattern,
     shootWhere?: point,
     speed?: number,
     health?: number,
     hitbox?: leftCoordHitbox
   ) {
     this.sprite = sprite;
-    this.shotType = shotType;
+    this.bulletBehavior = bulletBehavior;
+    this.bulletPattern = bulletPattern;
     this.firingSeconds = firingSeconds;
     this.timeOfCreationTicks = timeOfCreationTicks;
     this.hitbox = hitbox ?? this.hitbox;
@@ -73,13 +77,14 @@ export class LinearMovementEnemy extends Enemy {
     path: destination[],
     firingSeconds: number[],
     timeOfCreationTicks: number,
-    shotType: bulletBehavior,
+    bulletBehavior: bulletBehavior,
+    bulletPattern: bulletPattern,
     shootWhere?: point,
     speed?: number,
     health?: number,
     hitbox?: leftCoordHitbox
   ) {
-    super(sprite, firingSeconds, timeOfCreationTicks, shotType, shootWhere, speed, health, hitbox)
+    super(sprite, firingSeconds, timeOfCreationTicks, bulletBehavior, bulletPattern, shootWhere, speed, health, hitbox)
     this.path = path;
   }
 }
