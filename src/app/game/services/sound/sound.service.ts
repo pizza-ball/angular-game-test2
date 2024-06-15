@@ -16,9 +16,8 @@ export class SoundService {
 
   track1 = new Howl({
     src: [
-      this.soundsDirectory + 'secrethoppin.mp3',
+      this.soundsDirectory + 'INextra.mp3',
     ],
-    volume: 0.5,
   });
   currentTrack = this.track1;
 
@@ -26,33 +25,28 @@ export class SoundService {
     src: [
       this.soundsDirectory + 'shooting.wav',
     ],
-    volume: 0.5,
   });
 
   enemyDeath = new Howl({
     src: [this.soundsDirectory + 'enemydieBetter.wav'],
-    volume: 0.5,
   });
 
   damageSound = new Howl({
     src: [
       this.soundsDirectory + 'damage00.wav',
     ],
-    volume: 0.5,
   });
 
   enemyBulletSound = new Howl({
     src: [
       this.soundsDirectory + 'kira01.wav',
     ],
-    volume: 0.5,
   });
 
   playerDeath = new Howl({
     src: [
       this.soundsDirectory + 'pldead00.wav',
     ],
-    volume: 0.5,
   });
 
   constructor() { 
@@ -83,15 +77,16 @@ export class SoundService {
   setVolume(value: number){
     if(this.currentVolume !== value){
       this.currentVolume = value;
-      let reducedVol = this.currentVolume / 100
+      let volDecimal = (this.currentVolume / 100) / 2;
+      let medium = volDecimal/2;
+      let quiet = volDecimal/4;
 
-      this.currentTrack.volume(reducedVol * 0.5);
-      this.shootingSound.volume(reducedVol * 0.5);
-      this.shootingSound.volume(reducedVol * 0.5);
-      this.enemyDeath.volume(reducedVol * 0.5);
-      this.damageSound.volume(reducedVol * 0.5);
-      this.enemyBulletSound.volume(reducedVol * 0.9);
-      this.playerDeath.volume(reducedVol * 0.9);
+      this.currentTrack.volume(volDecimal);
+      this.shootingSound.volume(quiet);
+      this.enemyDeath.volume(medium);
+      this.damageSound.volume(quiet);
+      this.enemyBulletSound.volume(medium);
+      this.playerDeath.volume(medium);
     }
   }
 

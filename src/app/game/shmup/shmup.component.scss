@@ -28,6 +28,13 @@ h2{
     overflow: hidden;
 }
 
+#shmupZoneCustomBg{
+    position: absolute;
+    overflow: hidden;
+    // z-index: -2;
+}
+
+
 #shmupZoneBackgroundLayer1{
     background-image: url(../../../assets/bg1.png);
     position: absolute;

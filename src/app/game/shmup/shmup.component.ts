@@ -3,7 +3,6 @@ import {
   CUSTOM_ELEMENTS_SCHEMA,
   Component,
   ElementRef,
-  HostListener,
   ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -11,7 +10,6 @@ import { Square } from '../../helpers/square';
 import {
   leftCoordHitbox,
   bullet,
-  enemy,
   point,
   destination,
   enemyBullet,
@@ -22,22 +20,14 @@ import { FormsModule } from '@angular/forms';
 import { InputService } from '../services/input/input.service';
 import { SoundService } from '../services/sound/sound.service';
 import {
-  DEFAULT_ENEMY_HITBOX_SIZE,
   Enemy,
   LinearMovementEnemy,
   enemySprites,
 } from '../../helpers/enemies';
 import { MovingStuff } from '../../helpers/moving-stuff';
-import { animate, style, transition, trigger } from '@angular/animations';
-const REDGUY_HITBOX_SIZE = 10;
-const REDGUY_START_POS = { x: 245, y: 400 };
-
-enum playerState {
-  normal = 'normal',
-  dead = 'dead',
-  respawning = 'respawning',
-  invincible = 'invincible',
-}
+import { BackgroundService } from '../services/3d/background.service';
+import { Scene } from '@babylonjs/core';
+import { Player } from '../actors/player';
 
 @Component({
   selector: 'app-shmup',
@@ -47,35 +37,16 @@ enum playerState {
   styleUrl: './shmup.component.scss',
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
+
 export class ShmupComponent implements AfterViewInit {
   gamePaused = false;
   shmupWidthPx = 515;
   shmupHeightPx = 600;
-  redGuyDimPx = { width: 30, height: 50 };
-  redGuyPos = { xPos: REDGUY_START_POS.x, yPos: REDGUY_START_POS.y };
-  redGuyHitboxStartPos = {
-    x:
-      this.redGuyPos.xPos + this.redGuyDimPx.width / 2 - REDGUY_HITBOX_SIZE / 2,
-    y:
-      this.redGuyPos.yPos +
-      this.redGuyDimPx.height / 2 -
-      REDGUY_HITBOX_SIZE / 2,
-  };
-  redGuyLives = 3;
-  redGuyState = playerState.normal;
+  player: Player;
 
-  redGuyHitBox: leftCoordHitbox = {
-    width: REDGUY_HITBOX_SIZE,
-    height: REDGUY_HITBOX_SIZE,
-    xPos: this.redGuyHitboxStartPos.x,
-    yPos: this.redGuyHitboxStartPos.y,
-  };
   volumeSliderChoice = 20;
 
-  allowedToFire = true;
-  vel = 7;
-
-  redGuyBullets: bullet[] = [];
+  playerBullets: bullet[] = [];
   enemies: Enemy[] = [];
   enemyBullets: enemyBullet[] = [];
   enemyDeathSprites: leftCoordHitbox[] = [];
@@ -88,11 +59,22 @@ export class ShmupComponent implements AfterViewInit {
   animationState = 'running';
 
   //spawn times are in seconds, later mapped to ticks for precision
-  spawnTimes = [[2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10], [12, 13, 14],[15],[17]];
+  spawnTimes = [[2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10], [12, 13, 14], [15], [17]];
 
-  constructor(public inputServ: InputService, public soundServ: SoundService) {}
+  @ViewChild('rCanvas', {static: true})
+  canvasRef: ElementRef<HTMLCanvasElement> | undefined;
+  
+  private scene: Scene | undefined;
+
+  constructor(public bgService: BackgroundService, public inputServ: InputService, public soundServ: SoundService) { 
+    this.player = new Player(inputServ, soundServ, this.shmupWidthPx, this.shmupHeightPx);
+  }
 
   async ngAfterViewInit() {
+    if(this.canvasRef){
+      this.scene = this.bgService.CreateScene(this.canvasRef.nativeElement);
+    }
+
     this.setupEnemySpawnTimes();
 
     await this.waitForSoundsToLoad();
@@ -133,18 +115,22 @@ export class ShmupComponent implements AfterViewInit {
   }
 
   update() {
+
     this.animationState = this.gamePaused ? 'paused' : 'running';
     if (!this.gamePaused) {
+      if(this.scene){
+        this.bgService.updateBG1(this.scene);
+      }
       this.soundServ.setVolume(this.volumeSliderChoice);
       this.tick++;
       this.timers();
       this.spawnEnemiesOnTimer();
-      this.handleMovement();
+      this.player.handleMovement();
       this.handleFiring();
       this.moveBullets();
       this.moveEnemies();
       this.checkBulletEnemyCollision();
-      this.checkBulletPlayerCollision();
+      this.player.checkBulletPlayerCollision(this.enemyBullets);
     }
 
     setTimeout(() => this.update(), 16);
@@ -156,68 +142,6 @@ export class ShmupComponent implements AfterViewInit {
       setInterval(() => {
         this.stageTimeDisplay++;
       }, 10);
-    }
-  }
-
-  handleMovement() {
-    if (this.redGuyState !== playerState.normal) {
-      return;
-    }
-
-    if (this.inputServ.keysDown.right) {
-      this.redGuyPos.xPos += this.vel;
-    }
-    if (this.inputServ.keysDown.left) {
-      this.redGuyPos.xPos -= this.vel;
-    }
-    if (this.inputServ.keysDown.up) {
-      this.redGuyPos.yPos -= this.vel;
-    }
-    if (this.inputServ.keysDown.down) {
-      this.redGuyPos.yPos += this.vel;
-    }
-
-    this.redGuyHitBox.xPos =
-      this.redGuyPos.xPos +
-      this.redGuyDimPx.width / 2 -
-      this.redGuyHitBox.width / 2;
-    this.redGuyHitBox.yPos =
-      this.redGuyPos.yPos +
-      this.redGuyDimPx.height / 2 -
-      this.redGuyHitBox.height / 2;
-
-    this.preventOutOfBounds();
-  }
-
-  private preventOutOfBounds() {
-    if (this.redGuyHitBox.xPos + this.redGuyHitBox.width > this.shmupWidthPx) {
-      //reset hitbox position to right edge of screen
-      this.redGuyHitBox.xPos = this.shmupWidthPx - this.redGuyHitBox.width;
-      this.redGuyPos.xPos =
-        this.shmupWidthPx -
-        this.redGuyDimPx.width / 2 -
-        this.redGuyHitBox.width / 2;
-    } else if (this.redGuyHitBox.xPos < 0) {
-      //reset hitbox position to left edge of screen
-      this.redGuyHitBox.xPos = 0;
-      this.redGuyPos.xPos =
-        0 - this.redGuyDimPx.width / 2 + this.redGuyHitBox.width / 2;
-    }
-    if (
-      this.redGuyHitBox.yPos + this.redGuyHitBox.height >
-      this.shmupHeightPx
-    ) {
-      //reset hitbox position to bottom edge of screen
-      this.redGuyHitBox.yPos = this.shmupHeightPx - this.redGuyHitBox.height;
-      this.redGuyPos.yPos =
-        this.shmupHeightPx -
-        this.redGuyDimPx.height / 2 -
-        this.redGuyHitBox.height / 2;
-    } else if (this.redGuyHitBox.yPos < 0) {
-      //reset hitbox position to top edge of screen
-      this.redGuyHitBox.yPos = 0;
-      this.redGuyPos.yPos =
-        0 - this.redGuyDimPx.height / 2 + this.redGuyHitBox.height / 2;
     }
   }
 
@@ -233,37 +157,10 @@ export class ShmupComponent implements AfterViewInit {
   // }
 
   handleFiring() {
-    if (
-      this.inputServ.keysDown.shoot &&
-      this.allowedToFire &&
-      this.redGuyState === playerState.normal
-    ) {
-      setTimeout(() => {
-        this.allowedToFire = true;
-      }, 50);
-      let freshBullet1: bullet = {
-        hitbox: {
-          xPos: this.redGuyHitBox.xPos - 13,
-          yPos: this.redGuyHitBox.yPos + 10,
-          width: 15,
-          height: 20,
-        },
-        speed: 16,
-        damage: 1,
-      };
-      let freshBullet2: bullet = {
-        hitbox: {
-          xPos: this.redGuyHitBox.xPos + 8,
-          yPos: this.redGuyHitBox.yPos + 10,
-          width: 15,
-          height: 20,
-        },
-        speed: 16,
-        damage: 1,
-      };
-      this.redGuyBullets.push(freshBullet1, freshBullet2);
-      this.allowedToFire = false;
+    let playerShots = this.player.playerFiring();
+    if(playerShots){
       this.soundServ.shootingSound.play();
+      playerShots.forEach(shot => {this.playerBullets.push(shot);});
     }
 
     //Handle enemy firing
@@ -272,7 +169,7 @@ export class ShmupComponent implements AfterViewInit {
         let target: point = { x: 0, y: 0 };
 
         if (enemy.bulletBehavior === bulletBehavior.atPlayer) {
-          target = { x: this.redGuyHitBox.xPos, y: this.redGuyHitBox.yPos };
+          target = { x: this.player.hitbox.xPos, y: this.player.hitbox.yPos };
         } else if (enemy.bulletBehavior === bulletBehavior.atPoint) {
           target = { x: enemy.shootWhere.x, y: enemy.shootWhere.y };
         } else if (enemy.bulletBehavior === bulletBehavior.atBottom) {
@@ -285,7 +182,7 @@ export class ShmupComponent implements AfterViewInit {
   }
 
   private spawnEnemyBullet(enemy: Enemy, target: point) {
-    if(enemy.bulletPattern === bulletPattern.single){
+    if (enemy.bulletPattern === bulletPattern.single) {
       let newBullet: enemyBullet = {
         hitbox: {
           xPos: enemy.hitbox.xPos + Math.round(enemy.hitbox.width / 3),
@@ -311,7 +208,7 @@ export class ShmupComponent implements AfterViewInit {
         dest
       );
       this.enemyBullets.push(newBullet);
-    } else if (enemy.bulletPattern === bulletPattern.laser){
+    } else if (enemy.bulletPattern === bulletPattern.laser) {
       let newLaser: enemyBullet = {
         hitbox: {
           xPos: enemy.hitbox.xPos + Math.round(enemy.hitbox.width / 3),
@@ -343,25 +240,25 @@ export class ShmupComponent implements AfterViewInit {
 
   moveBullets() {
     let shouldPop = false;
-    this.redGuyBullets.forEach((bullet) => {
+    this.playerBullets.forEach((bullet) => {
       bullet.hitbox.yPos -= bullet.speed;
       if (bullet.hitbox.yPos < -30) {
         shouldPop = true;
       }
     });
     if (shouldPop) {
-      this.redGuyBullets.shift();
-      this.redGuyBullets.shift();
+      this.playerBullets.shift();
+      this.playerBullets.shift();
     }
 
     //Handle enemy bullet paths
     this.enemyBullets.forEach((bullet) => {
-      if(bullet.pattern === bulletPattern.single){
+      if (bullet.pattern === bulletPattern.single) {
         bullet.hitbox.xPos += bullet.xyVel.x;
         bullet.hitbox.yPos += bullet.xyVel.y;
-      } else if (bullet.pattern === bulletPattern.laser){
+      } else if (bullet.pattern === bulletPattern.laser) {
         bullet.hitbox.height += bullet.xyVel.y;
-        if(bullet.hitbox.height > this.shmupHeightPx + 100){
+        if (bullet.hitbox.height > this.shmupHeightPx + 100) {
           bullet.hitbox.yPos += bullet.xyVel.y;
         }
       }
@@ -466,11 +363,11 @@ export class ShmupComponent implements AfterViewInit {
 
     if (this.spawnTimes[3].includes(this.tick)) {
       const fromAbove: destination = {
-        loc: { x: Math.round(this.shmupWidthPx/2) - 15, y: 200 },
+        loc: { x: Math.round(this.shmupWidthPx / 2) - 15, y: 200 },
         speed: 8,
         timeAtDestMs: 5000,
       };
-      const leave: destination = { loc: { x: Math.round(this.shmupWidthPx/2) - 15, y: 1000 }, speed: 4, timeAtDestMs: 2000 };
+      const leave: destination = { loc: { x: Math.round(this.shmupWidthPx / 2) - 15, y: 1000 }, speed: 4, timeAtDestMs: 2000 };
       let topToBottom = new LinearMovementEnemy(
         enemySprites.cheeseCanon,
         [fromAbove, leave],
@@ -480,7 +377,7 @@ export class ShmupComponent implements AfterViewInit {
         bulletPattern.laser,
         { x: 0, y: 1000 }
       );
-      topToBottom.changeStartingPos(Math.round(this.shmupWidthPx/2) - 15, -50);
+      topToBottom.changeStartingPos(Math.round(this.shmupWidthPx / 2) - 15, -50);
       this.enemies.push(topToBottom);
     }
   }
@@ -535,11 +432,11 @@ export class ShmupComponent implements AfterViewInit {
 
   checkBulletEnemyCollision() {
     this.enemies.forEach((enemy, i) => {
-      this.redGuyBullets.forEach((bullet, j) => {
+      this.playerBullets.forEach((bullet, j) => {
         let bulletSquare = new Square(bullet.hitbox);
         let enemySquare = new Square(enemy.hitbox);
         if (Square.checkSquareOverlap(bulletSquare, enemySquare)) {
-          this.redGuyBullets.splice(j, 1);
+          this.playerBullets.splice(j, 1);
           enemy.health -= bullet.damage;
           this.soundServ.damageSound.play();
           if (enemy.health <= 0) {
@@ -554,44 +451,5 @@ export class ShmupComponent implements AfterViewInit {
     this.enemyDeathSprites.push(this.enemies[i].hitbox);
     this.enemies.splice(i, 1);
     this.soundServ.enemyDeath.play();
-  }
-
-  checkBulletPlayerCollision() {
-    for (let bullet of this.enemyBullets) {
-      let bulletSquare = new Square(bullet.hitbox);
-      let redguySquare = new Square(this.redGuyHitBox);
-      if (
-        this.redGuyState === playerState.normal &&
-        Square.checkSquareOverlap(bulletSquare, redguySquare)
-      ) {
-        this.killPlayer();
-        this.soundServ.playerDeath.play();
-      }
-    }
-  }
-
-  urDead = false;
-  hideRedGuy = false;
-
-  killPlayer() {
-    this.redGuyState = playerState.respawning;
-    this.redGuyLives--;
-    this.hideRedGuy = true;
-    if (this.redGuyLives > 0) {
-      setTimeout(() => {
-        this.redGuyPos.xPos = REDGUY_START_POS.x;
-        this.redGuyPos.yPos = REDGUY_START_POS.y;
-
-        this.redGuyHitBox.xPos = this.redGuyHitboxStartPos.x;
-        this.redGuyHitBox.yPos = this.redGuyHitboxStartPos.y;
-        this.hideRedGuy = false;
-        this.redGuyState = playerState.normal;
-      }, 2000);
-    } else {
-      this.redGuyState = playerState.dead;
-      setTimeout(() => {
-        this.urDead = true;
-      }, 2000);
-    }
   }
 }
