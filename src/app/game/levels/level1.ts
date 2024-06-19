@@ -54,7 +54,7 @@ export const spawnMapLevel1 = [
             },
 
         ],
-        times: [10, 10.25, 10.5]
+        times: [10, 10.2, 10.4]
     },
     {
         name: EnemyList.Shwoop,
@@ -75,6 +75,6 @@ export const spawnMapLevel1 = [
             },
 
         ],
-        times: [13, 13.25, 13.5]
+        times: [13, 13.2, 13.4]
     },
 ];
