@@ -1,4 +1,4 @@
-import { leftCoordHitbox, bullet, enemy, point } from '../helpers/interfaces';
+import { leftCoordHitbox, bullet, point } from '../helpers/interfaces';
 
 export class Square {
     //Points are arranged clockwise, starting from the top left
@@ -8,10 +8,10 @@ export class Square {
 
     constructor(obj?: leftCoordHitbox){
         if(obj){
-            (this.points[0] = { x: obj.xPos, y: obj.yPos }),
-            (this.points[1] = { x: obj.xPos + obj.width, y: obj.yPos }),
-            (this.points[2] = { x: obj.xPos + obj.width, y: obj.yPos + obj.height }),
-            (this.points[3] = { x: obj.xPos, y: obj.yPos + obj.height }),
+            (this.points[0] = obj.pos),
+            (this.points[1] = { x: obj.pos.x + obj.width, y: obj.pos.y }),
+            (this.points[2] = { x: obj.pos.x + obj.width, y: obj.pos.y + obj.height }),
+            (this.points[3] = { x: obj.pos.x, y: obj.pos.y + obj.height }),
             (this.edges[0] = this.calcVector(this.points[0], this.points[1]));
           this.edges[1] = this.calcVector(this.points[1], this.points[2]);
           this.edges[2] = this.calcVector(this.points[2], this.points[3]);
@@ -20,10 +20,10 @@ export class Square {
     }
   
     translateTopLeftCoordHitboxToPoints(obj: leftCoordHitbox) {
-      (this.points[0] = { x: obj.xPos, y: obj.yPos }),
-        (this.points[1] = { x: obj.xPos + obj.width, y: obj.yPos }),
-        (this.points[2] = { x: obj.xPos + obj.width, y: obj.yPos + obj.height }),
-        (this.points[3] = { x: obj.xPos, y: obj.yPos + obj.height }),
+      (this.points[0] = obj.pos),
+        (this.points[1] = { x: obj.pos.x + obj.width, y: obj.pos.y }),
+        (this.points[2] = { x: obj.pos.x + obj.width, y: obj.pos.y + obj.height }),
+        (this.points[3] = { x: obj.pos.x, y: obj.pos.y + obj.height }),
         (this.edges[0] = this.calcVector(this.points[0], this.points[1]));
       this.edges[1] = this.calcVector(this.points[1], this.points[2]);
       this.edges[2] = this.calcVector(this.points[2], this.points[3]);
@@ -80,6 +80,7 @@ export class Square {
               bmin = dot;
             }
           }
+
           // stupid typescript hack
           if (amin === null) {
             amin = 10000;

@@ -1,7 +1,9 @@
-<div id="shmupZone" style="margin-top: 15px; margin-left: 20px" [style.width.px]="[shmupWidthPx]"
-  [style.height.px]="[shmupHeightPx]">
-  <canvas #rCanvas id="rCanvas" [style.width.px]="[shmupWidthPx]"
-  [style.height.px]="[shmupHeightPx]" style="position: absolute; overflow: hidden;">
+<div id="shmupZone" style="margin-top: 15px; margin-left: 20px" [style.width.px]="[widthFromGlobal]"
+  [style.height.px]="[heightFromGlobal]" (click)="printMousePos($event)">
+  <canvas #rCanvas id="rCanvas" [style.width.px]="[widthFromGlobal]"
+  [style.height.px]="[heightFromGlobal]" style="position: absolute; overflow: hidden;">
+  </canvas>
+  <canvas #2DCanvas id="2DCanvas" style="position: absolute; overflow: hidden;">
   </canvas>
   <!--Pre-loads these asset-->
   <img src="/assets/ratufo.gif" />
@@ -21,31 +23,31 @@
   <h1 *ngIf="this.player.state === 'dead'" style="position: absolute; margin-top: 400px; margin-left: 200px">
     U die
   </h1>
-  <div id="redguy" [style.left.px]="[player.position.xPos]" [style.top.px]="[player.position.yPos]" [hidden]="player.hidden"></div>
-  <div id="redguyHitbox" [style.left.px]="[player.hitbox.xPos]" [style.top.px]="[player.hitbox.yPos]"
+  <div id="redguy" [style.left.px]="[player.position.x]" [style.top.px]="[player.position.y]" [hidden]="player.hidden"></div>
+  <div id="redguyHitbox" [style.left.px]="[player.hitbox.pos.x]" [style.top.px]="[player.hitbox.pos.y]"
     [hidden]="player.hidden"></div>
   <div *ngFor="let bullet of this.playerBullets">
-    <div class="bullet" [style.left.px]="[bullet.hitbox.xPos]" [style.top.px]="[bullet.hitbox.yPos]"></div>
+    <div class="bullet" [style.left.px]="[bullet.hitbox.pos.x]" [style.top.px]="[bullet.hitbox.pos.y]"></div>
   </div>
   <div *ngFor="let bullet of this.enemyBullets">
-    <div class="enemybullet" [style.left.px]="[bullet.hitbox.xPos]" [style.top.px]="[bullet.hitbox.yPos]"
+    <div class="enemybullet" [style.left.px]="[bullet.hitbox.pos.x]" [style.top.px]="[bullet.hitbox.pos.y]"
       [style.width.px]="[bullet.hitbox.width]" [style.height.px]="[bullet.hitbox.height]"></div>
   </div>
   <div *ngFor="let enemy of this.enemies">
     <!-- <img [src]="[enemy.sprite]" [style.left.px]="[enemy.hitbox.xPos]" [style.top.px]="[enemy.hitbox.yPos]"
       [style.width.px]="[enemy.hitbox.width * 2]" [style.height.px]="[enemy.hitbox.height * 2]"
       style="position: absolute; transform: translate(-25%, -25%)" /> -->
-    <div class="enemy" [style.left.px]="[enemy.hitbox.xPos]" [style.top.px]="[enemy.hitbox.yPos]"
+    <div class="enemy" [style.left.px]="[enemy.hitbox.pos.x]" [style.top.px]="[enemy.hitbox.pos.y]"
       [style.width.px]="[enemy.hitbox.width]" [style.height.px]="[enemy.hitbox.height]" style="opacity: 0.5"></div>
   </div>
   <div *ngFor="let deadEnemy of this.enemyDeathSprites">
-    <div class="deathShape" [style.left.px]="[deadEnemy.xPos]" [style.top.px]="[deadEnemy.yPos]"></div>
+    <div class="deathShape" [style.left.px]="[deadEnemy.pos.x]" [style.top.px]="[deadEnemy.pos.y]"></div>
   </div>
 </div>
 <div id="statsZone" style="margin-top: 15px; margin-left: 575px">
   <h1 style="color: aliceblue">TYPESHIP</h1>
-  <h2>xPOS: {{ player.hitbox.xPos }}</h2>
-  <h2>yPOS: {{ player.hitbox.yPos }}</h2>
+  <h2>xPOS: {{ player.hitbox.pos.x }}</h2>
+  <h2>yPOS: {{ player.hitbox.pos.y }}</h2>
   <h2>Time: {{ (stageTimeDisplay / 100).toFixed(2) }}</h2>
   <h2>FPS: {{ frameRate }}</h2>
   <h2>Volume</h2>

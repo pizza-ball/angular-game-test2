@@ -4,8 +4,7 @@ export interface point {
 }
 
 export interface leftCoordHitbox {
-  xPos: number;
-  yPos: number;
+  pos: point,
   width: number;
   height: number;
 }
@@ -16,39 +15,19 @@ export interface bullet {
   damage: number;
 }
 
-export interface destination {
-  loc: point,
-  timeAtDestMs?: number
-  speed?: number,
+//Starting position is assumed to be provided by the moving object.
+//linePath is the default path.
+export interface linePath {
+  dest: point,
+  speed: number
 }
 
-export interface enemy {
-  hitbox: leftCoordHitbox;
-  speed: number;
-  health: number;
-  path: destination[];
-  firingSeconds: number[];
+export interface curvePath {
+  dest: point,
+  control: point,
+  speed: number
 }
 
-export enum bulletBehavior{
-  atPlayer = 'atPlayer',
-  atPoint = 'atPoint',
-  atBottom = 'atBottom',
-  playerHoming = 'playerHoming',
+export function isCurve(object: any): object is curvePath {
+  return 'control' in object;
 }
-
-export enum bulletPattern{
-  single = 'single',
-  laser = 'laser'
-}
-
-export interface enemyBullet {
-  hitbox: leftCoordHitbox;
-  speed: number;
-  xyVel: point;
-  damage: number;
-  destination: point;
-  behavior: bulletBehavior;
-  pattern: bulletPattern;
-}
-
