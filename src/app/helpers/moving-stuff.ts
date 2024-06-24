@@ -71,4 +71,12 @@ export class MovingStuff {
             return Math.floor(Math.random() * max);
         }
     }
+
+    static calculateRadianAngleBetweenTwoPoints(p1x: number, p1y: number, p2x: number, p2y: number){
+        return Math.atan2(p2y - p1y, p2x - p1x);
+    }
+
+    static calculateXYVelocityInRadianAngle(angle: number, speed: number): point{
+        return {x: speed * Math.cos(angle), y: speed * Math.sin(angle)};
+    }
 }

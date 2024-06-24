@@ -52,8 +52,6 @@ export class ShmupComponent implements AfterViewInit {
   frameRate = 0;
   animationState = 'running';
 
-  //spawn times are in seconds, later mapped to ticks for precision
-  spawnTimes = [[2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10], [12, 13, 14], [15], [17]];
   generatedSpawnTimes: number[] = [];
 
   @ViewChild('rCanvas', { static: true })
@@ -130,10 +128,11 @@ export class ShmupComponent implements AfterViewInit {
       this.timers();
       this.checkForEnemySpawn(this.tick);
       this.player.handleMovement();
-      this.handleFiring();
+      this.moveAllEnemies();
+      this.handlePlayerShooting();
+      this.handleEnemyShooting(this.tick, this.player.hitbox.pos);
       this.movePlayerBullets();
       this.moveEnemyBullets();
-      this.moveAllEnemies();
       this.checkBulletEnemyCollision();
       this.player.checkBulletPlayerCollision(this.enemyBullets);
 
@@ -154,17 +153,23 @@ export class ShmupComponent implements AfterViewInit {
     }
   }
 
-  handleFiring() {
+  handlePlayerShooting(){
     let playerShots = this.player.playerFiring();
     if (playerShots) {
       this.soundServ.shootingSound.play();
       playerShots.forEach(shot => { this.playerBullets.push(shot); });
     }
+  }
 
+  handleEnemyShooting(tick: number, playerPos: point){
     this.enemies.forEach((enemy) => {
-      let fired = enemy.shoot(this.tick, this.player.hitbox.pos);
+      let fired = enemy.shoot(tick, playerPos);
       if (fired) {
-        this.enemyBullets.push(fired);
+        if(Array.isArray(fired)){
+          this.enemyBullets.push(...fired);
+        } else {
+          this.enemyBullets.push(fired);
+        }
       }
     });
   }

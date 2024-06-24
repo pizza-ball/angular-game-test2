@@ -12,6 +12,7 @@ export class InputService {
     left: false,
     shoot: false,
     pause: false,
+    shift: false,
   };
 
   keysUp = {
@@ -20,7 +21,7 @@ export class InputService {
 
   $paused: Subject<boolean> = new Subject<boolean>();
 
-  constructor() {}
+  constructor() { }
 
   keyDownHandler(key: string) {
     switch (key) {
@@ -39,8 +40,11 @@ export class InputService {
       case 'k':
         this.keysDown.shoot = true;
         break;
+      case 'shift':
+        this.keysDown.shift = true;
+        break;
       case 'p':
-        if(this.keysUp.pause){
+        if (this.keysUp.pause) {
           this.keysDown.pause = !this.keysDown.pause;
           this.keysUp.pause = false;
           this.$paused.next(this.keysDown.pause);
@@ -68,6 +72,9 @@ export class InputService {
         break;
       case 'p':
         this.keysUp.pause = true;
+        break;
+      case 'shift':
+        this.keysDown.shift = false;
         break;
     }
   }

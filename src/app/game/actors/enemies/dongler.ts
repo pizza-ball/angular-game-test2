@@ -14,7 +14,7 @@ export class Dongler {
     public id = uuidv4();
     WIDTH = 30;
     HEIGHT = 30;
-    tickToShoot = 2 * TICKS_PER_SECOND;
+    tickToShoot = 4 * TICKS_PER_SECOND;
     hitbox: leftCoordHitbox;
     health = 5;
     flagForDeletion = false;
@@ -43,11 +43,11 @@ export class Dongler {
         }
     }
 
-    //This is no good. Enemies should not be passed values besides tick. Intermediary class needed? Something that can pull data from Player
-    shoot(currentTick: number, dest: point): SimpleBullet | null {
+    shoot(currentTick: number, playerPos: point): SimpleBullet | null {
         const ticksSinceCreation = currentTick - this.creationTick;
         if(ticksSinceCreation === this.tickToShoot){
-            return new SimpleBullet(currentTick, Object.create(this.hitbox.pos), dest);
+            const angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(this.hitbox.pos.x, this.hitbox.pos.y, playerPos.x, playerPos.y);
+            return new SimpleBullet(Object.create(this.hitbox.pos), angleToPlayer);
         }
         return null;
     }

@@ -5,22 +5,22 @@ import { MovingStuff } from "../../../helpers/moving-stuff";
 
 // Very basic projectile.
 export class SimpleBullet {
-    WIDTH = 5;
-    HEIGHT = 5;
+    WIDTH = 10;
+    HEIGHT = 10;
     speed = 5;
     xyTranslates: point;
     hitbox: leftCoordHitbox;
     constructor(
-        private creationTick: number,
         private startPos: point,
-        private target: point
+        private angleInRadians: number,
     ) {
         this.hitbox = {
             pos: startPos,
             width: this.WIDTH,
             height: this.HEIGHT,
         };
-        this.xyTranslates = MovingStuff.getXYVelocityTowardDestWithGivenSpeed(this.speed, startPos, target);
+        // this.xyTranslates = MovingStuff.getXYVelocityTowardDestWithGivenSpeed(this.speed, startPos, target);
+        this.xyTranslates = MovingStuff.calculateXYVelocityInRadianAngle(angleInRadians, this.speed);
     }
 
     move() {

@@ -31,10 +31,11 @@ export class Player {
     state = playerState.normal;
     allowedToFire = true;
     moveVel = 7;
+    focusMoveVel = 3.5;
     hidden = false;
 
     constructor(private inputServ: InputService, private soundServ: SoundService, playSpaceWidth: number, playSpaceHeight: number) {
-        this.state = playerState.normal;
+        this.state = playerState.invincible;
         this.hitbox = {
             pos: {
                 x: this.hitboxStartPos.x,
@@ -48,21 +49,26 @@ export class Player {
     }
 
     handleMovement() {
-        if (this.state !== playerState.normal) {
+        if (this.state === playerState.dead) {
             return;
+        }
+        
+        let speed = this.moveVel;
+        if (this.inputServ.keysDown.shift) {
+            speed = this.focusMoveVel;
         }
 
         if (this.inputServ.keysDown.right) {
-            this.position.x += this.moveVel;
+            this.position.x += speed;
         }
         if (this.inputServ.keysDown.left) {
-            this.position.x -= this.moveVel;
+            this.position.x -= speed;
         }
         if (this.inputServ.keysDown.up) {
-            this.position.y -= this.moveVel;
+            this.position.y -= speed;
         }
         if (this.inputServ.keysDown.down) {
-            this.position.y += this.moveVel;
+            this.position.y += speed;
         }
 
         this.hitbox.pos.x =
@@ -114,7 +120,7 @@ export class Player {
         if (
             this.inputServ.keysDown.shoot &&
             this.allowedToFire &&
-            this.state === playerState.normal
+            this.state !== playerState.dead
         ) {
             setTimeout(() => {
                 this.allowedToFire = true;

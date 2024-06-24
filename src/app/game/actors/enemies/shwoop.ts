@@ -3,6 +3,7 @@ import { MovingStuff } from "../../../helpers/moving-stuff";
 import { DEBUG_MODE, TICKS_PER_SECOND } from "../../globals";
 import { DrawingStuff } from "../../../helpers/drawing-stuff";
 import { v4 as uuidv4 } from 'uuid';
+import { SimpleBullet } from "../bullets/simple-bullet";
 
 
 // Shwoop is an enemy that moves linearly, then in an arc. Repeat.
@@ -11,7 +12,7 @@ export class Shwoop {
     public id = uuidv4();
     WIDTH = 30;
     HEIGHT = 30;
-    tickToShoot = TICKS_PER_SECOND;
+    ticksToShoot = [1*TICKS_PER_SECOND];//, 1.2*TICKS_PER_SECOND, 1.4*TICKS_PER_SECOND];
     hitbox: leftCoordHitbox;
     health = 5;
     flagForDeletion = false;
@@ -65,7 +66,7 @@ export class Shwoop {
         const t = this.distanceTraveled / this.lengthApproxCalc;
 
         if (t > 1) {
-            console.log("dest reached, resetting all local variables");
+            //console.log("dest reached, resetting all local variables");
             this.lengthApproxCalc = 0;
             this.distanceTraveled = 0;
             this.path.shift();
@@ -74,18 +75,20 @@ export class Shwoop {
         }
     }
 
-    shoot(currentTick: number, dest: point) {
-        return;
+    shoot(currentTick: number, playerPos: point): SimpleBullet | SimpleBullet[] | null {
+        const ticksSinceCreation = currentTick - this.creationTick;
+        if(this.ticksToShoot.includes(ticksSinceCreation)){
+            const angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(this.hitbox.pos.x, this.hitbox.pos.y, playerPos.x, playerPos.y);
+            const leftAngle = angleToPlayer - (15)*(Math.PI/180);
+            const rightAngle = angleToPlayer + (15)*(Math.PI/180);
+            return [
+                new SimpleBullet(Object.create(this.hitbox.pos), angleToPlayer),
+                new SimpleBullet(Object.create(this.hitbox.pos), leftAngle),
+                new SimpleBullet(Object.create(this.hitbox.pos), rightAngle)
+            ];
+        }
+        return null;
     }
-
-    // shoot(currentTick: number, dest: point): SimpleBullet | null {
-    //     const ticksSinceCreation = currentTick - this.creationTick;
-    //     const hitboxCopy = {x: this.hitbox.pos.x, y: this.hitbox.pos.y}; //Necessary to prevent pass-by-reference jank
-    //     if(ticksSinceCreation === this.tickToShoot){
-    //         return new SimpleBullet(currentTick, hitboxCopy, dest);
-    //     }
-    //     return null;
-    // }
 
     called = false;
     debugDrawPath(ctx: CanvasRenderingContext2D) {

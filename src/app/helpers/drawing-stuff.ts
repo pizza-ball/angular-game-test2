@@ -51,7 +51,7 @@ export class DrawingStuff {
         ctx.lineTo(eX, eY);
         ctx.strokeStyle = 'red';
         ctx.stroke();
-        console.log("Drew a line from " + sX + ", " + sY + "to " + eX + ", " + eY);
+        //console.log("Drew a line from " + sX + ", " + sY + "to " + eX + ", " + eY);
     }
 
     static drawCurve(ctx: CanvasRenderingContext2D, sX: number, sY: number, eX: number, eY: number, cX: number, cY: number) {
@@ -84,7 +84,7 @@ export class DrawingStuff {
         ctx.quadraticCurveTo(cX, cY, eX, eY);
         ctx.strokeStyle = 'red';
         ctx.stroke();
-        console.log("Drew a curve from " + sX + ", " + sY + "to " + eX + ", " + eY);
+        //console.log("Drew a curve from " + sX + ", " + sY + "to " + eX + ", " + eY);
     }
 
     static deleteElementsAndRedraw(ctx: CanvasRenderingContext2D, uuid: string){
