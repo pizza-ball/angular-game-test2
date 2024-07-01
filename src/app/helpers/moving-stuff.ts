@@ -1,3 +1,4 @@
+import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from "../game/globals";
 import { point } from "./interfaces";
 
 export class MovingStuff {
@@ -72,11 +73,29 @@ export class MovingStuff {
         }
     }
 
-    static calculateRadianAngleBetweenTwoPoints(p1x: number, p1y: number, p2x: number, p2y: number){
+    static calculateRadianAngleBetweenTwoPoints(p1x: number, p1y: number, p2x: number, p2y: number) {
         return Math.atan2(p2y - p1y, p2x - p1x);
     }
 
-    static calculateXYVelocityInRadianAngle(angle: number, speed: number): point{
-        return {x: speed * Math.cos(angle), y: speed * Math.sin(angle)};
+    static calculateXYVelocityInRadianAngle(angle: number, speed: number): point {
+        return { x: speed * Math.cos(angle), y: speed * Math.sin(angle) };
+    }
+
+    static isHitboxOutsidePlayArea(p1x: number, p1y: number, height: number, width: number) {
+        if ((p1x > PLAYFIELD_WIDTH ||
+            p1x + width < 0) ||
+            (p1y > PLAYFIELD_HEIGHT ||
+            p1y + height < 0)
+        ) {
+            return true;
+        }
+        return false;
+    }
+
+    static isHitboxisBelowBottomBound(p1y: number) {
+        if (p1y > PLAYFIELD_HEIGHT) {
+            return true;
+        }
+        return false;
     }
 }

@@ -20,11 +20,12 @@ export class Dongler {
     flagForDeletion = false;
     constructor(
         private creationTick: number,
-        private startPos: point,
+        private startX: number,
+        private startY: number,
         private path: linePath[],
     ) {
         this.hitbox = {
-            pos: this.startPos,
+            pos: {x: startX, y: startY},
             width: this.WIDTH,
             height: this.HEIGHT,
         };
@@ -55,14 +56,14 @@ export class Dongler {
     called = false;
     debugDrawPath(ctx: CanvasRenderingContext2D){
         if(!this.called){
-            DrawingStuff.requestLineDraw(this.id, ctx, this.startPos.x, this.startPos.y, this.path[0].dest.x, this.path[0].dest.y);
+            DrawingStuff.requestLineDraw(this.id, ctx, this.startX, this.startY, this.path[0].dest.x, this.path[0].dest.y);
             this.called = true;
         }
     }
 
     cleanUp(ctx: CanvasRenderingContext2D){
         if(DEBUG_MODE){
-            DrawingStuff.deleteElementsAndRedraw(ctx, this.id);
+            DrawingStuff.deleteElementFromMemory(this.id);
         }
     }
 }

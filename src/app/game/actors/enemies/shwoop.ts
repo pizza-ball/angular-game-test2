@@ -18,11 +18,12 @@ export class Shwoop {
     flagForDeletion = false;
     constructor(
         private creationTick: number,
-        private startPos: point,
+        private startX: number,
+        private startY: number,
         private path: (linePath | curvePath)[]
     ) {
         this.hitbox = {
-            pos: this.startPos,
+            pos: {x: startX, y: startY},
             width: this.WIDTH,
             height: this.HEIGHT,
         };
@@ -92,7 +93,7 @@ export class Shwoop {
 
     called = false;
     debugDrawPath(ctx: CanvasRenderingContext2D) {
-        let startPoint = this.startPos;
+        let startPoint = {x: this.startX, y: this.startY};
         if (!this.called) {
             this.path.forEach(segment => {
                 if (isCurve(segment)) {
@@ -108,9 +109,8 @@ export class Shwoop {
     }
 
     cleanUp(ctx: CanvasRenderingContext2D){
-        DrawingStuff.deleteElementsAndRedraw(ctx, this.id);
         if(DEBUG_MODE){
-            DrawingStuff.deleteElementsAndRedraw(ctx, this.id);
+            DrawingStuff.deleteElementFromMemory(this.id);
         }
     }
 }

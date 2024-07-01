@@ -27,7 +27,7 @@
   <div id="redguyHitbox" [style.left.px]="[player.hitbox.pos.x]" [style.top.px]="[player.hitbox.pos.y]"
     [hidden]="player.hidden"></div>
   <div *ngFor="let bullet of this.playerBullets">
-    <div class="bullet" [style.left.px]="[bullet.hitbox.pos.x]" [style.top.px]="[bullet.hitbox.pos.y]"></div>
+    <div class="bullet" [style.left.px]="[bullet.hitbox.pos.x]" [style.top.px]="[bullet.hitbox.pos.y]" [style.width.px]="[bullet.hitbox.width]" [style.height.px]="[bullet.hitbox.height]"></div>
   </div>
   <div *ngFor="let bullet of this.enemyBullets">
     <div class="enemybullet" [style.left.px]="[bullet.hitbox.pos.x]" [style.top.px]="[bullet.hitbox.pos.y]"
@@ -43,11 +43,17 @@
   <div *ngFor="let deadEnemy of this.enemyDeathSprites">
     <div class="deathShape" [style.left.px]="[deadEnemy.pos.x]" [style.top.px]="[deadEnemy.pos.y]"></div>
   </div>
+  <div *ngFor="let item of this.items">
+    <div class="item" [style.left.px]="[item.hitbox.pos.x]" [style.top.px]="[item.hitbox.pos.y]" 
+    [style.width.px]="[item.hitbox.width]" [style.height.px]="[item.hitbox.height]"></div>
+  </div>
 </div>
 <div id="statsZone" style="margin-top: 15px; margin-left: 575px">
   <h1 style="color: aliceblue">TYPESHIP</h1>
-  <h2>xPOS: {{ player.hitbox.pos.x }}</h2>
-  <h2>yPOS: {{ player.hitbox.pos.y }}</h2>
+  <!-- <h2>xPOS: {{ player.hitbox.pos.x }}</h2>
+  <h2>yPOS: {{ player.hitbox.pos.y }}</h2> -->
+  <h2>Lives {{ player.lives }}</h2>
+  <h2>Power: {{ player.power }}</h2>
   <h2>Time: {{ (stageTimeDisplay / 100).toFixed(2) }}</h2>
   <h2>FPS: {{ frameRate }}</h2>
   <h2>Volume</h2>

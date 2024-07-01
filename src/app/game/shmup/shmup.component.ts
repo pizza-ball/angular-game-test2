@@ -17,12 +17,14 @@ import { InputService } from '../services/input/input.service';
 import { SoundService } from '../services/sound/sound.service';
 import { BackgroundService } from '../services/3d/background.service';
 import { Scene } from '@babylonjs/core';
-import { Player } from '../actors/player';
+import { Player, playerState } from '../actors/player';
 import { EnemySpawn, spawnMapLevel1 } from '../levels/level1';
 import { DEBUG_MODE, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TICKS_PER_SECOND } from '../globals';
 import { Dongler } from '../actors/enemies/dongler';
 import { EnemyList } from '../actors/enemies/enemylist';
 import { Shwoop } from '../actors/enemies/shwoop';
+import { PowerPoint } from '../actors/items/power';
+import { DrawingStuff } from '../../helpers/drawing-stuff';
 
 @Component({
   selector: 'app-shmup',
@@ -45,6 +47,7 @@ export class ShmupComponent implements AfterViewInit {
   enemies: any[] = [];
   enemyBullets: any[] = [];
   enemyDeathSprites: leftCoordHitbox[] = [];
+  items: any[] = [];
 
   stageTimeDisplay = -1;
   tick = 0;
@@ -62,11 +65,25 @@ export class ShmupComponent implements AfterViewInit {
 
   private scene: Scene | undefined;
 
+  private gp: Gamepad | null = null;
+
   constructor(public bgService: BackgroundService, public inputServ: InputService, public soundServ: SoundService) {
     this.player = new Player(inputServ, soundServ, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
   }
 
   async ngAfterViewInit() {
+    window.addEventListener("gamepadconnected", (e) => {
+      this.inputServ.gamepadConnected = true;
+      this.gp = navigator.getGamepads()[e.gamepad.index];
+      console.log(
+        "Gamepad connected at index %d: %s. %d buttons, %d axes.",
+        e.gamepad.index,
+        e.gamepad.id,
+        e.gamepad.buttons.length,
+        e.gamepad.axes.length,
+      );
+    });
+
     if (this.canvasRef) {
       this.scene = this.bgService.CreateScene(this.canvasRef.nativeElement);
     }
@@ -78,7 +95,6 @@ export class ShmupComponent implements AfterViewInit {
     }
 
     this.collectSpawnTimesAndConvertToTicks();
-    // this.setupEnemySpawnTimes();
 
     await this.waitForSoundsToLoad();
     this.soundServ.playMusic('L1');
@@ -86,10 +102,17 @@ export class ShmupComponent implements AfterViewInit {
       this.gamePaused = val;
       this.soundServ.toggleMusicPause(val);
     });
-    //setInterval(() => this.update(), 16);
+
     this.update();
     setInterval(() => this.countFrameRate(), 250);
     this.soundServ.muteAudioToggle();
+  }
+
+  gamepadHandler() {
+    if(this.gp){
+      this.inputServ.stickHandler(this.gp.axes);
+      this.inputServ.buttonHandler(this.gp.buttons);
+    }
   }
 
   async waitForSoundsToLoad() {
@@ -117,6 +140,7 @@ export class ShmupComponent implements AfterViewInit {
   }
 
   update() {
+    this.gamepadHandler();
 
     this.animationState = this.gamePaused ? 'paused' : 'running';
     if (!this.gamePaused) {
@@ -129,15 +153,24 @@ export class ShmupComponent implements AfterViewInit {
       this.checkForEnemySpawn(this.tick);
       this.player.handleMovement();
       this.moveAllEnemies();
+      this.moveItems();
       this.handlePlayerShooting();
       this.handleEnemyShooting(this.tick, this.player.hitbox.pos);
       this.movePlayerBullets();
       this.moveEnemyBullets();
       this.checkBulletEnemyCollision();
       this.player.checkBulletPlayerCollision(this.enemyBullets);
+      this.checkItemPlayerCollision();
 
-      if(DEBUG_MODE){
-        this.debugDrawActorPaths();
+
+      let ctx = this.canvasRef2d?.nativeElement.getContext("2d");
+      if (ctx) {
+        if (DEBUG_MODE) {
+          this.debugDrawActorPaths(ctx);
+          //this.player.debugDrawItemMagnet(ctx);
+        }
+        this.player.debugDrawItemMagnet(ctx);
+        DrawingStuff.clearCanvasAndRedraw(ctx);
       }
     }
 
@@ -153,7 +186,7 @@ export class ShmupComponent implements AfterViewInit {
     }
   }
 
-  handlePlayerShooting(){
+  handlePlayerShooting() {
     let playerShots = this.player.playerFiring();
     if (playerShots) {
       this.soundServ.shootingSound.play();
@@ -161,11 +194,11 @@ export class ShmupComponent implements AfterViewInit {
     }
   }
 
-  handleEnemyShooting(tick: number, playerPos: point){
+  handleEnemyShooting(tick: number, playerPos: point) {
     this.enemies.forEach((enemy) => {
       let fired = enemy.shoot(tick, playerPos);
       if (fired) {
-        if(Array.isArray(fired)){
+        if (Array.isArray(fired)) {
           this.enemyBullets.push(...fired);
         } else {
           this.enemyBullets.push(fired);
@@ -175,24 +208,25 @@ export class ShmupComponent implements AfterViewInit {
   }
 
   movePlayerBullets() {
-    let shouldPop = false;
-    this.playerBullets.forEach((bullet) => {
-      bullet.hitbox.pos.y -= bullet.speed;
-      if (bullet.hitbox.pos.y < -30) {
-        shouldPop = true;
+    for (let i = 0; i < this.playerBullets.length; i++) {
+      this.playerBullets[i].hitbox.pos.y -= this.playerBullets[i].speed;
+      if (this.playerBullets[i].hitbox.pos.y < -30) {
+        this.playerBullets.splice(i, 1);
+        i--;
       }
-    });
-    if (shouldPop) {
-      this.playerBullets.shift();
-      this.playerBullets.shift();
-    }
+    };
   }
 
   moveEnemyBullets() {
-    //Handle enemy bullet paths
-    this.enemyBullets.forEach((bullet) => {
-      bullet.move();
-    });
+    for (let i = 0; i < this.enemyBullets.length; i++) {
+      this.enemyBullets[i].move();
+
+      if (this.enemyBullets[i].flagForDeletion) {
+        //this.enemyBullets[i].cleanUp(this.canvasRef2d?.nativeElement.getContext("2d"));
+        this.enemyBullets.splice(i, 1);
+        i--;
+      }
+    }
   }
 
   collectSpawnTimesAndConvertToTicks() {
@@ -227,10 +261,10 @@ export class ShmupComponent implements AfterViewInit {
   spawnEnemy(enemy: EnemySpawn, currentTick: number) {
     switch (enemy.name) {
       case EnemyList.Dongler:
-        this.enemies.push(new Dongler(currentTick, Object.create(enemy.start), Object.create(enemy.path)));
+        this.enemies.push(new Dongler(currentTick, enemy.start.x, enemy.start.y, Object.create(enemy.path)));
         break;
       case EnemyList.Shwoop:
-        this.enemies.push(new Shwoop(currentTick, Object.create(enemy.start), Object.create(enemy.path)));
+        this.enemies.push(new Shwoop(currentTick, enemy.start.x, enemy.start.y, Object.create(enemy.path)));
         break;
       default:
         console.log("unrecognized enemy.");
@@ -249,6 +283,19 @@ export class ShmupComponent implements AfterViewInit {
       }
     }
 
+  }
+
+  moveItems() {
+    for (let i = 0; i < this.items.length; i++) {
+      this.items[i].move(this.player.hitbox.pos.x, this.player.hitbox.pos.y);
+
+      //deletes enemies that have finished their path
+      if (this.items[i].flagForDeletion) {
+        //this.items[i].cleanUp(this.canvasRef2d?.nativeElement.getContext("2d"));
+        this.items.splice(i, 1);
+        i--;
+      }
+    }
   }
 
   checkBulletEnemyCollision() {
@@ -279,18 +326,47 @@ export class ShmupComponent implements AfterViewInit {
     }
   }
 
+  checkItemPlayerCollision() {
+    for (let i = 0; i < this.items.length; i++) {
+      let item = this.items[i];
+
+      let itemSquare = new Square(item.hitbox);
+      if (!item.flagForCollection &&
+        this.player.state !== playerState.dead &&
+        Square.checkSquareCircleOverlap(itemSquare, this.player.getCenterPoint(), this.player.itemMagnetismRadius)
+      ) {
+        item.flagForCollection = true;
+        break; //item is now in range to scoop. obviously it's not colliding with the player, break early.
+      }
+      let playerSquare = new Square(this.player.hitbox);
+
+      if (this.player.state !== playerState.dead &&
+        Square.checkSquareOverlap(itemSquare, playerSquare)
+      ) {
+        //destroy the item, add it to the player
+        this.player.power += 1;
+        this.items.splice(i, 1);
+        i--;
+      }
+    }
+  }
+
   killEnemy(i: number) {
     this.enemyDeathSprites.push(this.enemies[i].hitbox);
     this.enemies[i].cleanUp(this.canvasRef2d?.nativeElement.getContext("2d"));
     this.soundServ.enemyDeath.play();
+
+    //WIP killing an enemy should drop some amount of powerups, based on the identity of the particular enemy.
+    this.dropItems(i);
   }
 
-  debugDrawActorPaths() {
-    if (this.canvasRef2d) {
-      let ctx = this.canvasRef2d.nativeElement.getContext("2d");
-      this.enemies.forEach(enemy => {
-        enemy.debugDrawPath(ctx);
-      });
-    }
+  dropItems(i: number) {
+    this.items.push(new PowerPoint(this.enemies[i].hitbox.pos.x, this.enemies[i].hitbox.pos.y));
+  }
+
+  debugDrawActorPaths(ctx: CanvasRenderingContext2D) {
+    this.enemies.forEach(enemy => {
+      enemy.debugDrawPath(ctx);
+    });
   }
 }

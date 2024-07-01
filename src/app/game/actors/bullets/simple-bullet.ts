@@ -10,6 +10,7 @@ export class SimpleBullet {
     speed = 5;
     xyTranslates: point;
     hitbox: leftCoordHitbox;
+    flagForDeletion = false;
     constructor(
         private startPos: point,
         private angleInRadians: number,
@@ -26,5 +27,7 @@ export class SimpleBullet {
     move() {
         this.hitbox.pos.x += this.xyTranslates.x;
         this.hitbox.pos.y += this.xyTranslates.y;
+
+        this.flagForDeletion = MovingStuff.isHitboxOutsidePlayArea(this.hitbox.pos.x, this.hitbox.pos.y, this.HEIGHT, this.WIDTH);
     }
 }

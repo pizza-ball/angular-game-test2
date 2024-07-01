@@ -4,6 +4,21 @@ import { v4 } from 'uuid';
 export class DrawingStuff {
     //saves a record of each function call for faster re-draw potential
     static callRecord: any[] = [];
+    static callRecordMap: Map<string, any> = new Map<string, any>();
+
+    static requestCircleDraw(id: string, ctx: CanvasRenderingContext2D, sX: number, sY: number, r: number){
+        this.callRecord.push({
+            id: id,
+            func: this.drawCircle,
+            params: [ctx, sX, sY, r]
+        });
+        
+        // this.callRecordMap.set(id, {
+        //     func: this.drawCircle,
+        //     params: [ctx, sX, sY, r]
+        // });
+        this.drawCircle(ctx, sX, sY, r);
+    }
 
     static requestLineDraw(id: string, ctx: CanvasRenderingContext2D, sX: number, sY: number, eX: number, eY: number){
         this.callRecord.push({
@@ -11,6 +26,13 @@ export class DrawingStuff {
             func: this.drawLine,
             params: [ctx, sX, sY, eX, eY]
         });
+
+        // this.callRecordMap.set(id, {
+        //     func: this.drawLine,
+        //     params: [ctx, sX, sY, eX, eY]
+        // });
+
+
         this.drawLine(ctx, sX, sY, eX, eY);
     }
 
@@ -20,6 +42,13 @@ export class DrawingStuff {
             func: this.drawCurve,
             params: [ctx, sX, sY, eX, eY, cX, cY]
         });
+
+        // this.callRecordMap.set(id, {
+        //     func: this.drawCurve,
+        //     params: [ctx, sX, sY, eX, eY, cX, cY]
+        // });
+
+
         this.drawCurve(ctx, sX, sY, eX, eY, cX, cY);
     }
 
@@ -87,7 +116,32 @@ export class DrawingStuff {
         //console.log("Drew a curve from " + sX + ", " + sY + "to " + eX + ", " + eY);
     }
 
-    static deleteElementsAndRedraw(ctx: CanvasRenderingContext2D, uuid: string){
+    static drawCircle(ctx: CanvasRenderingContext2D, sX: number, sY: number, radius: number) {
+        if (!ctx) {
+            console.error("2D CANVAS IS NULL");
+            return;
+        }
+
+        ctx.beginPath();
+        ctx.arc(sX, sY, radius, 0, 2 * Math.PI, false);
+        ctx.setLineDash([5, 15]);
+        ctx.strokeStyle = 'blue';
+        //ctx.fillStyle = 'red';
+        //ctx.fill();
+        ctx.stroke();
+    }
+
+    static deleteElementFromMemory(uuid: string){
+        for (let i = 0; i < this.callRecord.length; i++) {
+            if(this.callRecord[i].id === uuid){
+                this.callRecord.splice(i, 1);
+                i--;
+            }
+        }
+        //this.callRecordMap.delete(uuid);
+    }
+
+    static clearCanvasAndRedraw(ctx: CanvasRenderingContext2D){
         if (!ctx) {
             console.error("CANNOT CLEAN CANVAS, 2D CANVAS IS NULL");
             return;
@@ -95,15 +149,11 @@ export class DrawingStuff {
 
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-        for (let i = 0; i < this.callRecord.length; i++) {
-            if(this.callRecord[i].id === uuid){
-                this.callRecord.splice(i, 1);
-                i--;
-            }
-        }
-        
-        this.callRecord.forEach((drawCall, i) => {
+        this.callRecord.forEach((drawCall) => {
             drawCall.func(...drawCall.params);
         });
+        // this.callRecordMap.forEach((drawCall) => {
+        //     drawCall.func(...drawCall.params);
+        // });
     }
 }

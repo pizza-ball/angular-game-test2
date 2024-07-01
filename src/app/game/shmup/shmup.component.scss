@@ -76,7 +76,7 @@ h2{
 #redguy{
     width: 30px;
     height: 50px;
-    background-color: red;
+    background-color: rgb(236, 129, 129);
     position: absolute;
 }
 
@@ -89,8 +89,6 @@ h2{
 }
 
 .bullet{
-    width: 15px;
-    height: 20px;
     background-color: blue;
     position: absolute;
 }
@@ -102,6 +100,11 @@ h2{
 
 .enemy{
     background-color: green;
+    position: absolute;
+}
+
+.item{
+    background-color: purple;
     position: absolute;
 }
 
