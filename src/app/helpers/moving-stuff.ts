@@ -1,5 +1,5 @@
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from "../game/globals";
-import { point } from "./interfaces";
+import { leftCoordHitbox, point } from "./interfaces";
 
 export class MovingStuff {
     static moveStartPointTowardDestPoint(speed: number, start: point, dest: point): point {
@@ -77,25 +77,11 @@ export class MovingStuff {
         return Math.atan2(p2y - p1y, p2x - p1x);
     }
 
-    static calculateXYVelocityInRadianAngle(angle: number, speed: number): point {
-        return { x: speed * Math.cos(angle), y: speed * Math.sin(angle) };
+    static calculateXYVelocityWithRadians(radians: number, speed: number): point {
+        return { x: speed * Math.cos(radians), y: speed * Math.sin(radians) };
     }
 
-    static isHitboxOutsidePlayArea(p1x: number, p1y: number, height: number, width: number) {
-        if ((p1x > PLAYFIELD_WIDTH ||
-            p1x + width < 0) ||
-            (p1y > PLAYFIELD_HEIGHT ||
-            p1y + height < 0)
-        ) {
-            return true;
-        }
-        return false;
-    }
-
-    static isHitboxisBelowBottomBound(p1y: number) {
-        if (p1y > PLAYFIELD_HEIGHT) {
-            return true;
-        }
-        return false;
+    static calculateXYVelocityWithDegrees(degrees: number, speed: number): point {
+        return { x: speed * Math.cos((Math.PI/180)*degrees), y: speed * Math.sin((Math.PI/180)*degrees) };
     }
 }

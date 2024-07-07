@@ -4,29 +4,35 @@ import { DEBUG_MODE, TICKS_PER_SECOND } from "../../globals";
 import { DrawingStuff } from "../../../helpers/drawing-stuff";
 import { v4 as uuidv4 } from 'uuid';
 import { SimpleBullet } from "../bullets/simple-bullet";
+import { CoordHelper } from "../../../helpers/coords";
 
-
-// Shwoop is an enemy that moves linearly, then in an arc. Repeat.
-// It fires a stream of projectiles at the player until killed, 1 second after spawning
 export class Shwoop {
     public id = uuidv4();
     WIDTH = 30;
     HEIGHT = 30;
-    ticksToShoot = [1*TICKS_PER_SECOND];//, 1.2*TICKS_PER_SECOND, 1.4*TICKS_PER_SECOND];
+    ticksToShoot = [1 * TICKS_PER_SECOND];//, 1.2*TICKS_PER_SECOND, 1.4*TICKS_PER_SECOND];
     hitbox: leftCoordHitbox;
+    center: point = {x: 0, y: 0};
     health = 5;
     flagForDeletion = false;
+    powerCount = 0;
+    pointCount = 0;
     constructor(
         private creationTick: number,
         private startX: number,
         private startY: number,
-        private path: (linePath | curvePath)[]
+        private path: (linePath | curvePath)[],
+        powerCount?: number,
+        pointCount?: number
     ) {
         this.hitbox = {
-            pos: {x: startX, y: startY},
+            pos: { x: startX, y: startY },
             width: this.WIDTH,
             height: this.HEIGHT,
         };
+        this.powerCount = 2;
+        this.pointCount = 3;
+        this.center = CoordHelper.getCenterWithTopLeftPoint(this.WIDTH, this.HEIGHT, this.hitbox.pos.x, this.hitbox.pos.y);
     }
 
     move() {
@@ -40,6 +46,7 @@ export class Shwoop {
         } else {
             this.moveLine(Object.create(this.path[0]));
         }
+        this.center = CoordHelper.getCenterWithTopLeftPoint(this.WIDTH, this.HEIGHT, this.hitbox.pos.x, this.hitbox.pos.y);
     }
 
     private moveLine(path: linePath) {
@@ -53,7 +60,7 @@ export class Shwoop {
 
     lengthApproxCalc = 0;
     distanceTraveled = 0;
-    curveStart = {x: 0, y: 0};
+    curveStart = { x: 0, y: 0 };
     private moveCurve(path: curvePath) {
         if (this.lengthApproxCalc === 0) {
             this.lengthApproxCalc = MovingStuff.approximateCurveLength(5, this.hitbox.pos, path.control, path.dest);
@@ -78,14 +85,14 @@ export class Shwoop {
 
     shoot(currentTick: number, playerPos: point): SimpleBullet | SimpleBullet[] | null {
         const ticksSinceCreation = currentTick - this.creationTick;
-        if(this.ticksToShoot.includes(ticksSinceCreation)){
-            const angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(this.hitbox.pos.x, this.hitbox.pos.y, playerPos.x, playerPos.y);
-            const leftAngle = angleToPlayer - (15)*(Math.PI/180);
-            const rightAngle = angleToPlayer + (15)*(Math.PI/180);
+        if (this.ticksToShoot.includes(ticksSinceCreation)) {
+            const angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(this.center.x, this.center.y, playerPos.x, playerPos.y);
+            const leftAngle = angleToPlayer - (15) * (Math.PI / 180);
+            const rightAngle = angleToPlayer + (15) * (Math.PI / 180);
             return [
-                new SimpleBullet(Object.create(this.hitbox.pos), angleToPlayer),
-                new SimpleBullet(Object.create(this.hitbox.pos), leftAngle),
-                new SimpleBullet(Object.create(this.hitbox.pos), rightAngle)
+                new SimpleBullet(Object.create(this.center), angleToPlayer),
+                new SimpleBullet(Object.create(this.center), leftAngle),
+                new SimpleBullet(Object.create(this.center), rightAngle)
             ];
         }
         return null;
@@ -93,7 +100,7 @@ export class Shwoop {
 
     called = false;
     debugDrawPath(ctx: CanvasRenderingContext2D) {
-        let startPoint = {x: this.startX, y: this.startY};
+        let startPoint = { x: this.startX, y: this.startY };
         if (!this.called) {
             this.path.forEach(segment => {
                 if (isCurve(segment)) {
@@ -108,8 +115,8 @@ export class Shwoop {
         }
     }
 
-    cleanUp(ctx: CanvasRenderingContext2D){
-        if(DEBUG_MODE){
+    cleanUp() {
+        if (DEBUG_MODE) {
             DrawingStuff.deleteElementFromMemory(this.id);
         }
     }

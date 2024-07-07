@@ -1,3 +1,4 @@
+import { CoordHelper } from "../../../helpers/coords";
 import { leftCoordHitbox, point } from "../../../helpers/interfaces";
 import { MovingStuff } from "../../../helpers/moving-stuff";
 import { Square } from "../../../helpers/square";
@@ -38,7 +39,7 @@ export class PowerPoint {
             this.hitbox.pos.y += velXY.y;
         } else {
             this.hitbox.pos.y -= Math.max(this.speed - (this.fallAccel*sec), this.capFallSpeed);
-            this.flagForDeletion = MovingStuff.isHitboxisBelowBottomBound(this.hitbox.pos.y);
+            this.flagForDeletion = CoordHelper.isHitboxisBelowBottomBound(this.hitbox.pos.y);
         }
     }
 }

@@ -1,4 +1,5 @@
 export enum EnemyList {
     Dongler,
-    Shwoop
+    Shwoop,
+    BigBoi
 }

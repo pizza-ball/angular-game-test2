@@ -41,7 +41,14 @@
       [style.width.px]="[enemy.hitbox.width]" [style.height.px]="[enemy.hitbox.height]" style="opacity: 0.5"></div>
   </div>
   <div *ngFor="let deadEnemy of this.enemyDeathSprites">
-    <div class="deathShape" [style.left.px]="[deadEnemy.pos.x]" [style.top.px]="[deadEnemy.pos.y]"></div>
+    <div *ngIf="deadEnemy.height <= 30; else big" >
+      <div class="smallDeathShape" [style.left.px]="[deadEnemy.pos.x + deadEnemy.width/2]" 
+      [style.top.px]="[deadEnemy.pos.y]"></div>
+    </div>
+    <ng-template #big>
+      <div class="bigDeathShape" [style.left.px]="[deadEnemy.pos.x + deadEnemy.width/2]" 
+      [style.top.px]="[deadEnemy.pos.y]"></div>
+    </ng-template>
   </div>
   <div *ngFor="let item of this.items">
     <div class="item" [style.left.px]="[item.hitbox.pos.x]" [style.top.px]="[item.hitbox.pos.y]" 

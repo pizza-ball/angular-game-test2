@@ -28,6 +28,19 @@ export interface curvePath {
   speed: number
 }
 
+export interface linePathWithPause {
+  dest: point,
+  speed: number,
+  pauseTimeInSec: number
+}
+
+export interface curvePathWithPause {
+  dest: point,
+  control: point,
+  speed: number,
+  pauseTimeInSec: number
+}
+
 export function isCurve(object: any): object is curvePath {
   return 'control' in object;
 }

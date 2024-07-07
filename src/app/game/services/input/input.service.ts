@@ -39,13 +39,25 @@ export class InputService {
     [9, this.actionState.pause],  //Start button
   ]);
 
-
   gamepadConnected = false;
+  connectedGamepad: Gamepad | null = null;
   leftStick = [0, 0];
 
   $paused: Subject<boolean> = new Subject<boolean>();
 
-  constructor() { }
+  constructor() {
+    window.addEventListener("gamepadconnected", (e) => {
+      this.gamepadConnected = true;
+      this.connectedGamepad = navigator.getGamepads()[e.gamepad.index];
+      console.log(
+        "Gamepad connected at index %d: %s. %d buttons, %d axes.",
+        e.gamepad.index,
+        e.gamepad.id,
+        e.gamepad.buttons.length,
+        e.gamepad.axes.length,
+      );
+    });
+  }
 
   keyDownHandler(key: string) {
     let mapping = this.keyboardMap.get(key);
@@ -74,6 +86,13 @@ export class InputService {
       mapping.released = true;
     } else {
       mapping.pressed = false;
+    }
+  }
+
+  gamepadHandler(){
+    if(this.gamepadConnected && this.connectedGamepad){
+      this.stickHandler(this.connectedGamepad.axes);
+      this.buttonHandler(this.connectedGamepad.buttons);
     }
   }
 

@@ -1,34 +1,38 @@
-// Dongler is an enemy that enters from some part of the screen and moves to a destination
-// If the destination is off screen, it requests deletion. Otherwise, it remains until killed
-// It shoots a simpleBullet
-
+import { CoordHelper } from "../../../helpers/coords";
 import { DrawingStuff } from "../../../helpers/drawing-stuff";
-import { curvePath, leftCoordHitbox, linePath, point } from "../../../helpers/interfaces";
+import { leftCoordHitbox, linePath, point } from "../../../helpers/interfaces";
 import { MovingStuff } from "../../../helpers/moving-stuff";
 import { DEBUG_MODE, TICKS_PER_SECOND } from "../../globals";
 import { SimpleBullet } from "../bullets/simple-bullet";
 import { v4 as uuidv4 } from 'uuid';
 
-// It only shoots if left alive for too long
 export class Dongler {
     public id = uuidv4();
     WIDTH = 30;
     HEIGHT = 30;
-    tickToShoot = 4 * TICKS_PER_SECOND;
+    tickToShoot = 3 * TICKS_PER_SECOND;
     hitbox: leftCoordHitbox;
+    center: point = {x: 0, y: 0};
     health = 5;
     flagForDeletion = false;
+    powerCount = 0;
+    pointCount = 0;
     constructor(
         private creationTick: number,
         private startX: number,
         private startY: number,
         private path: linePath[],
+        powerCount?: number,
+        pointCount?: number
     ) {
         this.hitbox = {
             pos: {x: startX, y: startY},
             width: this.WIDTH,
             height: this.HEIGHT,
         };
+        this.powerCount = 2;
+        this.pointCount = 3;
+        this.center = CoordHelper.getCenterWithTopLeftPoint(this.WIDTH, this.HEIGHT, this.hitbox.pos.x, this.hitbox.pos.y);
     }
 
     move() {
@@ -42,13 +46,14 @@ export class Dongler {
         if(this.hitbox.pos.x === this.path[0].dest.x && this.hitbox.pos.y === this.path[0].dest.y){
             this.flagForDeletion = true;
         }
+        this.center = CoordHelper.getCenterWithTopLeftPoint(this.WIDTH, this.HEIGHT, this.hitbox.pos.x, this.hitbox.pos.y);
     }
 
     shoot(currentTick: number, playerPos: point): SimpleBullet | null {
         const ticksSinceCreation = currentTick - this.creationTick;
         if(ticksSinceCreation === this.tickToShoot){
-            const angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(this.hitbox.pos.x, this.hitbox.pos.y, playerPos.x, playerPos.y);
-            return new SimpleBullet(Object.create(this.hitbox.pos), angleToPlayer);
+            const angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(this.center.x, this.center.y, playerPos.x, playerPos.y);
+            return new SimpleBullet(Object.create(this.center), angleToPlayer, 2);
         }
         return null;
     }
@@ -61,7 +66,7 @@ export class Dongler {
         }
     }
 
-    cleanUp(ctx: CanvasRenderingContext2D){
+    cleanUp(){
         if(DEBUG_MODE){
             DrawingStuff.deleteElementFromMemory(this.id);
         }

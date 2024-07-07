@@ -25,6 +25,9 @@ import { EnemyList } from '../actors/enemies/enemylist';
 import { Shwoop } from '../actors/enemies/shwoop';
 import { PowerPoint } from '../actors/items/power';
 import { DrawingStuff } from '../../helpers/drawing-stuff';
+import { MovingStuff } from '../../helpers/moving-stuff';
+import { BigBoi } from '../actors/enemies/bigboi';
+import { CoordHelper } from '../../helpers/coords';
 
 @Component({
   selector: 'app-shmup',
@@ -65,25 +68,11 @@ export class ShmupComponent implements AfterViewInit {
 
   private scene: Scene | undefined;
 
-  private gp: Gamepad | null = null;
-
   constructor(public bgService: BackgroundService, public inputServ: InputService, public soundServ: SoundService) {
     this.player = new Player(inputServ, soundServ, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
   }
 
   async ngAfterViewInit() {
-    window.addEventListener("gamepadconnected", (e) => {
-      this.inputServ.gamepadConnected = true;
-      this.gp = navigator.getGamepads()[e.gamepad.index];
-      console.log(
-        "Gamepad connected at index %d: %s. %d buttons, %d axes.",
-        e.gamepad.index,
-        e.gamepad.id,
-        e.gamepad.buttons.length,
-        e.gamepad.axes.length,
-      );
-    });
-
     if (this.canvasRef) {
       this.scene = this.bgService.CreateScene(this.canvasRef.nativeElement);
     }
@@ -106,13 +95,6 @@ export class ShmupComponent implements AfterViewInit {
     this.update();
     setInterval(() => this.countFrameRate(), 250);
     this.soundServ.muteAudioToggle();
-  }
-
-  gamepadHandler() {
-    if(this.gp){
-      this.inputServ.stickHandler(this.gp.axes);
-      this.inputServ.buttonHandler(this.gp.buttons);
-    }
   }
 
   async waitForSoundsToLoad() {
@@ -140,7 +122,7 @@ export class ShmupComponent implements AfterViewInit {
   }
 
   update() {
-    this.gamepadHandler();
+    this.inputServ.gamepadHandler();
 
     this.animationState = this.gamePaused ? 'paused' : 'running';
     if (!this.gamePaused) {
@@ -155,7 +137,7 @@ export class ShmupComponent implements AfterViewInit {
       this.moveAllEnemies();
       this.moveItems();
       this.handlePlayerShooting();
-      this.handleEnemyShooting(this.tick, this.player.hitbox.pos);
+      this.handleEnemyShooting(this.tick, this.player.center);
       this.movePlayerBullets();
       this.moveEnemyBullets();
       this.checkBulletEnemyCollision();
@@ -266,6 +248,9 @@ export class ShmupComponent implements AfterViewInit {
       case EnemyList.Shwoop:
         this.enemies.push(new Shwoop(currentTick, enemy.start.x, enemy.start.y, Object.create(enemy.path)));
         break;
+      case EnemyList.BigBoi:
+        this.enemies.push(new BigBoi(currentTick, enemy.start.x, enemy.start.y, Object.create(enemy.path)));
+        break;
       default:
         console.log("unrecognized enemy.");
     }
@@ -287,7 +272,7 @@ export class ShmupComponent implements AfterViewInit {
 
   moveItems() {
     for (let i = 0; i < this.items.length; i++) {
-      this.items[i].move(this.player.hitbox.pos.x, this.player.hitbox.pos.y);
+      this.items[i].move(this.player.center.x, this.player.center.y);
 
       //deletes enemies that have finished their path
       if (this.items[i].flagForDeletion) {
@@ -333,7 +318,7 @@ export class ShmupComponent implements AfterViewInit {
       let itemSquare = new Square(item.hitbox);
       if (!item.flagForCollection &&
         this.player.state !== playerState.dead &&
-        Square.checkSquareCircleOverlap(itemSquare, this.player.getCenterPoint(), this.player.itemMagnetismRadius)
+        Square.checkSquareCircleOverlap(itemSquare, this.player.center, this.player.itemMagnetismRadius)
       ) {
         item.flagForCollection = true;
         break; //item is now in range to scoop. obviously it's not colliding with the player, break early.
@@ -352,16 +337,27 @@ export class ShmupComponent implements AfterViewInit {
   }
 
   killEnemy(i: number) {
-    this.enemyDeathSprites.push(this.enemies[i].hitbox);
+    let hitboxCopy = {
+      pos: { x: this.enemies[i].hitbox.pos.x, y: this.enemies[i].hitbox.pos.y },
+      width: this.enemies[i].hitbox.width,
+      height: this.enemies[i].hitbox.height,
+    };
+
+    this.enemyDeathSprites.push(hitboxCopy);
     this.enemies[i].cleanUp(this.canvasRef2d?.nativeElement.getContext("2d"));
     this.soundServ.enemyDeath.play();
 
     //WIP killing an enemy should drop some amount of powerups, based on the identity of the particular enemy.
-    this.dropItems(i);
+    this.dropItems(this.enemies[i]);
   }
 
-  dropItems(i: number) {
-    this.items.push(new PowerPoint(this.enemies[i].hitbox.pos.x, this.enemies[i].hitbox.pos.y));
+  dropItems(enemy: Dongler | Shwoop | BigBoi) {
+    for (let i = 0; i < enemy.powerCount; i++) {
+      const center = CoordHelper.getCenterWithTopLeftHitbox(enemy.hitbox);
+      const xPosRando = center.x + MovingStuff.getRandomInt(enemy.hitbox.width);
+      const yPosRando = center.y + MovingStuff.getRandomInt(enemy.hitbox.height);
+      this.items.push(new PowerPoint(xPosRando, yPosRando));
+    }
   }
 
   debugDrawActorPaths(ctx: CanvasRenderingContext2D) {
