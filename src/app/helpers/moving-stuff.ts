@@ -2,14 +2,18 @@ import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from "../game/globals";
 import { leftCoordHitbox, point } from "./interfaces";
 
 export class MovingStuff {
-    static moveStartPointTowardDestPoint(speed: number, start: point, dest: point): point {
+    static degreesToRadians(angle: number){
+        return (Math.PI/180)*angle;
+    }
+
+    static moveTowardsAtConstRate(start: point, dest: point, speed: number): void {
         const xDist = dest.x - start.x;
         const yDist = dest.y - start.y;
 
-        const bottom = Math.sqrt(Math.pow(xDist, 2) + Math.pow(yDist, 2));
+        const distTotal = Math.sqrt(Math.pow(xDist, 2) + Math.pow(yDist, 2));
 
-        const xRelativeSpeed = (speed / bottom) * xDist;
-        const yRelativeSpeed = (speed / bottom) * yDist;
+        const xRelativeSpeed = (speed / distTotal) * xDist;
+        const yRelativeSpeed = (speed / distTotal) * yDist;
 
         //If speed is too high, we don't want to overshoot the target
         if (Math.abs(xRelativeSpeed) > Math.abs(xDist)) {
@@ -23,31 +27,57 @@ export class MovingStuff {
         } else {
             start.y += yRelativeSpeed;
         }
-        return { x: start.x, y: start.y };
     }
 
-    static getXYVelocityTowardDestWithGivenSpeed(speed: number, start: point, dest: point): point {
+    static moveToDestInSetTime_Decelerate(x1: number, y1: number, x2: number, y2: number, frame: number, frameTotal: number): point {
+        const distTotal = Math.sqrt(Math.pow(x2-x1, 2) + Math.pow(y2-y1, 2));
+        const xUnit = (x2-x1)/distTotal;
+        const yUnit = (y2-y1)/distTotal;
+
+        const v0 = 2*(distTotal/frameTotal);
+        const a = -2 * distTotal / (frameTotal*frameTotal);
+
+        const steps = 4;
+
+        let velx = 0;
+        let vely = 0;
+        let frameStep = 1/steps;
+
+        for(let i = 1; i <= steps; i++){
+            frame += frameStep;
+            let vMag = v0 + a * frame;
+            velx += frameStep * vMag * xUnit;
+            vely += frameStep * vMag * yUnit;
+        }
+
+        return {x: velx, y: vely};
+    }
+
+    static xyVelTowards(speed: number, start: point, dest: point): point {
         const xDist = dest.x - start.x;
         const yDist = dest.y - start.y;
 
-        const bottom = Math.sqrt(Math.pow(xDist, 2) + Math.pow(yDist, 2));
+        const distTotal = Math.sqrt(Math.pow(xDist, 2) + Math.pow(yDist, 2));
 
-        const xRelativeSpeed = (speed / bottom) * xDist;
-        const yRelativeSpeed = (speed / bottom) * yDist;
+        const xRelativeSpeed = (speed / distTotal) * xDist;
+        const yRelativeSpeed = (speed / distTotal) * yDist;
 
         return { x: xRelativeSpeed, y: yRelativeSpeed };
     }
 
     // Function to compute the position on the quadratic Bézier curve
     static getQuadraticBezierPoint(t: number, pos: point, control: point, end: point) {
-        const x = (1 - t) * (1 - t) * pos.x + 2 * (1 - t) * t * control.x + t * t * end.x;
-        const y = (1 - t) * (1 - t) * pos.y + 2 * (1 - t) * t * control.y + t * t * end.y;
+        const x = (pos.x * Math.pow(1 - t, 2)) + (2 * (1 - t) * t * control.x) + (end.x * Math.pow(t, 2));
+        const y = (pos.y * Math.pow(1 - t, 2)) + (2 * (1 - t) * t * control.y) + (end.y * Math.pow(t, 2));
+        //const x = (1 - t) * (1 - t) * pos.x + 2 * (1 - t) * t * control.x + t * t * end.x;
+        //const y = (1 - t) * (1 - t) * pos.y + 2 * (1 - t) * t * control.y + t * t * end.y;
         return { x, y };
     }
 
-    static approximateCurveLength(steps: number, start: point, control: point, end: point): number {
+    static approximateCurveLength(start: point, control: point, end: point): number {
         let length = 0;
         let prevPoint = start;
+        const steps = 5;
 
         for (let i = 1; i <= steps; i++) {
             const t = i / steps;
@@ -81,7 +111,19 @@ export class MovingStuff {
         return { x: speed * Math.cos(radians), y: speed * Math.sin(radians) };
     }
 
+    static calculateXYVelocityWithRadiansAndAccel(radians: number, speed: number, accel: number): point {
+        return { x: (accel+speed) * Math.cos(radians), y: (accel+speed) * Math.sin(radians) };
+    }
+
     static calculateXYVelocityWithDegrees(degrees: number, speed: number): point {
-        return { x: speed * Math.cos((Math.PI/180)*degrees), y: speed * Math.sin((Math.PI/180)*degrees) };
+        return { x: speed * Math.cos((Math.PI / 180) * degrees), y: speed * Math.sin((Math.PI / 180) * degrees) };
+    }
+
+    static calculateXVelocityWithRadians(radians: number, speed: number, accel: number): number {
+        return (accel+speed) * Math.cos(radians);
+    }
+
+    static calculateYVelocityWithRadians(radians: number, speed: number, accel: number): number {
+        return (accel+speed) * Math.sin(radians);
     }
 }

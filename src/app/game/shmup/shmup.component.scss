@@ -28,6 +28,17 @@ h2{
     transform: translate(-50%, -20%);
 }
 
+.playerDeathShape {
+    aspect-ratio: 1;
+    clip-path: polygon(100.00% 50.00%,92.06% 77.03%,70.77% 95.48%,42.88% 99.49%,17.26% 87.79%,2.03% 64.09%,2.03% 35.91%,17.26% 12.21%,42.88% 0.51%,70.77% 4.52%,92.06% 22.97%,100.00% 50.00%,calc(92.06% - 15.14px) calc(22.97% - -9.73px),calc(70.77% - 7.48px) calc(4.52% - -16.37px),calc(42.88% - -2.56px) calc(0.51% - -17.82px),calc(17.26% - -11.79px) calc(12.21% - -13.60px),calc(2.03% - -17.27px) calc(35.91% - -5.07px),calc(2.03% - -17.27px) calc(64.09% - 5.07px),calc(17.26% - -11.79px) calc(87.79% - 13.60px),calc(42.88% - -2.56px) calc(99.49% - 17.82px),calc(70.77% - 7.48px) calc(95.48% - 16.37px),calc(92.06% - 15.14px) calc(77.03% - 9.73px),calc(100.00% - 18.00px) calc(50.00% - 0.00px),calc(92.06% - 15.14px) calc(22.97% - -9.73px));
+    animation-name: diePlayer;
+    animation-duration: .5s;
+    animation-timing-function: linear;
+    background-color: palevioletred;
+    position: absolute;
+    transform: translate(-50%, -20%);
+}
+
 @keyframes dieSmall {
     0%   {width: 10px; height: 10px; opacity: 1;}
     100% {width: 80px; height: 80px; opacity: 0;}
@@ -36,6 +47,11 @@ h2{
 @keyframes dieBig {
     0%   {width: 80px; height: 80px; opacity: 1;}
     100% {width: 160px; height: 160px; opacity: 0;}
+}
+
+@keyframes diePlayer {
+    0%   {width: 50px; height: 50px; opacity: 1;}
+    100% {width: 100px; height: 100px; opacity: 0;}
 }
 
 
@@ -93,7 +109,6 @@ h2{
 #redguy{
     width: 30px;
     height: 50px;
-    background-color: rgb(236, 129, 129);
     position: absolute;
 }
 
@@ -106,8 +121,8 @@ h2{
 }
 
 .bullet{
-    background-color: blue;
-    opacity: .3;
+    background-color: red;
+    opacity: .4;
     position: absolute;
 }
 
@@ -122,7 +137,6 @@ h2{
 }
 
 .item{
-    background-color: purple;
     position: absolute;
 }
 

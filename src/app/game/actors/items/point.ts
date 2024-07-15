@@ -4,9 +4,9 @@ import { MovingStuff } from "../../../helpers/moving-stuff";
 import { Square } from "../../../helpers/square";
 import { TICKS_PER_SECOND } from "../../globals";
 
-export class PowerPoint {
-    ITEM_TYPE = "power";
-    COLOR = "Red";
+export class Point {
+    ITEM_TYPE = "point";
+    COLOR = "Purple";
     WIDTH = 12;
     HEIGHT = 14;
     speed = 3;
@@ -15,7 +15,7 @@ export class PowerPoint {
     fallAccel = 7;
     tickCounter = 0;
     hitbox: leftCoordHitbox;
-    value = .05;
+    value = 10;
     flagForDeletion = false;
     flagForCollection = false;
     constructor(

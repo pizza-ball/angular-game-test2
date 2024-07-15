@@ -11,6 +11,7 @@ import {
   leftCoordHitbox,
   bullet,
   point,
+  leftCoordHitboxId,
 } from '../../helpers/interfaces';
 import { FormsModule } from '@angular/forms';
 import { InputService } from '../services/input/input.service';
@@ -21,13 +22,16 @@ import { Player, playerState } from '../actors/player';
 import { EnemySpawn, spawnMapLevel1 } from '../levels/level1';
 import { DEBUG_MODE, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TICKS_PER_SECOND } from '../globals';
 import { Dongler } from '../actors/enemies/dongler';
-import { EnemyList } from '../actors/enemies/enemylist';
+import { ActorList } from '../actors/enemies/actorlist';
 import { Shwoop } from '../actors/enemies/shwoop';
 import { PowerPoint } from '../actors/items/power';
 import { DrawingStuff } from '../../helpers/drawing-stuff';
 import { MovingStuff } from '../../helpers/moving-stuff';
 import { BigBoi } from '../actors/enemies/bigboi';
 import { CoordHelper } from '../../helpers/coords';
+import { Point } from '../actors/items/point';
+import { Boss1 } from '../actors/enemies/boss1';
+import { SimpleBullet } from '../actors/bullets/simple-bullet';
 
 @Component({
   selector: 'app-shmup',
@@ -48,9 +52,9 @@ export class ShmupComponent implements AfterViewInit {
 
   playerBullets: bullet[] = [];
   enemies: any[] = [];
-  enemyBullets: any[] = [];
-  enemyDeathSprites: leftCoordHitbox[] = [];
-  items: any[] = [];
+  enemyBullets: SimpleBullet[] = [];
+  enemyDeathSprites: leftCoordHitboxId[] = [];
+  items: (Point | PowerPoint)[] = [];
 
   stageTimeDisplay = -1;
   tick = 0;
@@ -121,6 +125,7 @@ export class ShmupComponent implements AfterViewInit {
     console.log("Click Coords x : " + x + " ; y : " + y + ".");
   }
 
+  updates: string[] = [];
   update() {
     this.inputServ.gamepadHandler();
 
@@ -141,16 +146,14 @@ export class ShmupComponent implements AfterViewInit {
       this.movePlayerBullets();
       this.moveEnemyBullets();
       this.checkBulletEnemyCollision();
-      this.player.checkBulletPlayerCollision(this.enemyBullets);
+      this.player.checkBulletPlayerCollision(this.enemyBullets, this.enemyDeathSprites);
       this.checkItemPlayerCollision();
 
 
       let ctx = this.canvasRef2d?.nativeElement.getContext("2d");
       if (ctx) {
-        if (DEBUG_MODE) {
-          this.debugDrawActorPaths(ctx);
+        this.drawEnemyElements(ctx);
           //this.player.debugDrawItemMagnet(ctx);
-        }
         this.player.debugDrawItemMagnet(ctx);
         DrawingStuff.clearCanvasAndRedraw(ctx);
       }
@@ -242,14 +245,17 @@ export class ShmupComponent implements AfterViewInit {
 
   spawnEnemy(enemy: EnemySpawn, currentTick: number) {
     switch (enemy.name) {
-      case EnemyList.Dongler:
+      case ActorList.Dongler:
         this.enemies.push(new Dongler(currentTick, enemy.start.x, enemy.start.y, Object.create(enemy.path)));
         break;
-      case EnemyList.Shwoop:
+      case ActorList.Shwoop:
         this.enemies.push(new Shwoop(currentTick, enemy.start.x, enemy.start.y, Object.create(enemy.path)));
         break;
-      case EnemyList.BigBoi:
+      case ActorList.BigBoi:
         this.enemies.push(new BigBoi(currentTick, enemy.start.x, enemy.start.y, Object.create(enemy.path)));
+        break;
+      case ActorList.Boss1:
+        this.enemies.push(new Boss1(currentTick));
         break;
       default:
         console.log("unrecognized enemy.");
@@ -296,15 +302,17 @@ export class ShmupComponent implements AfterViewInit {
         if (Square.checkSquareOverlap(bulletSquare, enemySquare)) {
           this.playerBullets.splice(j, 1);
           j--;
-
-          enemy.health -= bullet.damage;
+          
+          enemy.hitByBullet(bullet);
           this.soundServ.damageSound.play();
 
-          if (enemy.health <= 0) {
-            this.killEnemy(i);
+          if (enemy.isDefeated()) {
+            this.killEnemy(enemy);
             this.enemies.splice(i, 1);
             i--;
             break; //Enemy is dead, if we do not break we will check if all remaining player bullets will hit a dead enemy.
+          } else if (enemy.ENEMY_TYPE === ActorList.Boss1 && enemy.wasPhaseJustDefeated()){
+            this.convertEnemyBulletsToPoints();
           }
         }
       }
@@ -315,54 +323,78 @@ export class ShmupComponent implements AfterViewInit {
     for (let i = 0; i < this.items.length; i++) {
       let item = this.items[i];
 
+      if(this.player.state === playerState.dead){
+        item.flagForCollection = false;
+        continue;
+      }
+
       let itemSquare = new Square(item.hitbox);
       if (!item.flagForCollection &&
-        this.player.state !== playerState.dead &&
         Square.checkSquareCircleOverlap(itemSquare, this.player.center, this.player.itemMagnetismRadius)
       ) {
         item.flagForCollection = true;
-        break; //item is now in range to scoop. obviously it's not colliding with the player, break early.
+        continue; //item is now in range to scoop. obviously it's not colliding with the player. Move to next item early.
       }
-      let playerSquare = new Square(this.player.hitbox);
 
-      if (this.player.state !== playerState.dead &&
-        Square.checkSquareOverlap(itemSquare, playerSquare)
-      ) {
-        //destroy the item, add it to the player
-        this.player.power += 1;
+      let playerSquare = new Square(this.player.hitbox);
+      if ( Square.checkSquareOverlap(itemSquare, playerSquare) ) {
+        //destroy the item, add the item's value to the player
+        if(item.ITEM_TYPE === "point"){
+          this.player.score += item.value;
+        }
+        if(item.ITEM_TYPE === "power"){
+          this.player.adjustPowerLevel(item.value);
+        }
         this.items.splice(i, 1);
         i--;
       }
     }
   }
 
-  killEnemy(i: number) {
-    let hitboxCopy = {
-      pos: { x: this.enemies[i].hitbox.pos.x, y: this.enemies[i].hitbox.pos.y },
-      width: this.enemies[i].hitbox.width,
-      height: this.enemies[i].hitbox.height,
+  killEnemy(enemy: Dongler | Shwoop | BigBoi | Boss1) {
+    let dataForDeathSprite = {
+      id: enemy.ENEMY_TYPE,
+      pos: { x: enemy.hitbox.pos.x, y: enemy.hitbox.pos.y },
+      width: enemy.hitbox.width,
+      height: enemy.hitbox.height,
     };
 
-    this.enemyDeathSprites.push(hitboxCopy);
-    this.enemies[i].cleanUp(this.canvasRef2d?.nativeElement.getContext("2d"));
+    this.enemyDeathSprites.push(dataForDeathSprite);
     this.soundServ.enemyDeath.play();
+    this.dropItems(enemy);
 
-    //WIP killing an enemy should drop some amount of powerups, based on the identity of the particular enemy.
-    this.dropItems(this.enemies[i]);
+    if(enemy.ENEMY_TYPE === ActorList.Boss1){
+      this.convertEnemyBulletsToPoints();
+    }
+
+    enemy.cleanUp();
   }
 
-  dropItems(enemy: Dongler | Shwoop | BigBoi) {
+  convertEnemyBulletsToPoints(){
+    for(let i = 0; i < this.enemyBullets.length; i++){
+      const enemy = this.enemyBullets[i];
+      this.items.push(new Point(enemy.hitbox.pos.x, enemy.hitbox.pos.y));
+    }
+    this.enemyBullets = [];
+  }
+
+  dropItems(enemy: Dongler | Shwoop | BigBoi | Boss1) {
     for (let i = 0; i < enemy.powerCount; i++) {
-      const center = CoordHelper.getCenterWithTopLeftHitbox(enemy.hitbox);
-      const xPosRando = center.x + MovingStuff.getRandomInt(enemy.hitbox.width);
-      const yPosRando = center.y + MovingStuff.getRandomInt(enemy.hitbox.height);
+      const xPosRando = enemy.center.x + MovingStuff.getRandomInt(enemy.hitbox.width);
+      const yPosRando = enemy.center.y + MovingStuff.getRandomInt(enemy.hitbox.height);
       this.items.push(new PowerPoint(xPosRando, yPosRando));
+    }
+
+    for (let i = 0; i < enemy.pointCount; i++) {
+      const xPosRando = enemy.center.x + MovingStuff.getRandomInt(enemy.hitbox.width);
+      const yPosRando = enemy.center.y + MovingStuff.getRandomInt(enemy.hitbox.height);
+      this.items.push(new Point(xPosRando, yPosRando));
     }
   }
 
-  debugDrawActorPaths(ctx: CanvasRenderingContext2D) {
+  drawEnemyElements(ctx: CanvasRenderingContext2D) {
     this.enemies.forEach(enemy => {
-      enemy.debugDrawPath(ctx);
+      enemy.drawThings(ctx);
     });
   }
 }

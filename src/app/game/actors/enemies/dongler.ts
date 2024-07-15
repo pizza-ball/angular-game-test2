@@ -1,13 +1,15 @@
 import { CoordHelper } from "../../../helpers/coords";
 import { DrawingStuff } from "../../../helpers/drawing-stuff";
-import { leftCoordHitbox, linePath, point } from "../../../helpers/interfaces";
+import { bullet, leftCoordHitbox, linePath, point } from "../../../helpers/interfaces";
 import { MovingStuff } from "../../../helpers/moving-stuff";
 import { DEBUG_MODE, TICKS_PER_SECOND } from "../../globals";
 import { SimpleBullet } from "../bullets/simple-bullet";
 import { v4 as uuidv4 } from 'uuid';
+import { ActorList } from "./actorlist";
 
 export class Dongler {
     public id = uuidv4();
+    ENEMY_TYPE = ActorList.Dongler;
     WIDTH = 30;
     HEIGHT = 30;
     tickToShoot = 3 * TICKS_PER_SECOND;
@@ -30,18 +32,13 @@ export class Dongler {
             width: this.WIDTH,
             height: this.HEIGHT,
         };
-        this.powerCount = 2;
+        this.powerCount = 1;
         this.pointCount = 3;
         this.center = CoordHelper.getCenterWithTopLeftPoint(this.WIDTH, this.HEIGHT, this.hitbox.pos.x, this.hitbox.pos.y);
     }
 
     move() {
-        const result = MovingStuff.moveStartPointTowardDestPoint(
-            this.path[0].speed,
-            this.hitbox.pos,
-            this.path[0].dest
-        );
-        this.hitbox.pos = result;
+        MovingStuff.moveTowardsAtConstRate(this.hitbox.pos, this.path[0].dest, this.path[0].speed);
 
         if(this.hitbox.pos.x === this.path[0].dest.x && this.hitbox.pos.y === this.path[0].dest.y){
             this.flagForDeletion = true;
@@ -56,6 +53,23 @@ export class Dongler {
             return new SimpleBullet(Object.create(this.center), angleToPlayer, 2);
         }
         return null;
+    }
+
+    hitByBullet(bullet: bullet){
+        this.health -= bullet.damage;
+    }
+
+    isDefeated(){
+        if(this.health <= 0){
+            return true;
+        }
+        return false;
+    }
+
+    drawThings(ctx: CanvasRenderingContext2D){
+        if(DEBUG_MODE){
+            this.debugDrawPath(ctx);
+        }
     }
 
     called = false;

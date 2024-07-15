@@ -9,6 +9,13 @@ export interface leftCoordHitbox {
   height: number;
 }
 
+export interface leftCoordHitboxId {
+  id: string,
+  pos: point,
+  width: number;
+  height: number;
+}
+
 export interface bullet {
   hitbox: leftCoordHitbox;
   speed: number;

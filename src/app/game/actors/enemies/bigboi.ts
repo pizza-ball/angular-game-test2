@@ -1,19 +1,17 @@
-// Dongler is an enemy that enters from some part of the screen and moves to a destination
-// If the destination is off screen, it requests deletion. Otherwise, it remains until killed
-// It shoots a simpleBullet
-
 import { CoordHelper } from "../../../helpers/coords";
 import { DrawingStuff } from "../../../helpers/drawing-stuff";
-import { leftCoordHitbox, linePath, linePathWithPause, point } from "../../../helpers/interfaces";
+import { bullet, leftCoordHitbox, linePath, linePathWithPause, point } from "../../../helpers/interfaces";
 import { MovingStuff } from "../../../helpers/moving-stuff";
 import { DEBUG_MODE, TICKS_PER_SECOND } from "../../globals";
 import { Danmaku } from "../bullets/patterns/x-dan";
 import { SimpleBullet } from "../bullets/simple-bullet";
 import { v4 as uuidv4 } from 'uuid';
+import { ActorList } from "./actorlist";
 
 // Big enemy with more health, circle bullet pattern.
 export class BigBoi {
     public id = uuidv4();
+    ENEMY_TYPE = ActorList.BigBoi;
     WIDTH = 76;
     HEIGHT = 76;
     ticksToShoot = [1 * TICKS_PER_SECOND, 2 * TICKS_PER_SECOND, 3 * TICKS_PER_SECOND];
@@ -36,7 +34,7 @@ export class BigBoi {
             width: this.WIDTH,
             height: this.HEIGHT,
         };
-        this.powerCount = 10;
+        this.powerCount = 5;
         this.pointCount = 20;
 
         path.forEach(element => {
@@ -54,7 +52,7 @@ export class BigBoi {
 
         if (this.hitbox.pos.x !== this.path[0].dest.x || this.hitbox.pos.y !== this.path[0].dest.y) {
             //console.log("we should be moving towards " + this.path[0]);
-            this.hitbox.pos = MovingStuff.moveStartPointTowardDestPoint(this.path[0].speed, this.hitbox.pos, this.path[0].dest);
+            MovingStuff.moveTowardsAtConstRate(this.hitbox.pos, this.path[0].dest, this.path[0].speed);
         } else {
             if ('pauseTimeInSec' in this.path[0] && this.path[0].pauseTimeInSec !== 0 && this.pauseCounter / 60 < this.path[0].pauseTimeInSec) {
                 this.pauseCounter++;
@@ -77,6 +75,23 @@ export class BigBoi {
         let bullets = Danmaku.circularSpawner( this.angles, shotCount, shotDensity, this.center);
         this.angles = this.angles.map(item => item + 45);   //shifting all angles for next shot.
         return bullets;
+    }
+
+    hitByBullet(bullet: bullet){
+        this.health -= bullet.damage;
+    }
+
+    isDefeated(){
+        if(this.health <= 0){
+            return true;
+        }
+        return false;
+    }
+
+    drawThings(ctx: CanvasRenderingContext2D){
+        if(DEBUG_MODE){
+            this.debugDrawPath(ctx);
+        }
     }
 
     called = false;

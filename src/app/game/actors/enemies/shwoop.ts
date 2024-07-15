@@ -1,13 +1,15 @@
-import { curvePath, isCurve, leftCoordHitbox, linePath, point } from "../../../helpers/interfaces";
+import { bullet, curvePath, isCurve, leftCoordHitbox, linePath, point } from "../../../helpers/interfaces";
 import { MovingStuff } from "../../../helpers/moving-stuff";
 import { DEBUG_MODE, TICKS_PER_SECOND } from "../../globals";
 import { DrawingStuff } from "../../../helpers/drawing-stuff";
 import { v4 as uuidv4 } from 'uuid';
 import { SimpleBullet } from "../bullets/simple-bullet";
 import { CoordHelper } from "../../../helpers/coords";
+import { ActorList } from "./actorlist";
 
 export class Shwoop {
     public id = uuidv4();
+    ENEMY_TYPE = ActorList.Shwoop;
     WIDTH = 30;
     HEIGHT = 30;
     ticksToShoot = [1 * TICKS_PER_SECOND];//, 1.2*TICKS_PER_SECOND, 1.4*TICKS_PER_SECOND];
@@ -50,11 +52,9 @@ export class Shwoop {
     }
 
     private moveLine(path: linePath) {
-        let result = MovingStuff.moveStartPointTowardDestPoint(path.speed, this.hitbox.pos, path.dest)
-        if (result.x === path.dest.x && result.y === path.dest.y) {
+        MovingStuff.moveTowardsAtConstRate(this.hitbox.pos, path.dest, path.speed)
+        if (this.hitbox.pos.x === path.dest.x && this.hitbox.pos.y === path.dest.y) {
             this.path.shift();
-        } else {
-            this.hitbox.pos = result;
         }
     }
 
@@ -63,7 +63,7 @@ export class Shwoop {
     curveStart = { x: 0, y: 0 };
     private moveCurve(path: curvePath) {
         if (this.lengthApproxCalc === 0) {
-            this.lengthApproxCalc = MovingStuff.approximateCurveLength(5, this.hitbox.pos, path.control, path.dest);
+            this.lengthApproxCalc = MovingStuff.approximateCurveLength(this.hitbox.pos, path.control, path.dest);
             this.curveStart = Object.create(this.hitbox.pos);
         }
 
@@ -96,6 +96,23 @@ export class Shwoop {
             ];
         }
         return null;
+    }
+
+    hitByBullet(bullet: bullet){
+        this.health -= bullet.damage;
+    }
+
+    isDefeated(){
+        if(this.health <= 0){
+            return true;
+        }
+        return false;
+    }
+
+    drawThings(ctx: CanvasRenderingContext2D){
+        if(DEBUG_MODE){
+            this.debugDrawPath(ctx);
+        }
     }
 
     called = false;

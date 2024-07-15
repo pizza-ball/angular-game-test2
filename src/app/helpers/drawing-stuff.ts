@@ -52,6 +52,22 @@ export class DrawingStuff {
         this.drawCurve(ctx, sX, sY, eX, eY, cX, cY);
     }
 
+    static requestHealthDraw(id: string, ctx: CanvasRenderingContext2D, sX: number, sY: number, r: number, percent: number){
+        this.callRecord.push({
+            id: id,
+            func: this.drawHealthCircle,
+            params: [ctx, sX, sY, r, percent]
+        });
+
+        // this.callRecordMap.set(id, {
+        //     func: this.drawCurve,
+        //     params: [ctx, sX, sY, eX, eY, cX, cY]
+        // });
+
+
+        this.drawHealthCircle(ctx, sX, sY, r, percent);
+    }
+
     static drawLine(ctx: CanvasRenderingContext2D, sX: number, sY: number, eX: number, eY: number) {
         if (!ctx) {
             console.error("2D CANVAS IS NULL");
@@ -129,6 +145,24 @@ export class DrawingStuff {
         //ctx.fillStyle = 'red';
         //ctx.fill();
         ctx.stroke();
+    }
+
+    static drawHealthCircle(ctx: CanvasRenderingContext2D, sX: number, sY: number, radius: number, percent: number) {
+        if (!ctx) {
+            console.error("2D CANVAS IS NULL");
+            return;
+        }
+
+        ctx.beginPath();
+        ctx.arc(sX, sY, radius, 0, (2 * Math.PI)*percent, false);
+        ctx.setLineDash([]);
+        ctx.strokeStyle = 'red';
+        ctx.lineWidth = 3;
+        //ctx.fillStyle = 'red';
+        //ctx.fill();
+        ctx.stroke();
+
+        ctx.lineWidth = 1;
     }
 
     static deleteElementFromMemory(uuid: string){
