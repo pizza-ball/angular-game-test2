@@ -6,7 +6,8 @@ import { DEBUG_MODE, TICKS_PER_SECOND } from "../../globals";
 import { Danmaku } from "../bullets/patterns/x-dan";
 import { SimpleBullet } from "../bullets/simple-bullet";
 import { v4 as uuidv4 } from 'uuid';
-import { ActorList } from "./actorlist";
+import { ActorList } from "../actorlist";
+import { SoundService } from "../../services/sound/sound.service";
 
 // Big enemy with more health, circle bullet pattern.
 export class BigBoi {
@@ -22,6 +23,7 @@ export class BigBoi {
     powerCount = 0;
     pointCount = 0;
     constructor(
+        private soundService: SoundService,
         private creationTick: number,
         private startX: number,
         private startY: number,
@@ -74,6 +76,7 @@ export class BigBoi {
         const shotDensity = 4; // const that manipulates how clustered shots are
         let bullets = Danmaku.circularSpawner( this.angles, shotCount, shotDensity, this.center);
         this.angles = this.angles.map(item => item + 45);   //shifting all angles for next shot.
+        this.soundService.enemyBulletSound.play();
         return bullets;
     }
 

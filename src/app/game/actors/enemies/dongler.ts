@@ -5,7 +5,8 @@ import { MovingStuff } from "../../../helpers/moving-stuff";
 import { DEBUG_MODE, TICKS_PER_SECOND } from "../../globals";
 import { SimpleBullet } from "../bullets/simple-bullet";
 import { v4 as uuidv4 } from 'uuid';
-import { ActorList } from "./actorlist";
+import { ActorList } from "../actorlist";
+import { SoundService } from "../../services/sound/sound.service";
 
 export class Dongler {
     public id = uuidv4();
@@ -20,6 +21,7 @@ export class Dongler {
     powerCount = 0;
     pointCount = 0;
     constructor(
+        private soundService: SoundService,
         private creationTick: number,
         private startX: number,
         private startY: number,
@@ -50,6 +52,7 @@ export class Dongler {
         const ticksSinceCreation = currentTick - this.creationTick;
         if(ticksSinceCreation === this.tickToShoot){
             const angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(this.center.x, this.center.y, playerPos.x, playerPos.y);
+            this.soundService.enemyBulletSound.play();
             return new SimpleBullet(Object.create(this.center), angleToPlayer, 2);
         }
         return null;

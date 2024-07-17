@@ -1,4 +1,5 @@
-import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from "../game/globals";
+import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TICKS_PER_SECOND } from "../game/globals";
+import { CoordHelper } from "./coords";
 import { leftCoordHitbox, point } from "./interfaces";
 
 export class MovingStuff {
@@ -125,5 +126,37 @@ export class MovingStuff {
 
     static calculateYVelocityWithRadians(radians: number, speed: number, accel: number): number {
         return (accel+speed) * Math.sin(radians);
+    }
+
+    static generateLtoRWanderPath(hitbox: leftCoordHitbox){
+        const yRand = MovingStuff.getRandomPositiveInt(6) + 4; //Random int from 4 to 10
+        const center = CoordHelper.getTopLeftWithCenterPoint(hitbox.width, hitbox.height, PLAYFIELD_WIDTH*.5, PLAYFIELD_HEIGHT/yRand);
+        const right = CoordHelper.getTopLeftWithCenterPoint(hitbox.width, hitbox.height, PLAYFIELD_WIDTH*.8, PLAYFIELD_HEIGHT/yRand);
+        return [
+            {
+                dest: { x: center.x, y: center.y },
+                time: 3*TICKS_PER_SECOND,
+            },
+            {
+                dest: { x: right.x, y: right.y },
+                time: 3*TICKS_PER_SECOND,
+            },
+        ];
+    }
+
+    static generateRtoLWanderPath(hitbox: leftCoordHitbox){
+        const yRand = MovingStuff.getRandomPositiveInt(6) + 3; //Random int from 3 to 9
+        const center = CoordHelper.getTopLeftWithCenterPoint(hitbox.width, hitbox.height, PLAYFIELD_WIDTH*.5, PLAYFIELD_HEIGHT/yRand);
+        const left = CoordHelper.getTopLeftWithCenterPoint(hitbox.width, hitbox.height, PLAYFIELD_WIDTH*.2, PLAYFIELD_HEIGHT/yRand);
+        return [
+            {
+                dest: { x: center.x, y: center.y },
+                time: 3*TICKS_PER_SECOND,
+            },
+            {
+                dest: { x: left.x, y: left.y },
+                time: 3*TICKS_PER_SECOND,
+            },
+        ];
     }
 }

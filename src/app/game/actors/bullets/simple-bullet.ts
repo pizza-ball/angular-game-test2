@@ -19,6 +19,7 @@ export class SimpleBullet {
     angleManip: number | undefined;
     angleManipDuration = 0;
     angleManipCounter = 0;
+    color = "orange";
     constructor(
         private startPos: point,
         private angleInRadians: number,

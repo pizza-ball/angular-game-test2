@@ -1,0 +1,14 @@
+IDEAS
+
+Graze based gameplay system. Grazing meter is constantly decreasing. Grazing a bullet raises it a little bit.
+When maxed, the player can deploy a small space around themselves that...
+ - converts all bullets to points, or
+ - enables a powerful melee counter, which swats bullets in front of you back, or
+ - 
+
+Normal mode: this mechanic is never necessary. Certain bullet arrangements need to be worth more graze due to less bullets.
+Hard mode: this mechanic is practically necessary, but technically not.
+
+CODE IDEAS
+
+Timer type function. Accepts any function as input, and automatically handles assigns a tick counter to it.

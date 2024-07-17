@@ -1,0 +1,50 @@
+import { leftCoordHitbox, point } from "../../../../helpers/interfaces";
+import { MovingStuff } from "../../../../helpers/moving-stuff";
+import { TICKS_PER_SECOND } from "../../../globals";
+import { SoundService } from "../../../services/sound/sound.service";
+import { SimpleBullet } from "../simple-bullet";
+import { BossPhase } from "./boss-phase";
+
+export class Boss1_CircleChase implements BossPhase {
+    MAX_HEALTH = 300;
+    DURATION = 30*TICKS_PER_SECOND;
+
+    currentHealth = this.MAX_HEALTH;
+    streamingBullets = new Howl({
+        src: [
+          this.soundService.specificSoundsDirectory + 'se_tan00.wav',
+        ],
+    });
+
+    constructor(private soundService: SoundService){}
+
+    move(tick: number, bossPos: leftCoordHitbox, playerPos: point){
+        return;
+    }
+
+    //Spawn bullets at 20 degree increments up to 360. rotate all angles 45*, repeat. spawn every 1 second.
+    //Spawn a continuous stream at the player. Forces them to move around the boss.
+    startAngle = 0;
+    angleIncrement = 30;
+    a_shot1Tick = 1 * TICKS_PER_SECOND;
+    a_shot2Tick = TICKS_PER_SECOND/15; //every 4 frames at 60fps
+    shoot(tick: number, bossPos: point, playerPos: point) {
+        this.streamingBullets.volume(this.soundService.quietVol);
+        let bullets: SimpleBullet[] = [];
+        if (tick % this.a_shot1Tick === 0){
+            for(let i = 0; i < 360 + this.startAngle; i += this.angleIncrement){
+                
+                bullets.push(new SimpleBullet(Object.create(bossPos), MovingStuff.degreesToRadians(i + this.startAngle), 1.5));
+            }
+            this.startAngle += 45;
+        }
+
+        if (tick % this.a_shot2Tick === 0){
+            this.streamingBullets.stop();
+            this.streamingBullets.play();
+            const angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(bossPos.x, bossPos.y, playerPos.x, playerPos.y);
+            bullets.push(new SimpleBullet(Object.create(bossPos), angleToPlayer, 3));
+        }
+        return bullets;
+    }
+}

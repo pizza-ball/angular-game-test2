@@ -5,7 +5,8 @@ import { DrawingStuff } from "../../../helpers/drawing-stuff";
 import { v4 as uuidv4 } from 'uuid';
 import { SimpleBullet } from "../bullets/simple-bullet";
 import { CoordHelper } from "../../../helpers/coords";
-import { ActorList } from "./actorlist";
+import { ActorList } from "../actorlist";
+import { SoundService } from "../../services/sound/sound.service";
 
 export class Shwoop {
     public id = uuidv4();
@@ -20,6 +21,7 @@ export class Shwoop {
     powerCount = 0;
     pointCount = 0;
     constructor(
+        private soundService: SoundService,
         private creationTick: number,
         private startX: number,
         private startY: number,
@@ -89,6 +91,7 @@ export class Shwoop {
             const angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(this.center.x, this.center.y, playerPos.x, playerPos.y);
             const leftAngle = angleToPlayer - (15) * (Math.PI / 180);
             const rightAngle = angleToPlayer + (15) * (Math.PI / 180);
+            this.soundService.enemyBulletSound.play();
             return [
                 new SimpleBullet(Object.create(this.center), angleToPlayer),
                 new SimpleBullet(Object.create(this.center), leftAngle),

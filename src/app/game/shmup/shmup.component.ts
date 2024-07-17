@@ -22,7 +22,7 @@ import { Player, playerState } from '../actors/player';
 import { EnemySpawn, spawnMapLevel1 } from '../levels/level1';
 import { DEBUG_MODE, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TICKS_PER_SECOND } from '../globals';
 import { Dongler } from '../actors/enemies/dongler';
-import { ActorList } from '../actors/enemies/actorlist';
+import { ActorList } from '../actors/actorlist';
 import { Shwoop } from '../actors/enemies/shwoop';
 import { PowerPoint } from '../actors/items/power';
 import { DrawingStuff } from '../../helpers/drawing-stuff';
@@ -30,7 +30,7 @@ import { MovingStuff } from '../../helpers/moving-stuff';
 import { BigBoi } from '../actors/enemies/bigboi';
 import { CoordHelper } from '../../helpers/coords';
 import { Point } from '../actors/items/point';
-import { Boss1 } from '../actors/enemies/boss1';
+import { Boss1 } from '../actors/enemies/bosses/boss1';
 import { SimpleBullet } from '../actors/bullets/simple-bullet';
 
 @Component({
@@ -136,7 +136,9 @@ export class ShmupComponent implements AfterViewInit {
       }
       this.soundServ.setVolume(this.volumeSliderChoice);
       this.tick++;
+      
       this.timers();
+      this.assessBoss(this.tick);
       this.checkForEnemySpawn(this.tick);
       this.player.handleMovement();
       this.moveAllEnemies();
@@ -148,7 +150,6 @@ export class ShmupComponent implements AfterViewInit {
       this.checkBulletEnemyCollision();
       this.player.checkBulletPlayerCollision(this.enemyBullets, this.enemyDeathSprites);
       this.checkItemPlayerCollision();
-
 
       let ctx = this.canvasRef2d?.nativeElement.getContext("2d");
       if (ctx) {
@@ -246,16 +247,16 @@ export class ShmupComponent implements AfterViewInit {
   spawnEnemy(enemy: EnemySpawn, currentTick: number) {
     switch (enemy.name) {
       case ActorList.Dongler:
-        this.enemies.push(new Dongler(currentTick, enemy.start.x, enemy.start.y, Object.create(enemy.path)));
+        this.enemies.push(new Dongler(this.soundServ, currentTick, enemy.start.x, enemy.start.y, Object.create(enemy.path)));
         break;
       case ActorList.Shwoop:
-        this.enemies.push(new Shwoop(currentTick, enemy.start.x, enemy.start.y, Object.create(enemy.path)));
+        this.enemies.push(new Shwoop(this.soundServ, currentTick, enemy.start.x, enemy.start.y, Object.create(enemy.path)));
         break;
       case ActorList.BigBoi:
-        this.enemies.push(new BigBoi(currentTick, enemy.start.x, enemy.start.y, Object.create(enemy.path)));
+        this.enemies.push(new BigBoi(this.soundServ, currentTick, enemy.start.x, enemy.start.y, Object.create(enemy.path)));
         break;
       case ActorList.Boss1:
-        this.enemies.push(new Boss1(currentTick));
+        this.enemies.push(new Boss1(this.soundServ, currentTick));
         break;
       default:
         console.log("unrecognized enemy.");
@@ -264,7 +265,11 @@ export class ShmupComponent implements AfterViewInit {
 
   moveAllEnemies() {
     for (let i = 0; i < this.enemies.length; i++) {
-      this.enemies[i].move();
+      if(this.enemies[i].ENEMY_TYPE === ActorList.BossGeneric){
+        this.enemies[i].move(this.tick);
+      } else {
+        this.enemies[i].move();
+      }
 
       //deletes enemies that have finished their path
       if (this.enemies[i].flagForDeletion) {
@@ -304,49 +309,29 @@ export class ShmupComponent implements AfterViewInit {
           j--;
           
           enemy.hitByBullet(bullet);
-          this.soundServ.damageSound.play();
 
-          if (enemy.isDefeated()) {
-            this.killEnemy(enemy);
-            this.enemies.splice(i, 1);
-            i--;
-            break; //Enemy is dead, if we do not break we will check if all remaining player bullets will hit a dead enemy.
-          } else if (enemy.ENEMY_TYPE === ActorList.Boss1 && enemy.wasPhaseJustDefeated()){
-            this.convertEnemyBulletsToPoints();
+          if(enemy.ENEMY_TYPE === ActorList.BossGeneric){
+            //BOSS EXCLUSIVE LOGIC
+            //should check if boss phase is below 10% health. If so, play different damage sound.
+            this.soundServ.damageSound.play();
+            if(enemy.isDefeated()){
+              this.killBoss(enemy);
+              this.enemies.splice(i, 1);
+              i--;
+              break; //Enemy is dead, if we do not break we will check if all remaining player bullets will hit a dead enemy.
+            } else if (enemy.wasPhaseJustDefeated()){
+              this.convertEnemyBulletsToPoints();
+            }
+          } else {
+            this.soundServ.damageSound.play();
+            if (enemy.isDefeated()) {
+              this.killEnemy(enemy);
+              this.enemies.splice(i, 1);
+              i--;
+              break; //Enemy is dead, if we do not break we will check if all remaining player bullets will hit a dead enemy.
+            }
           }
         }
-      }
-    }
-  }
-
-  checkItemPlayerCollision() {
-    for (let i = 0; i < this.items.length; i++) {
-      let item = this.items[i];
-
-      if(this.player.state === playerState.dead){
-        item.flagForCollection = false;
-        continue;
-      }
-
-      let itemSquare = new Square(item.hitbox);
-      if (!item.flagForCollection &&
-        Square.checkSquareCircleOverlap(itemSquare, this.player.center, this.player.itemMagnetismRadius)
-      ) {
-        item.flagForCollection = true;
-        continue; //item is now in range to scoop. obviously it's not colliding with the player. Move to next item early.
-      }
-
-      let playerSquare = new Square(this.player.hitbox);
-      if ( Square.checkSquareOverlap(itemSquare, playerSquare) ) {
-        //destroy the item, add the item's value to the player
-        if(item.ITEM_TYPE === "point"){
-          this.player.score += item.value;
-        }
-        if(item.ITEM_TYPE === "power"){
-          this.player.adjustPowerLevel(item.value);
-        }
-        this.items.splice(i, 1);
-        i--;
       }
     }
   }
@@ -363,12 +348,25 @@ export class ShmupComponent implements AfterViewInit {
     this.soundServ.enemyDeath.play();
     this.dropItems(enemy);
 
-    if(enemy.ENEMY_TYPE === ActorList.Boss1){
-      this.convertEnemyBulletsToPoints();
-    }
+    enemy.cleanUp();
+  }
+
+  killBoss(enemy: Dongler | Shwoop | BigBoi | Boss1) {
+    let dataForDeathSprite = {
+      id: enemy.ENEMY_TYPE,
+      pos: { x: enemy.hitbox.pos.x, y: enemy.hitbox.pos.y },
+      width: enemy.hitbox.width,
+      height: enemy.hitbox.height,
+    };
+
+    this.enemyDeathSprites.push(dataForDeathSprite);
+    this.soundServ.bossKill.play();
+    this.dropItems(enemy);
+    this.convertEnemyBulletsToPoints();
 
     enemy.cleanUp();
   }
+  
 
   convertEnemyBulletsToPoints(){
     for(let i = 0; i < this.enemyBullets.length; i++){
@@ -396,5 +394,48 @@ export class ShmupComponent implements AfterViewInit {
     this.enemies.forEach(enemy => {
       enemy.drawThings(ctx);
     });
+  }
+
+  assessBoss(tick: number) {
+    for (let i = 0; i < this.enemies.length; i++) {
+      let enemy = this.enemies[i];
+      if(enemy.ENEMY_TYPE === ActorList.BossGeneric){
+        enemy.assess(tick);
+      }
+    }
+  }
+
+  checkItemPlayerCollision() {
+    for (let i = 0; i < this.items.length; i++) {
+      let item = this.items[i];
+
+      if(this.player.state === playerState.dead){
+        item.flagForCollection = false;
+        continue;
+      }
+
+      let itemSquare = new Square(item.hitbox);
+      if (!item.flagForCollection &&
+        Square.checkSquareCircleOverlap(itemSquare, this.player.center, this.player.itemMagnetismRadius)
+      ) {
+        item.flagForCollection = true;
+        continue; //item is now in range to scoop. obviously it's not colliding with the player. Move to next item early.
+      }
+
+      let playerSquare = new Square(this.player.hitbox);
+      if ( Square.checkSquareOverlap(itemSquare, playerSquare) ) {
+        //destroy the item, add the item's value to the player
+        if(item.ITEM_TYPE === "point"){
+          this.soundServ.itemPickup.play();
+          this.player.score += item.value;
+        }
+        if(item.ITEM_TYPE === "power"){
+          this.soundServ.itemPickup.play();
+          this.player.adjustPowerLevel(item.value);
+        }
+        this.items.splice(i, 1);
+        i--;
+      }
+    }
   }
 }

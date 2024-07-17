@@ -1,5 +1,5 @@
 import { curvePath, curvePathWithPause, linePath, linePathWithPause, point } from "../../helpers/interfaces";
-import { ActorList } from "../actors/enemies/actorlist";
+import { ActorList } from "../actors/actorlist";
 import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from "../globals";
 
 //spawn times are in seconds, later mapped to ticks for precision
@@ -14,7 +14,7 @@ export class EnemySpawn{
 
 // export const spawnMapLevel1 = [
 //     {
-//         name: ActorList.Boss1,
+//         name: ActorList.Boss,
 //         start: { x: 0, y: 0 },
 //         path: [],
 //         times: [1]
@@ -207,5 +207,17 @@ export const spawnMapLevel1 = [
         start: { x: 0, y: 0 },
         path: [],
         times: [32]
+    },
+    {
+        name: ActorList.Shwoop,
+        start: { x: -30, y: PLAYFIELD_HEIGHT*.4 },
+        path: [
+            {
+                dest: { x: PLAYFIELD_WIDTH+30, y: PLAYFIELD_HEIGHT*.1 },
+                control: { x: PLAYFIELD_WIDTH * .65, y: -50},
+                speed: 5,
+            },
+        ],
+        times: [28, 28.2, 28.4, 28.6, 28.8]
     },
 ];

@@ -7,7 +7,7 @@ import { DEBUG_MODE, PLAYFIELD_HEIGHT, TICKS_PER_SECOND } from "../globals";
 import { InputService } from "../services/input/input.service";
 import { SoundService } from "../services/sound/sound.service";
 import { v4 as uuidv4 } from 'uuid';
-import { ActorList } from "./enemies/actorlist";
+import { ActorList } from "./actorlist";
 
 export enum playerState {
     normal = 'normal',
@@ -22,8 +22,8 @@ export class Player {
     public id = uuidv4();
     DEFAULT_COLOR = "rgb(236, 129, 129)";
     PLAYSPACE = { width: 1, height: 1 };
-    WIDTH = 10;
-    HEIGHT = 10;
+    WIDTH = 4;
+    HEIGHT = 4;
     SPRITE_DIMENSIONS = { width: 30, height: 50 };
     START_POS: point = { x: 245, y: 400 };
     HITBOX_START_POS: point = {
@@ -174,7 +174,7 @@ export class Player {
             let nShotL: bullet = {
                 hitbox: {
                     pos: {
-                        x: this.hitbox.pos.x - 13,
+                        x: this.hitbox.pos.x - 17,
                         y: this.hitbox.pos.y + 10,
                     },
                     width: 15,
@@ -187,7 +187,7 @@ export class Player {
             let nShotR: bullet = {
                 hitbox: {
                     pos: {
-                        x: this.hitbox.pos.x + 8,
+                        x: this.hitbox.pos.x + 7,
                         y: this.hitbox.pos.y + 10,
                     },
                     width: 15,
@@ -324,15 +324,19 @@ export class Player {
 
         //Must check if adding values results in a jump to a new integer, otherwise we'll constantly reset the options.
         if(this.power < 1 && this.power + adjustmentValue > 1){
+            this.soundServ.powerUp.play();
             this.powerOptions[0] = this.generateOption(90);
         } else if(this.power < 2 && this.power + adjustmentValue > 2){
+            this.soundServ.powerUp.play();
             this.powerOptions[0] = this.generateOption(90);
             this.powerOptions[1] = this.generateOption(270);
         } else if(this.power < 3 && this.power + adjustmentValue > 3){
+            this.soundServ.powerUp.play();
             this.powerOptions[0] = this.generateOption(45);
             this.powerOptions[1] = this.generateOption(165);
             this.powerOptions[2] = this.generateOption(285);
         } else if(this.power < 4 && this.power + adjustmentValue > 4){
+            this.soundServ.powerUp.play();
             this.powerOptions[0] = this.generateOption(90);
             this.powerOptions[1] = this.generateOption(270);
             this.powerOptions[2] = this.generateOption(180);
