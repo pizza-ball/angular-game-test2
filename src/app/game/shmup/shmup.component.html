@@ -1,7 +1,7 @@
-<div id="shmupZone" style="margin-top: 15px; margin-left: 20px" [style.width.px]="[widthFromGlobal]"
-  [style.height.px]="[heightFromGlobal]" (click)="printMousePos($event)">
-  <canvas #rCanvas id="rCanvas" [style.width.px]="[widthFromGlobal]"
-  [style.height.px]="[heightFromGlobal]" style="position: absolute; overflow: hidden;">
+<div id="shmupZone" [ngStyle]="{'margin-top.px': shmupStyle.marginTop, 'margin-left.px': shmupStyle.marginLeft}" 
+  [style.width.px]="shmupStyle.width" [style.height.px]="shmupStyle.height" (click)="printMousePos($event)">
+  <canvas #rCanvas id="rCanvas" [style.width.px]="[shmupStyle.width]"
+  [style.height.px]="[shmupStyle.height]" style="position: absolute; overflow: hidden;">
   </canvas>
   <canvas #2DCanvas id="2DCanvas" style="position: absolute; overflow: hidden;">
   </canvas>
@@ -23,9 +23,9 @@
   <h1 *ngIf="this.player.state === 'gameover'" style="position: absolute; margin-top: 400px; margin-left: 200px; color: aliceblue;">
     U die
   </h1>
-  <div id="redguy" [style.left.px]="[player.position.x]" [style.top.px]="[player.position.y]" [hidden]="player.hidden"
+  <div id="redguy" [style.width.px]="[player.SPRITE_DIMENSIONS.width]" [style.height.px]="[player.SPRITE_DIMENSIONS.height]" [style.left.px]="[player.position.x]" [style.top.px]="[player.position.y]" [hidden]="player.hidden"
   [ngStyle]="{'background-color': player.color}"></div>
-  <div id="redguyHitbox" [style.left.px]="[player.hitbox.pos.x]" [style.top.px]="[player.hitbox.pos.y]"
+  <div id="redguyHitbox" [style.width.px]="[player.WIDTH]" [style.height.px]="[player.HEIGHT]" [style.left.px]="[player.hitbox.pos.x]" [style.top.px]="[player.hitbox.pos.y]"
     [hidden]="player.hidden"></div>
   <div *ngFor="let option of this.player.powerOptions">
     <div style="position: absolute; background-color: red; opacity: 0.7;" [style.left.px]="[option.pos.x]" [style.top.px]="[option.pos.y]"
@@ -67,7 +67,7 @@
     [ngStyle]="{'background-color': item.COLOR}"></div>
   </div>
 </div>
-<div id="statsZone" style="margin-top: 15px; margin-left: 575px">
+<div id="statsZone" [ngStyle]="{'width': sideBarStyle.width, 'height': sideBarStyle.height, 'margin-left.px': sideBarStyle.marginLeft, 'margin-top.px': sideBarStyle.marginTop}">
   <h1 style="color: aliceblue">TYPESHIP</h1>
   <!-- <h2>xPOS: {{ player.hitbox.pos.x }}</h2>
   <h2>yPOS: {{ player.hitbox.pos.y }}</h2> -->
@@ -77,6 +77,6 @@
   <h2>FPS: {{ frameRate }}</h2>
   <h2>Volume</h2>
   <div style="width: 100%">
-    <input type="range" min="1" max="100" value="volumeSliderChoice" [(ngModel)]="volumeSliderChoice" class="slider" />
+    <input [ngStyle]="{'width': sideBarStyle.volumeBarWidth, 'height': sideBarStyle.volumeBarHeight}" type="range" min="1" max="100" value="volumeSliderChoice" [(ngModel)]="volumeSliderChoice" />
   </div>
 </div>

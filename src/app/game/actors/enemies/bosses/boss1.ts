@@ -2,7 +2,7 @@ import { CoordHelper } from "../../../../helpers/coords";
 import { DrawingStuff } from "../../../../helpers/drawing-stuff";
 import { bullet, leftCoordHitbox, linePath, linePathWithPause, point } from "../../../../helpers/interfaces";
 import { MovingStuff } from "../../../../helpers/moving-stuff";
-import { DEBUG_MODE, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TICKS_PER_SECOND } from "../../../globals";
+import { DEBUG_MODE, FPS_TARGET, Units } from "../../../globals";
 import { SimpleBullet } from "../../bullets/simple-bullet";
 import { v4 as uuidv4 } from 'uuid';
 import { ActorList } from "../../actorlist";
@@ -25,11 +25,11 @@ export class Boss1 {
     public id = uuidv4();
     public healthId = uuidv4();
     ENEMY_TYPE = ActorList.BossGeneric;
-    WIDTH = 60;
-    HEIGHT = 60;
-    START_POS = CoordHelper.getTopLeftWithCenterPoint(this.WIDTH, this.HEIGHT, PLAYFIELD_WIDTH, -50);
-    ARRIVAL_DURATION = 1 * TICKS_PER_SECOND;
-    PAUSE_DURATION = 2 * TICKS_PER_SECOND;
+    WIDTH = Units.getUnits(60);
+    HEIGHT = Units.getUnits(60);
+    START_POS = CoordHelper.getTopLeftWithCenterPoint(this.WIDTH, this.HEIGHT, Units.getPlayfieldWidth(), Units.getUnits(-50));
+    ARRIVAL_DURATION = 1 * FPS_TARGET;
+    PAUSE_DURATION = 2 * FPS_TARGET;
 
     state = bossState.entering;
     hitbox: leftCoordHitbox;
@@ -98,7 +98,7 @@ export class Boss1 {
         } else if (this.state === bossState.attacking){
             const ticksSincePhaseStart = currentTick - this.phaseStartTick;
             //Save the timeout progress to a variable. This variable can be used to display a spellcard timer.
-            this.phaseCountdown = ((this.phases[this.currentPhase].DURATION/TICKS_PER_SECOND) - Math.round(ticksSincePhaseStart/TICKS_PER_SECOND)).toFixed(0);
+            this.phaseCountdown = ((this.phases[this.currentPhase].DURATION/FPS_TARGET) - Math.round(ticksSincePhaseStart/FPS_TARGET)).toFixed(0);
 
             //Attack Timeout
             if (ticksSincePhaseStart >= this.phases[this.currentPhase].DURATION) {
@@ -107,7 +107,7 @@ export class Boss1 {
         }
     }
 
-    startDest = CoordHelper.getTopLeftWithCenterPoint(this.WIDTH, this.HEIGHT, PLAYFIELD_WIDTH * .5, PLAYFIELD_HEIGHT * .35);
+    startDest = CoordHelper.getTopLeftWithCenterPoint(this.WIDTH, this.HEIGHT, Units.getPlayfieldWidth() * .5, Units.getPlayfieldHeight() * .35);
     enterScene() {
         let vel = MovingStuff.moveToDestInSetTime_Decelerate(this.START_POS.x, this.START_POS.y, this.startDest.x, this.startDest.y, this.phaseFrameCounter, this.ARRIVAL_DURATION);
         this.hitbox.pos.x += vel.x;

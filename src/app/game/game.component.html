@@ -1,4 +1,4 @@
-<div id="game">
+<div id="game" [style.width.px]="width" [style.height.px]="height">
     <app-menu *ngIf="gameState === 'title'"></app-menu>
     <app-shmup *ngIf="gameState === 'L1'"></app-shmup>
 </div>

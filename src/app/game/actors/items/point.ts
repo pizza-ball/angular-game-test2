@@ -2,7 +2,7 @@ import { CoordHelper } from "../../../helpers/coords";
 import { leftCoordHitbox, point } from "../../../helpers/interfaces";
 import { MovingStuff } from "../../../helpers/moving-stuff";
 import { Square } from "../../../helpers/square";
-import { TICKS_PER_SECOND } from "../../globals";
+import { FPS_TARGET } from "../../globals";
 
 export class Point {
     ITEM_TYPE = "point";
@@ -32,7 +32,7 @@ export class Point {
 
     move(playerX: number, playerY: number) {
         this.tickCounter++;
-        let sec = this.tickCounter/TICKS_PER_SECOND;
+        let sec = this.tickCounter/FPS_TARGET;
 
         if(this.flagForCollection){
             let velXY = MovingStuff.xyVelTowards(this.collectSpeed, this.hitbox.pos, {x: playerX, y: playerY});

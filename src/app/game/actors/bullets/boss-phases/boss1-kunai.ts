@@ -1,13 +1,13 @@
 import { leftCoordHitbox, point } from "../../../../helpers/interfaces";
 import { MovingStuff } from "../../../../helpers/moving-stuff";
-import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TICKS_PER_SECOND } from "../../../globals";
+import { FPS_TARGET, Units } from "../../../globals";
 import { SoundService } from "../../../services/sound/sound.service";
 import { SimpleBullet } from "../simple-bullet";
 import { BossPhase } from "./boss-phase";
 
 export class Boss1_KunaiCircle implements BossPhase{
     MAX_HEALTH = 300;
-    DURATION = 30*TICKS_PER_SECOND;
+    DURATION = 30*FPS_TARGET;
 
     currentHealth = this.MAX_HEALTH;
     streamingBullets = new Howl({
@@ -40,7 +40,7 @@ export class Boss1_KunaiCircle implements BossPhase{
             this.startPos = {x: bossPos.pos.x, y: bossPos.pos.y};
             this.path.splice(0, 1);
             if(this.path.length <= 0){
-                if(bossPos.pos.x < PLAYFIELD_WIDTH*.4){
+                if(bossPos.pos.x < Units.getPlayfieldWidth()*.4){
                     this.path = MovingStuff.generateLtoRWanderPath(bossPos);
                 } else {
                     this.path = MovingStuff.generateRtoLWanderPath(bossPos);
@@ -51,7 +51,7 @@ export class Boss1_KunaiCircle implements BossPhase{
     }
 
     //Spawn a burst of standard bullets at several angles. Bullets aren't very fast, but dense.
-    shot1Tick = TICKS_PER_SECOND/4; //every 15 frames at 60fps
+    shot1Tick = FPS_TARGET/4; //every 15 frames at 60fps
     alternater = false;
     angle = 0;
     angleIncrement = 72;
@@ -66,7 +66,7 @@ export class Boss1_KunaiCircle implements BossPhase{
                 for(let i = this.angle; i < 360 + this.angle; i += this.angleIncrement){
                     let angleClone = i - (3*this.shots);
                     for (let j = 0; j < this.shots; j++) {
-                        bullets.push(new SimpleBullet(Object.create(bossPos), (Math.PI/180)*angleClone, 3));
+                        bullets.push(new SimpleBullet(Object.create(bossPos), (Math.PI/180)*angleClone, Units.getUnits(3)));
                         angleClone += 3+this.shots;
                     }
                 }
@@ -74,7 +74,7 @@ export class Boss1_KunaiCircle implements BossPhase{
                 for(let i = -this.angle; i > -360 - this.angle; i -= this.angleIncrement){
                     let angleClone = i - (3*this.shots);
                     for (let j = 0; j < this.shots; j++) {
-                        let bul = new SimpleBullet(Object.create(bossPos), (Math.PI/180)*angleClone, 3);
+                        let bul = new SimpleBullet(Object.create(bossPos), (Math.PI/180)*angleClone, Units.getUnits(3));
                         bul.color = "cyan";
                         bullets.push(bul);
                         angleClone += 3+this.shots;

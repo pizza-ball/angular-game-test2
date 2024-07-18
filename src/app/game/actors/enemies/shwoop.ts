@@ -1,6 +1,6 @@
 import { bullet, curvePath, isCurve, leftCoordHitbox, linePath, point } from "../../../helpers/interfaces";
 import { MovingStuff } from "../../../helpers/moving-stuff";
-import { DEBUG_MODE, TICKS_PER_SECOND } from "../../globals";
+import { DEBUG_MODE, FPS_TARGET, Units } from "../../globals";
 import { DrawingStuff } from "../../../helpers/drawing-stuff";
 import { v4 as uuidv4 } from 'uuid';
 import { SimpleBullet } from "../bullets/simple-bullet";
@@ -11,9 +11,9 @@ import { SoundService } from "../../services/sound/sound.service";
 export class Shwoop {
     public id = uuidv4();
     ENEMY_TYPE = ActorList.Shwoop;
-    WIDTH = 30;
-    HEIGHT = 30;
-    ticksToShoot = [1 * TICKS_PER_SECOND];//, 1.2*TICKS_PER_SECOND, 1.4*TICKS_PER_SECOND];
+    WIDTH = Units.getUnits(30);
+    HEIGHT = Units.getUnits(30);
+    ticksToShoot = [1 * FPS_TARGET];//, 1.2*TICKS_PER_SECOND, 1.4*TICKS_PER_SECOND];
     hitbox: leftCoordHitbox;
     center: point = {x: 0, y: 0};
     health = 5;

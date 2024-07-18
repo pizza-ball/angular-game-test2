@@ -1,11 +1,11 @@
-import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH } from "../game/globals";
+import { Units } from "../game/globals";
 import { leftCoordHitbox, point } from "./interfaces";
 
 export class CoordHelper{
     static isHitboxOutsidePlayArea(p1x: number, p1y: number, height: number, width: number) {
-        if ((p1x > PLAYFIELD_WIDTH ||
+        if ((p1x > Units.getPlayfieldWidth() ||
             p1x + width < 0) ||
-            (p1y > PLAYFIELD_HEIGHT ||
+            (p1y > Units.getPlayfieldHeight() ||
             p1y + height < 0)
         ) {
             return true;
@@ -14,7 +14,7 @@ export class CoordHelper{
     }
 
     static isHitboxisBelowBottomBound(p1y: number) {
-        if (p1y > PLAYFIELD_HEIGHT) {
+        if (p1y > Units.getPlayfieldHeight()) {
             return true;
         }
         return false;

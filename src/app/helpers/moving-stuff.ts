@@ -1,4 +1,4 @@
-import { PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TICKS_PER_SECOND } from "../game/globals";
+import { FPS_TARGET, Units } from "../game/globals";
 import { CoordHelper } from "./coords";
 import { leftCoordHitbox, point } from "./interfaces";
 
@@ -130,32 +130,32 @@ export class MovingStuff {
 
     static generateLtoRWanderPath(hitbox: leftCoordHitbox){
         const yRand = MovingStuff.getRandomPositiveInt(6) + 4; //Random int from 4 to 10
-        const center = CoordHelper.getTopLeftWithCenterPoint(hitbox.width, hitbox.height, PLAYFIELD_WIDTH*.5, PLAYFIELD_HEIGHT/yRand);
-        const right = CoordHelper.getTopLeftWithCenterPoint(hitbox.width, hitbox.height, PLAYFIELD_WIDTH*.8, PLAYFIELD_HEIGHT/yRand);
+        const center = CoordHelper.getTopLeftWithCenterPoint(hitbox.width, hitbox.height, Units.getPlayfieldWidth()*.5, Units.getPlayfieldHeight()/yRand);
+        const right = CoordHelper.getTopLeftWithCenterPoint(hitbox.width, hitbox.height, Units.getPlayfieldWidth()*.8, Units.getPlayfieldHeight()/yRand);
         return [
             {
                 dest: { x: center.x, y: center.y },
-                time: 3*TICKS_PER_SECOND,
+                time: 3*FPS_TARGET,
             },
             {
                 dest: { x: right.x, y: right.y },
-                time: 3*TICKS_PER_SECOND,
+                time: 3*FPS_TARGET,
             },
         ];
     }
 
     static generateRtoLWanderPath(hitbox: leftCoordHitbox){
         const yRand = MovingStuff.getRandomPositiveInt(6) + 3; //Random int from 3 to 9
-        const center = CoordHelper.getTopLeftWithCenterPoint(hitbox.width, hitbox.height, PLAYFIELD_WIDTH*.5, PLAYFIELD_HEIGHT/yRand);
-        const left = CoordHelper.getTopLeftWithCenterPoint(hitbox.width, hitbox.height, PLAYFIELD_WIDTH*.2, PLAYFIELD_HEIGHT/yRand);
+        const center = CoordHelper.getTopLeftWithCenterPoint(hitbox.width, hitbox.height, Units.getPlayfieldWidth()*.5, Units.getPlayfieldHeight()/yRand);
+        const left = CoordHelper.getTopLeftWithCenterPoint(hitbox.width, hitbox.height, Units.getPlayfieldWidth()*.2, Units.getPlayfieldHeight()/yRand);
         return [
             {
                 dest: { x: center.x, y: center.y },
-                time: 3*TICKS_PER_SECOND,
+                time: 3*FPS_TARGET,
             },
             {
                 dest: { x: left.x, y: left.y },
-                time: 3*TICKS_PER_SECOND,
+                time: 3*FPS_TARGET,
             },
         ];
     }

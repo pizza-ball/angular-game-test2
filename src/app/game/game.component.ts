@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ShmupComponent } from './shmup/shmup.component';
 import { MenuComponent } from './menu/menu.component';
 import { InputService } from './services/input/input.service';
+import { INTERNAL_RES_Y, INTERNAL_RES_X, SCALING_FACTOR, Units } from './globals';
 
 export enum gameStates {
   title = 'title',
@@ -19,6 +20,8 @@ export enum gameStates {
 })
 export class GameComponent {
   gameState = gameStates.L1;
+  width = Units.getGameWidth();
+  height = Units.getGameHeight();
 
   @HostListener('document:keydown', ['$event'])
   handleKeyDown(event: KeyboardEvent) {

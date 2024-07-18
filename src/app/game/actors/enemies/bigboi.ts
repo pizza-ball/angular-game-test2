@@ -2,7 +2,7 @@ import { CoordHelper } from "../../../helpers/coords";
 import { DrawingStuff } from "../../../helpers/drawing-stuff";
 import { bullet, leftCoordHitbox, linePath, linePathWithPause, point } from "../../../helpers/interfaces";
 import { MovingStuff } from "../../../helpers/moving-stuff";
-import { DEBUG_MODE, TICKS_PER_SECOND } from "../../globals";
+import { DEBUG_MODE, FPS_TARGET, Units } from "../../globals";
 import { Danmaku } from "../bullets/patterns/x-dan";
 import { SimpleBullet } from "../bullets/simple-bullet";
 import { v4 as uuidv4 } from 'uuid';
@@ -13,9 +13,9 @@ import { SoundService } from "../../services/sound/sound.service";
 export class BigBoi {
     public id = uuidv4();
     ENEMY_TYPE = ActorList.BigBoi;
-    WIDTH = 76;
-    HEIGHT = 76;
-    ticksToShoot = [1 * TICKS_PER_SECOND, 2 * TICKS_PER_SECOND, 3 * TICKS_PER_SECOND];
+    WIDTH = Units.getUnits(76);
+    HEIGHT = Units.getUnits(76);
+    ticksToShoot = [1 * FPS_TARGET, 2 * FPS_TARGET, 3 * FPS_TARGET];
     hitbox: leftCoordHitbox;
     center: point = {x: 0, y: 0};
     health = 50;
@@ -56,7 +56,7 @@ export class BigBoi {
             //console.log("we should be moving towards " + this.path[0]);
             MovingStuff.moveTowardsAtConstRate(this.hitbox.pos, this.path[0].dest, this.path[0].speed);
         } else {
-            if ('pauseTimeInSec' in this.path[0] && this.path[0].pauseTimeInSec !== 0 && this.pauseCounter / 60 < this.path[0].pauseTimeInSec) {
+            if ('pauseTimeInSec' in this.path[0] && this.path[0].pauseTimeInSec !== 0 && this.pauseCounter / FPS_TARGET < this.path[0].pauseTimeInSec) {
                 this.pauseCounter++;
             } else {
                 this.path.shift();

@@ -20,7 +20,7 @@ import { BackgroundService } from '../services/3d/background.service';
 import { Scene } from '@babylonjs/core';
 import { Player, playerState } from '../actors/player';
 import { EnemySpawn, spawnMapLevel1 } from '../levels/level1';
-import { DEBUG_MODE, PLAYFIELD_HEIGHT, PLAYFIELD_WIDTH, TICKS_PER_SECOND } from '../globals';
+import { DEBUG_MODE, FPS_TARGET, Units } from '../globals';
 import { Dongler } from '../actors/enemies/dongler';
 import { ActorList } from '../actors/actorlist';
 import { Shwoop } from '../actors/enemies/shwoop';
@@ -43,9 +43,22 @@ import { SimpleBullet } from '../actors/bullets/simple-bullet';
 })
 
 export class ShmupComponent implements AfterViewInit {
-  widthFromGlobal = PLAYFIELD_WIDTH;
-  heightFromGlobal = PLAYFIELD_HEIGHT;
   gamePaused = false;
+  shmupStyle = {
+    width: Units.getPlayfieldWidth(),
+    height: Units.getPlayfieldHeight(),
+    marginLeft: Units.getUnits(20),
+    marginTop: Units.getUnits(15)
+  };
+  sideBarStyle = {
+    width: Units.getUnits(200),
+    height: Units.getUnits(350),
+    marginLeft: Units.getUnits(575),
+    marginTop: Units.getUnits(15),
+    volumeBarWidth: Units.getUnits(200),
+    volumeBarHeight: Units.getUnits(25)
+  };
+
   player: Player;
 
   volumeSliderChoice = 20;
@@ -73,7 +86,7 @@ export class ShmupComponent implements AfterViewInit {
   private scene: Scene | undefined;
 
   constructor(public bgService: BackgroundService, public inputServ: InputService, public soundServ: SoundService) {
-    this.player = new Player(inputServ, soundServ, PLAYFIELD_WIDTH, PLAYFIELD_HEIGHT);
+    this.player = new Player(inputServ, soundServ, Units.getPlayfieldWidth(), Units.getPlayfieldHeight());
   }
 
   async ngAfterViewInit() {
@@ -83,8 +96,8 @@ export class ShmupComponent implements AfterViewInit {
 
     if (this.canvasRef2d) {
       //need to set width and height here because ???????????????????? it just works.
-      this.canvasRef2d.nativeElement.width = PLAYFIELD_WIDTH;
-      this.canvasRef2d.nativeElement.height = PLAYFIELD_HEIGHT;
+      this.canvasRef2d.nativeElement.width = Units.getPlayfieldWidth();
+      this.canvasRef2d.nativeElement.height = Units.getPlayfieldHeight();
     }
 
     this.collectSpawnTimesAndConvertToTicks();
@@ -196,7 +209,7 @@ export class ShmupComponent implements AfterViewInit {
   movePlayerBullets() {
     for (let i = 0; i < this.playerBullets.length; i++) {
       this.playerBullets[i].hitbox.pos.y -= this.playerBullets[i].speed;
-      if (this.playerBullets[i].hitbox.pos.y < -30) {
+      if (this.playerBullets[i].hitbox.pos.y < Units.getUnits(-30)) {
         this.playerBullets.splice(i, 1);
         i--;
       }
@@ -224,10 +237,10 @@ export class ShmupComponent implements AfterViewInit {
       });
     });
     this.generatedSpawnTimes.sort((a, b) => a - b);
-    this.generatedSpawnTimes = this.generatedSpawnTimes.map(time => Math.round(time * TICKS_PER_SECOND));
+    this.generatedSpawnTimes = this.generatedSpawnTimes.map(time => Math.round(time * FPS_TARGET));
 
     spawnMapLevel1.forEach(enemy => {
-      enemy.times = enemy.times.map(time => Math.round(time * TICKS_PER_SECOND));
+      enemy.times = enemy.times.map(time => Math.round(time * FPS_TARGET));
     });
   }
 

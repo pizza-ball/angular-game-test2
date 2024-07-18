@@ -3,7 +3,7 @@ import { DrawingStuff } from "../../helpers/drawing-stuff";
 import { bullet, leftCoordHitbox, leftCoordHitboxId, point } from "../../helpers/interfaces";
 import { MovingStuff } from "../../helpers/moving-stuff";
 import { Square } from "../../helpers/square";
-import { DEBUG_MODE, PLAYFIELD_HEIGHT, TICKS_PER_SECOND } from "../globals";
+import { DEBUG_MODE, FPS_TARGET, Units } from "../globals";
 import { InputService } from "../services/input/input.service";
 import { SoundService } from "../services/sound/sound.service";
 import { v4 as uuidv4 } from 'uuid';
@@ -22,15 +22,16 @@ export class Player {
     public id = uuidv4();
     DEFAULT_COLOR = "rgb(236, 129, 129)";
     PLAYSPACE = { width: 1, height: 1 };
-    WIDTH = 4;
-    HEIGHT = 4;
-    SPRITE_DIMENSIONS = { width: 30, height: 50 };
-    START_POS: point = { x: 245, y: 400 };
+    WIDTH = Units.getUnits(5);
+    HEIGHT = Units.getUnits(5);
+    SPRITE_DIMENSIONS = { width: Units.getUnits(30), height: Units.getUnits(50) };
+    START_POS: point = { x: Units.getPlayfieldWidth()/2, y: Units.getPlayfieldHeight()*.8 };
     HITBOX_START_POS: point = {
         x: CoordHelper.getCenterWithTopLeftPoint(this.SPRITE_DIMENSIONS.width, this.SPRITE_DIMENSIONS.height, this.START_POS.x, this.START_POS.y).x - this.WIDTH / 2,
         y: CoordHelper.getCenterWithTopLeftPoint(this.SPRITE_DIMENSIONS.width, this.SPRITE_DIMENSIONS.height, this.START_POS.x, this.START_POS.y).y - this.HEIGHT / 2,
     };
-    RESPAWN_TIME = 3 * TICKS_PER_SECOND;
+    RESPAWN_TIME = 3 * FPS_TARGET;
+    DEFAULT_ITEMMAG_RADIUS = Units.getUnits(80);
 
     position: point = { x: this.START_POS.x, y: this.START_POS.y };
     center: point = { x: 0, y: 0 };
@@ -39,13 +40,13 @@ export class Player {
     state = playerState.normal;
     color = this.DEFAULT_COLOR; //Color can change based on player state
     allowedToFire = true;
-    moveVel = 7;
-    focusMoveVel = 3.5;
+    moveVel = Units.getUnits(7);
+    focusMoveVel = Units.getUnits(3.5);
     focusing = false;
     power = 0;
     score = 0;
     hidden = false;
-    itemMagnetismRadius = 80;
+    itemMagnetismRadius = this.DEFAULT_ITEMMAG_RADIUS;
     respawnCounter = 0;
     powerOptions: any[] = [];
 
@@ -121,10 +122,10 @@ export class Player {
     }
 
     checkIfAboveItemCollectionLine() {
-        if (this.hitbox.pos.y < PLAYFIELD_HEIGHT * .3) {
-            this.itemMagnetismRadius = 2000;
+        if (this.hitbox.pos.y < Units.getPlayfieldHeight() * .3) {
+            this.itemMagnetismRadius = Units.getUnits(2000);
         } else {
-            this.itemMagnetismRadius = 80;
+            this.itemMagnetismRadius = this.DEFAULT_ITEMMAG_RADIUS;
         }
     }
 
@@ -174,26 +175,26 @@ export class Player {
             let nShotL: bullet = {
                 hitbox: {
                     pos: {
-                        x: this.hitbox.pos.x - 17,
-                        y: this.hitbox.pos.y + 10,
+                        x: this.hitbox.pos.x - Units.getUnits(17),
+                        y: this.hitbox.pos.y + Units.getUnits(10),
                     },
-                    width: 15,
-                    height: 20,
+                    width: Units.getUnits(15),
+                    height: Units.getUnits(20),
                 },
-                speed: 16,
+                speed: Units.getUnits(16),
                 damage: 1,
             };
             bulletsFired.push(nShotL);
             let nShotR: bullet = {
                 hitbox: {
                     pos: {
-                        x: this.hitbox.pos.x + 7,
-                        y: this.hitbox.pos.y + 10,
+                        x: this.hitbox.pos.x + Units.getUnits(7),
+                        y: this.hitbox.pos.y + Units.getUnits(10),
                     },
-                    width: 15,
-                    height: 20,
+                    width: Units.getUnits(15),
+                    height: Units.getUnits(20),
                 },
-                speed: 16,
+                speed: Units.getUnits(16),
                 damage: 1,
             };
             bulletsFired.push(nShotR);
@@ -207,13 +208,13 @@ export class Player {
                 let optionShot: bullet = {
                     hitbox: {
                         pos: {
-                            x: center.x - 2,
-                            y: center.y - 20,
+                            x: center.x - Units.getUnits(2),
+                            y: center.y - Units.getUnits(20),
                         },
-                        width: 4,
-                        height: 20,
+                        width: Units.getUnits(4),
+                        height: Units.getUnits(20),
                     },
-                    speed: 12,
+                    speed: Units.getUnits(12),
                     damage: .2,
                 };
                 bulletsFired.push(optionShot);
@@ -274,9 +275,9 @@ export class Player {
         this.color = "pink";
     }
 
-    optionDistFromPlayer = 60;
-    MIN_DIST = 30;
-    MAX_DIST = 70;
+    optionDistFromPlayer = Units.getUnits(60);
+    MIN_DIST = Units.getUnits(30);
+    MAX_DIST = Units.getUnits(70);
     moveOptions(){
         for(let i = 0; i < this.powerOptions.length; i++){
             let option = this.powerOptions[i];
@@ -287,9 +288,9 @@ export class Player {
             }
 
             if(this.focusing){
-                this.optionDistFromPlayer = this.optionDistFromPlayer > this.MIN_DIST ? this.optionDistFromPlayer -= 5 : this.MIN_DIST;
+                this.optionDistFromPlayer = this.optionDistFromPlayer > this.MIN_DIST ? this.optionDistFromPlayer -= Units.getUnits(5) : this.MIN_DIST;
             } else {
-                this.optionDistFromPlayer = this.optionDistFromPlayer < this.MAX_DIST ? this.optionDistFromPlayer += 5 : this.MAX_DIST;
+                this.optionDistFromPlayer = this.optionDistFromPlayer < this.MAX_DIST ? this.optionDistFromPlayer += Units.getUnits(5) : this.MAX_DIST;
             }
 
             const positionModifiers = MovingStuff.calculateXYVelocityWithDegrees(option.relAngle, this.optionDistFromPlayer);
@@ -350,9 +351,9 @@ export class Player {
 
     generateOption(startAngle: number){
         return {
-            pos: {x: -10, y: -10},
-            width: 10,
-            height: 10,
+            pos: {x: Units.getUnits(-10), y: Units.getUnits(-10)},
+            width: Units.getUnits(10),
+            height: Units.getUnits(10),
             relAngle: startAngle
         };
     }

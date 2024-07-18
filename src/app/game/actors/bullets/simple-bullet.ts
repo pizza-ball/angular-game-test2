@@ -3,13 +3,13 @@
 import { CoordHelper } from "../../../helpers/coords";
 import { leftCoordHitbox, point } from "../../../helpers/interfaces";
 import { MovingStuff } from "../../../helpers/moving-stuff";
-import { TICKS_PER_SECOND } from "../../globals";
+import { FPS_TARGET, Units } from "../../globals";
 
 // Very basic projectile.
 export class SimpleBullet {
-    DEFAULT_WIDTH = 10;
-    DEFAULT_HEIGHT = 10;
-    DEFAULT_SPEED = 5;
+    DEFAULT_WIDTH = Units.getUnits(10);
+    DEFAULT_HEIGHT = Units.getUnits(10);
+    DEFAULT_SPEED = Units.getUnits(5);
     xyVel: point;
     hitbox: leftCoordHitbox;
     flagForDeletion = false;
@@ -42,7 +42,7 @@ export class SimpleBullet {
 
         if(this.accel !== undefined){
             //adjust the acceleration based on the tickrate.
-            this.accel = this.accel/TICKS_PER_SECOND;
+            this.accel = this.accel/FPS_TARGET;
         }
 
         this.xyVel = MovingStuff.calculateXYVelocityWithRadians(angleInRadians, speed);
@@ -82,7 +82,7 @@ export class SimpleBullet {
 
     alterAngleWhenMoving(degrees: number, durationSeconds: number){
         this.angleManip = MovingStuff.degreesToRadians(degrees);
-        this.angleManipDuration = Math.round(durationSeconds*TICKS_PER_SECOND);
+        this.angleManipDuration = Math.round(durationSeconds*FPS_TARGET);
         this.angleManipCounter = 0;
     }
 }
