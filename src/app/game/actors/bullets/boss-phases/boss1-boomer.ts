@@ -18,7 +18,7 @@ export class Boss1_VandBoomerangs implements BossPhase{
     
     constructor(private soundService: SoundService){}
 
-    move(tick: number, bossPos: leftCoordHitbox, playerPos: point){
+    moveScript(tick: number, bossPos: leftCoordHitbox, playerPos: point){
         return;
     }
 
@@ -31,7 +31,7 @@ export class Boss1_VandBoomerangs implements BossPhase{
     angle_b = 315;
     alternater = false;
     rando = 0;
-    shoot(tick: number, bossPos: point, playerPos: point){
+    attackScript(tick: number, bossPos: point, playerPos: point){
         this.streamingBullets.volume(this.soundService.quietVol);
         let bullets: SimpleBullet[] = [];
         if (tick % this.b_shot1Tick === 0){

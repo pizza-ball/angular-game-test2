@@ -1,62 +1,49 @@
 import { CoordHelper } from "../../../helpers/coords";
 import { DrawingStuff } from "../../../helpers/drawing-stuff";
-import { bullet, leftCoordHitbox, linePath, linePathWithPause, point } from "../../../helpers/interfaces";
+import { bullet, leftCoordHitbox, linePath, point } from "../../../helpers/interfaces";
 import { MovingStuff } from "../../../helpers/moving-stuff";
 import { DEBUG_MODE, FPS_TARGET, Units } from "../../globals";
 import { Danmaku } from "../bullets/patterns/x-dan";
 import { SimpleBullet } from "../bullets/simple-bullet";
 import { v4 as uuidv4 } from 'uuid';
 import { ActorList } from "../actorlist";
-import { SoundService } from "../../services/sound/sound.service";
+import { Enemy } from "./enemy-abstract";
 
 // Big enemy with more health, circle bullet pattern.
-export class BigBoi {
+export class BigBoi extends Enemy {
     public id = uuidv4();
     ENEMY_TYPE = ActorList.BigBoi;
-    WIDTH = Units.getUnits(76);
-    HEIGHT = Units.getUnits(76);
-    ticksToShoot = [1 * FPS_TARGET, 2 * FPS_TARGET, 3 * FPS_TARGET];
-    hitbox: leftCoordHitbox;
-    center: point = {x: 0, y: 0};
     health = 50;
-    flagForDeletion = false;
-    powerCount = 0;
-    pointCount = 0;
-    constructor(
-        private soundService: SoundService,
-        private creationTick: number,
-        private startX: number,
-        private startY: number,
-        private path: (linePath | linePathWithPause)[],
-        powerCount?: number,
-        pointCount?: number
-    ) {
-        this.hitbox = {
-            pos: CoordHelper.getTopLeftWithCenterPoint(this.WIDTH, this.HEIGHT, startX, startY),
-            width: this.WIDTH,
-            height: this.HEIGHT,
-        };
-        this.powerCount = 5;
-        this.pointCount = 20;
-
-        path.forEach(element => {
-            element.dest = CoordHelper.getTopLeftWithCenterPoint(this.WIDTH, this.HEIGHT, element.dest.x, element.dest.y)
-        });
-        this.center = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
+    defeatFlag = false;
+    clearFlag = false;
+    tickData = {
+        now: 0,
+        playerPos: {x: 0, y: 0}
     }
 
     pauseCounter = 0;
-    move() {
-        if (this.path.length <= 0) {
-            this.flagForDeletion = true;
-            return;
+
+    setTickData(tick: number, playerPos: point): void {
+        this.tickData.now = tick;
+        this.tickData.playerPos = {x: playerPos.x, y: playerPos.y};
+    }
+
+    assess(){
+        if(this.health <= 0){
+            this.defeatFlag = true;
         }
 
+        if(this.path.length <= 0){
+            this.clearFlag = true;
+        }
+    }
+
+    move() {
         if (this.hitbox.pos.x !== this.path[0].dest.x || this.hitbox.pos.y !== this.path[0].dest.y) {
             //console.log("we should be moving towards " + this.path[0]);
             MovingStuff.moveTowardsAtConstRate(this.hitbox.pos, this.path[0].dest, this.path[0].speed);
         } else {
-            if ('pauseTimeInSec' in this.path[0] && this.path[0].pauseTimeInSec !== 0 && this.pauseCounter / FPS_TARGET < this.path[0].pauseTimeInSec) {
+            if (this.path[0].pauseTimeInSec !== undefined && this.path[0].pauseTimeInSec !== 0 && this.pauseCounter / FPS_TARGET < this.path[0].pauseTimeInSec) {
                 this.pauseCounter++;
             } else {
                 this.path.shift();
@@ -66,9 +53,10 @@ export class BigBoi {
         this.center = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
     }
 
+    ticksToShoot = [1 * FPS_TARGET, 2 * FPS_TARGET, 3 * FPS_TARGET];
     angles = [45, 135, 225, 315]; // Angle calculations start from the X axis, and move clockwise towards Y. (0,1) is 90*. CAUTION: Y is inverted.
-    shoot(currentTick: number, playerPos: point): SimpleBullet | SimpleBullet[] | null {
-        const ticksSinceCreation = currentTick - this.creationTick;
+    attack(): SimpleBullet | SimpleBullet[] | null {
+        const ticksSinceCreation = this.tickData.now - this.creationTick;
         if (!this.ticksToShoot.includes(ticksSinceCreation)) {
             return null;
         }
@@ -80,15 +68,12 @@ export class BigBoi {
         return bullets;
     }
 
-    hitByBullet(bullet: bullet){
-        this.health -= bullet.damage;
-    }
-
-    isDefeated(){
+    hitByBullet(pBullet: bullet){
         if(this.health <= 0){
-            return true;
+            return false;
         }
-        return false;
+        this.health -= pBullet.damage;
+        return true;
     }
 
     drawThings(ctx: CanvasRenderingContext2D){

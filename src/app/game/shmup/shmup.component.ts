@@ -12,6 +12,8 @@ import {
   bullet,
   point,
   leftCoordHitboxId,
+  linePath,
+  curvePath,
 } from '../../helpers/interfaces';
 import { FormsModule } from '@angular/forms';
 import { InputService } from '../services/input/input.service';
@@ -28,10 +30,10 @@ import { PowerPoint } from '../actors/items/power';
 import { DrawingStuff } from '../../helpers/drawing-stuff';
 import { MovingStuff } from '../../helpers/moving-stuff';
 import { BigBoi } from '../actors/enemies/bigboi';
-import { CoordHelper } from '../../helpers/coords';
 import { Point } from '../actors/items/point';
 import { Boss1 } from '../actors/enemies/bosses/boss1';
 import { SimpleBullet } from '../actors/bullets/simple-bullet';
+import { Enemy } from '../actors/enemies/enemy-abstract';
 
 @Component({
   selector: 'app-shmup',
@@ -64,7 +66,7 @@ export class ShmupComponent implements AfterViewInit {
   volumeSliderChoice = 20;
 
   playerBullets: bullet[] = [];
-  enemies: any[] = [];
+  enemies: Enemy[] = [];
   enemyBullets: SimpleBullet[] = [];
   enemyDeathSprites: leftCoordHitboxId[] = [];
   items: (Point | PowerPoint)[] = [];
@@ -149,18 +151,18 @@ export class ShmupComponent implements AfterViewInit {
       }
       this.soundServ.setVolume(this.volumeSliderChoice);
       this.tick++;
-      
       this.timers();
-      this.assessBoss(this.tick);
+      
+      this.updateEnemies(this.tick, this.player.center);
+
+      //this.assessBoss(this.tick);
+
       this.checkForEnemySpawn(this.tick);
       this.player.handleMovement();
-      this.moveAllEnemies();
       this.moveItems();
       this.handlePlayerShooting();
-      this.handleEnemyShooting(this.tick, this.player.center);
       this.movePlayerBullets();
       this.moveEnemyBullets();
-      this.checkBulletEnemyCollision();
       this.player.checkBulletPlayerCollision(this.enemyBullets, this.enemyDeathSprites);
       this.checkItemPlayerCollision();
 
@@ -185,17 +187,46 @@ export class ShmupComponent implements AfterViewInit {
     }
   }
 
-  handlePlayerShooting() {
-    let playerShots = this.player.playerFiring();
-    if (playerShots) {
-      this.soundServ.shootingSound.play();
-      playerShots.forEach(shot => { this.playerBullets.push(shot); });
-    }
-  }
+  //MAJOR TODO: BOSSES HAVE NOT BEEN REFACTORED TO USE THIS METHOD. BOSSES ARE B R O K E N
+  updateEnemies(tick: number, playerPos: point){
+    for(let i = 0; i < this.enemies.length; i++){
+      let enemy = this.enemies[i];
+      //check collisions.
+      this.checkBulletEnemyCollision(enemy);
 
-  handleEnemyShooting(tick: number, playerPos: point) {
-    this.enemies.forEach((enemy) => {
-      let fired = enemy.shoot(tick, playerPos);
+      enemy.setTickData(tick, playerPos);
+
+      //assess enemy health, phase duration, all that. Kill enemies that are flagged to be killed.
+      enemy.assess();
+
+      if(enemy.ENEMY_TYPE === ActorList.BossGeneric){
+        //TODO: Conditionals must be re-written because bosses are not mapped to Enemy currently.
+        // if(enemy.defe){
+        //   this.convertEnemyBulletsToPoints();
+        // } else if (enemy.totalDefeatFlag){
+        //   this.killBoss(enemy);
+        //   this.enemies.splice(i, 1);
+        //   i--;
+        //   break; //Enemy is dead, if we do not break we will check if all remaining player bullets will hit a dead enemy.
+        // }
+      } else {
+        if (enemy.defeatFlag) {
+          this.killEnemy(enemy);
+          this.enemies.splice(i, 1);
+          i--;
+          continue;//Enemy is dead, if we do not continue we will check if all remaining player bullets will hit a dead enemy.
+        } else if(enemy.clearFlag){
+          this.enemies.splice(i, 1);
+          i--;
+          continue;//Enemy is dead, if we do not continue we will check if all remaining player bullets will hit a dead enemy.
+        }
+      }
+
+      //move enemy
+      enemy.move();
+
+      //make enemy shoot
+      let fired = enemy.attack();
       if (fired) {
         if (Array.isArray(fired)) {
           this.enemyBullets.push(...fired);
@@ -203,7 +234,72 @@ export class ShmupComponent implements AfterViewInit {
           this.enemyBullets.push(fired);
         }
       }
-    });
+    }
+  }
+
+  checkBulletEnemyCollision(enemy: any) {
+    for (let j = 0; j < this.playerBullets.length; j++) {
+      const bullet = this.playerBullets[j];
+
+      if (Square.checkHitboxOverlap(bullet.hitbox, enemy.hitbox)) {
+        const hit = enemy.hitByBullet(bullet);
+        if(!hit){
+          //The enemy reports not being affected by this bullet despite the collision, likely due to no remaining health. Skip checking any other player bullets for this enemy.
+          break;
+        }
+
+        this.playerBullets.splice(j, 1);
+        j--;
+
+        if(enemy.ENEMY_TYPE === ActorList.BossGeneric){
+          //should check if boss phase is below 10% health. If so, play different damage sound.
+          this.soundServ.damageSound.play();
+        } else {
+          this.soundServ.damageSound.play();
+        }
+      }
+    }
+  }
+
+  killEnemy(enemy: Enemy) {
+    
+    let dataForDeathSprite = {
+      id: enemy.ENEMY_TYPE,
+      pos: { x: enemy.hitbox.pos.x, y: enemy.hitbox.pos.y },
+      width: enemy.hitbox.width,
+      height: enemy.hitbox.height,
+    };
+
+    this.enemyDeathSprites.push(dataForDeathSprite);
+    this.soundServ.enemyDeath.play();
+    this.dropItems(enemy);
+
+    enemy.cleanUp();
+  }
+
+  killBoss(enemy: Dongler | Shwoop | BigBoi | Boss1) {
+
+    let dataForDeathSprite = {
+      id: enemy.ENEMY_TYPE,
+      pos: { x: enemy.hitbox.pos.x, y: enemy.hitbox.pos.y },
+      width: enemy.hitbox.width,
+      height: enemy.hitbox.height,
+    };
+
+    this.enemyDeathSprites.push(dataForDeathSprite);
+    this.soundServ.bossKill.play();
+    this.dropItems(enemy);
+    this.convertEnemyBulletsToPoints();
+
+    enemy.cleanUp();
+  }
+
+  handlePlayerShooting() {
+    let playerShots = this.player.playerFiring();
+    if (playerShots) {
+      this.soundServ.shootingSound.play();
+      playerShots.forEach(shot => { this.playerBullets.push(shot); });
+    }
   }
 
   movePlayerBullets() {
@@ -260,41 +356,35 @@ export class ShmupComponent implements AfterViewInit {
     this.generatedSpawnTimes.shift();
   }
 
-  spawnEnemy(enemy: EnemySpawn, currentTick: number) {
-    switch (enemy.name) {
+  spawnEnemy(spawn: EnemySpawn, currentTick: number) {
+    switch (spawn.name) {
       case ActorList.Dongler:
-        this.enemies.push(new Dongler(this.soundServ, currentTick, enemy.start.x, enemy.start.y, Object.create(enemy.path)));
+        this.enemies.push(new Dongler(
+          this.soundServ, currentTick, spawn.start.x, spawn.start.y, this.clonePath(spawn.path),
+          Units.getUnits(30), Units.getUnits(30), 2, 3));
         break;
       case ActorList.Shwoop:
-        this.enemies.push(new Shwoop(this.soundServ, currentTick, enemy.start.x, enemy.start.y, Object.create(enemy.path)));
+        this.enemies.push(new Shwoop(
+          this.soundServ, currentTick, spawn.start.x, spawn.start.y, this.clonePath(spawn.path),
+          Units.getUnits(30), Units.getUnits(30), 2, 3));
         break;
       case ActorList.BigBoi:
-        this.enemies.push(new BigBoi(this.soundServ, currentTick, enemy.start.x, enemy.start.y, Object.create(enemy.path)));
+        this.enemies.push(new BigBoi(
+          this.soundServ, currentTick, spawn.start.x, spawn.start.y, this.clonePath(spawn.path),
+          Units.getUnits(76), Units.getUnits(76), 5, 10));
         break;
       case ActorList.Boss1:
-        this.enemies.push(new Boss1(this.soundServ, currentTick));
+        //this.enemies.push(new Boss1(this.soundServ, currentTick));
         break;
       default:
         console.log("unrecognized enemy.");
     }
   }
 
-  moveAllEnemies() {
-    for (let i = 0; i < this.enemies.length; i++) {
-      if(this.enemies[i].ENEMY_TYPE === ActorList.BossGeneric){
-        this.enemies[i].move(this.tick);
-      } else {
-        this.enemies[i].move();
-      }
-
-      //deletes enemies that have finished their path
-      if (this.enemies[i].flagForDeletion) {
-        this.enemies[i].cleanUp(this.canvasRef2d?.nativeElement.getContext("2d"));
-        this.enemies.splice(i, 1);
-        i--;
-      }
-    }
-
+  //Deep copy of path must be created, otherwise actors of the same spawn time will share and alter path data.
+  clonePath(path: (linePath|curvePath)[]){
+    let pathString = JSON.stringify(path);
+    return JSON.parse(pathString);
   }
 
   moveItems() {
@@ -310,80 +400,6 @@ export class ShmupComponent implements AfterViewInit {
     }
   }
 
-  checkBulletEnemyCollision() {
-    for (let i = 0; i < this.enemies.length; i++) {
-      const enemy = this.enemies[i];
-
-      for (let j = 0; j < this.playerBullets.length; j++) {
-        const bullet = this.playerBullets[j];
-
-        let bulletSquare = new Square(bullet.hitbox);
-        let enemySquare = new Square(enemy.hitbox);
-
-        if (Square.checkSquareOverlap(bulletSquare, enemySquare)) {
-          this.playerBullets.splice(j, 1);
-          j--;
-          
-          enemy.hitByBullet(bullet);
-
-          if(enemy.ENEMY_TYPE === ActorList.BossGeneric){
-            //BOSS EXCLUSIVE LOGIC
-            //should check if boss phase is below 10% health. If so, play different damage sound.
-            this.soundServ.damageSound.play();
-            if(enemy.isDefeated()){
-              this.killBoss(enemy);
-              this.enemies.splice(i, 1);
-              i--;
-              break; //Enemy is dead, if we do not break we will check if all remaining player bullets will hit a dead enemy.
-            } else if (enemy.wasPhaseJustDefeated()){
-              this.convertEnemyBulletsToPoints();
-            }
-          } else {
-            this.soundServ.damageSound.play();
-            if (enemy.isDefeated()) {
-              this.killEnemy(enemy);
-              this.enemies.splice(i, 1);
-              i--;
-              break; //Enemy is dead, if we do not break we will check if all remaining player bullets will hit a dead enemy.
-            }
-          }
-        }
-      }
-    }
-  }
-
-  killEnemy(enemy: Dongler | Shwoop | BigBoi | Boss1) {
-    let dataForDeathSprite = {
-      id: enemy.ENEMY_TYPE,
-      pos: { x: enemy.hitbox.pos.x, y: enemy.hitbox.pos.y },
-      width: enemy.hitbox.width,
-      height: enemy.hitbox.height,
-    };
-
-    this.enemyDeathSprites.push(dataForDeathSprite);
-    this.soundServ.enemyDeath.play();
-    this.dropItems(enemy);
-
-    enemy.cleanUp();
-  }
-
-  killBoss(enemy: Dongler | Shwoop | BigBoi | Boss1) {
-    let dataForDeathSprite = {
-      id: enemy.ENEMY_TYPE,
-      pos: { x: enemy.hitbox.pos.x, y: enemy.hitbox.pos.y },
-      width: enemy.hitbox.width,
-      height: enemy.hitbox.height,
-    };
-
-    this.enemyDeathSprites.push(dataForDeathSprite);
-    this.soundServ.bossKill.play();
-    this.dropItems(enemy);
-    this.convertEnemyBulletsToPoints();
-
-    enemy.cleanUp();
-  }
-  
-
   convertEnemyBulletsToPoints(){
     for(let i = 0; i < this.enemyBullets.length; i++){
       const enemy = this.enemyBullets[i];
@@ -392,7 +408,7 @@ export class ShmupComponent implements AfterViewInit {
     this.enemyBullets = [];
   }
 
-  dropItems(enemy: Dongler | Shwoop | BigBoi | Boss1) {
+  dropItems(enemy: Enemy | Boss1) {
     for (let i = 0; i < enemy.powerCount; i++) {
       const xPosRando = enemy.center.x + MovingStuff.getRandomInt(enemy.hitbox.width);
       const yPosRando = enemy.center.y + MovingStuff.getRandomInt(enemy.hitbox.height);
@@ -410,15 +426,6 @@ export class ShmupComponent implements AfterViewInit {
     this.enemies.forEach(enemy => {
       enemy.drawThings(ctx);
     });
-  }
-
-  assessBoss(tick: number) {
-    for (let i = 0; i < this.enemies.length; i++) {
-      let enemy = this.enemies[i];
-      if(enemy.ENEMY_TYPE === ActorList.BossGeneric){
-        enemy.assess(tick);
-      }
-    }
   }
 
   checkItemPlayerCollision() {

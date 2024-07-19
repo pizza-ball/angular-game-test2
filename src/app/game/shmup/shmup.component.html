@@ -44,10 +44,10 @@
       style="position: absolute; transform: translate(-25%, -25%)" /> -->
     <div class="enemy" [style.left.px]="[enemy.hitbox.pos.x]" [style.top.px]="[enemy.hitbox.pos.y]"
       [style.width.px]="[enemy.hitbox.width]" [style.height.px]="[enemy.hitbox.height]" style="opacity: 0.5"></div>
-    <div *ngIf="enemy.phaseCountdown !== undefined && enemy.phaseCountdown !== ''">
+    <!-- <div *ngIf="enemy.phaseCountdown !== undefined && enemy.phaseCountdown !== ''">
       <h1 style="position: absolute; color: aliceblue; text-align: center; width: 34px;" 
       [style.left.px]="[enemy.hitbox.pos.x+(enemy.hitbox.width/2)/2]" [style.top.px]="[enemy.hitbox.pos.y-enemy.hitbox.height]">{{enemy.phaseCountdown}}</h1>
-    </div>
+    </div> -->
   </div>
   <div *ngFor="let deadEnemy of this.enemyDeathSprites">
     <div [ngSwitch]="deadEnemy.id" >

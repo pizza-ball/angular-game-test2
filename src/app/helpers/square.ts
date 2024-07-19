@@ -37,6 +37,12 @@ export class Square {
     };
   }
 
+  static checkHitboxOverlap(h1: leftCoordHitbox, h2: leftCoordHitbox) {
+    let s1 = new Square(h1);
+    let s2 = new Square(h2);
+    return this.checkSquareOverlap(s1, s2);
+  }
+
   static checkSquareOverlap(square1: Square, square2: Square) {
     var perpendicularLine: point;
     var dot = 0;

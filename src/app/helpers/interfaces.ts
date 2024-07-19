@@ -26,26 +26,15 @@ export interface bullet {
 //linePath is the default path.
 export interface linePath {
   dest: point,
-  speed: number
+  speed: number,
+  pauseTimeInSec?: number
 }
 
 export interface curvePath {
   dest: point,
   control: point,
-  speed: number
-}
-
-export interface linePathWithPause {
-  dest: point,
   speed: number,
-  pauseTimeInSec: number
-}
-
-export interface curvePathWithPause {
-  dest: point,
-  control: point,
-  speed: number,
-  pauseTimeInSec: number
+  pauseTimeInSec?: number
 }
 
 export function isCurve(object: any): object is curvePath {

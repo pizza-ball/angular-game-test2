@@ -6,67 +6,57 @@ import { DEBUG_MODE, FPS_TARGET, Units } from "../../globals";
 import { SimpleBullet } from "../bullets/simple-bullet";
 import { v4 as uuidv4 } from 'uuid';
 import { ActorList } from "../actorlist";
-import { SoundService } from "../../services/sound/sound.service";
+import { Enemy } from "./enemy-abstract";
 
-export class Dongler {
+export class Dongler extends Enemy {
     public id = uuidv4();
     ENEMY_TYPE = ActorList.Dongler;
-    WIDTH = Units.getUnits(30);
-    HEIGHT = Units.getUnits(30);
-    tickToShoot = 3 * FPS_TARGET;
-    hitbox: leftCoordHitbox;
-    center: point = {x: 0, y: 0};
     health = 5;
-    flagForDeletion = false;
-    powerCount = 0;
-    pointCount = 0;
-    constructor(
-        private soundService: SoundService,
-        private creationTick: number,
-        private startX: number,
-        private startY: number,
-        private path: linePath[],
-        powerCount?: number,
-        pointCount?: number
-    ) {
-        this.hitbox = {
-            pos: {x: startX, y: startY},
-            width: this.WIDTH,
-            height: this.HEIGHT,
-        };
-        this.powerCount = 1;
-        this.pointCount = 3;
-        this.center = CoordHelper.getCenterWithTopLeftPoint(this.WIDTH, this.HEIGHT, this.hitbox.pos.x, this.hitbox.pos.y);
+    defeatFlag = false;
+    clearFlag = false;
+    tickData = {
+        now: 0,
+        playerPos: {x: 0, y: 0}
+    }
+
+    setTickData(tick: number, playerPos: point): void {
+        this.tickData.now = tick;
+        this.tickData.playerPos = {x: playerPos.x, y: playerPos.y};
+    }
+
+    assess(){
+        if(this.health <= 0){
+            this.defeatFlag = true;
+        }
+
+        if(this.hitbox.pos.x === this.path[0].dest.x && this.hitbox.pos.y === this.path[0].dest.y){
+            this.clearFlag = true;
+        }
     }
 
     move() {
         MovingStuff.moveTowardsAtConstRate(this.hitbox.pos, this.path[0].dest, this.path[0].speed);
 
-        if(this.hitbox.pos.x === this.path[0].dest.x && this.hitbox.pos.y === this.path[0].dest.y){
-            this.flagForDeletion = true;
-        }
-        this.center = CoordHelper.getCenterWithTopLeftPoint(this.WIDTH, this.HEIGHT, this.hitbox.pos.x, this.hitbox.pos.y);
+        this.center = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
     }
 
-    shoot(currentTick: number, playerPos: point): SimpleBullet | null {
-        const ticksSinceCreation = currentTick - this.creationTick;
+    tickToShoot = 2*FPS_TARGET;
+    attack(): SimpleBullet | SimpleBullet[] | null {
+        const ticksSinceCreation = this.tickData.now - this.creationTick;
         if(ticksSinceCreation === this.tickToShoot){
-            const angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(this.center.x, this.center.y, playerPos.x, playerPos.y);
+            const angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(this.center.x, this.center.y, this.tickData.playerPos.x, this.tickData.playerPos.y);
             this.soundService.enemyBulletSound.play();
             return new SimpleBullet(Object.create(this.center), angleToPlayer, Units.getUnits(2));
         }
         return null;
     }
 
-    hitByBullet(bullet: bullet){
-        this.health -= bullet.damage;
-    }
-
-    isDefeated(){
+    hitByBullet(pBullet: bullet){
         if(this.health <= 0){
-            return true;
+            return false;
         }
-        return false;
+        this.health -= pBullet.damage;
+        return true;
     }
 
     drawThings(ctx: CanvasRenderingContext2D){

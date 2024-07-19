@@ -1,5 +1,5 @@
 import { range } from "rxjs";
-import { curvePath, curvePathWithPause, linePath, linePathWithPause, point } from "../../helpers/interfaces";
+import { curvePath, linePath, point } from "../../helpers/interfaces";
 import { ActorList } from "../actors/actorlist";
 import { Units } from "../globals";
 import { SpawnHelper } from "../../helpers/spawn-helper";
@@ -9,7 +9,7 @@ export class EnemySpawn{
     constructor(
         public name: ActorList,
         public start: point,
-        public path: (linePath|curvePath|linePathWithPause|curvePathWithPause)[],
+        public path: (linePath|curvePath)[],
         public times: number[]
     ){}
 }
@@ -38,7 +38,7 @@ export const spawnMapLevel1 = [
     },
     {
         name: ActorList.Dongler,
-        start: {x: Units.getPlayfieldWidth() + 90, y: 50},
+        start: {x: Units.getPlayfieldWidth() + Units.getUnits(90), y: Units.getUnits(50)},
         path: [
             {
                 dest: {x: Units.getUnits(-60), y: Units.getUnits(400)},

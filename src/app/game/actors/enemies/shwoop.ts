@@ -1,56 +1,46 @@
 import { bullet, curvePath, isCurve, leftCoordHitbox, linePath, point } from "../../../helpers/interfaces";
 import { MovingStuff } from "../../../helpers/moving-stuff";
-import { DEBUG_MODE, FPS_TARGET, Units } from "../../globals";
+import { DEBUG_MODE, FPS_TARGET } from "../../globals";
 import { DrawingStuff } from "../../../helpers/drawing-stuff";
 import { v4 as uuidv4 } from 'uuid';
 import { SimpleBullet } from "../bullets/simple-bullet";
 import { CoordHelper } from "../../../helpers/coords";
 import { ActorList } from "../actorlist";
-import { SoundService } from "../../services/sound/sound.service";
+import { Enemy } from "./enemy-abstract";
 
-export class Shwoop {
+export class Shwoop extends Enemy {
     public id = uuidv4();
     ENEMY_TYPE = ActorList.Shwoop;
-    WIDTH = Units.getUnits(30);
-    HEIGHT = Units.getUnits(30);
-    ticksToShoot = [1 * FPS_TARGET];//, 1.2*TICKS_PER_SECOND, 1.4*TICKS_PER_SECOND];
-    hitbox: leftCoordHitbox;
-    center: point = {x: 0, y: 0};
     health = 5;
-    flagForDeletion = false;
-    powerCount = 0;
-    pointCount = 0;
-    constructor(
-        private soundService: SoundService,
-        private creationTick: number,
-        private startX: number,
-        private startY: number,
-        private path: (linePath | curvePath)[],
-        powerCount?: number,
-        pointCount?: number
-    ) {
-        this.hitbox = {
-            pos: { x: startX, y: startY },
-            width: this.WIDTH,
-            height: this.HEIGHT,
-        };
-        this.powerCount = 2;
-        this.pointCount = 3;
-        this.center = CoordHelper.getCenterWithTopLeftPoint(this.WIDTH, this.HEIGHT, this.hitbox.pos.x, this.hitbox.pos.y);
+    defeatFlag = false;
+    clearFlag = false;
+    tickData = {
+        now: 0,
+        playerPos: {x: 0, y: 0}
+    }
+
+    setTickData(tick: number, playerPos: point): void {
+        this.tickData.now = tick;
+        this.tickData.playerPos = {x: playerPos.x, y: playerPos.y};
+    }
+
+    assess(){
+        if(this.health <= 0){
+            this.defeatFlag = true;
+        }
+
+        if(this.path.length <= 0){
+            this.clearFlag = true;
+        }
     }
 
     move() {
-        if (this.path.length <= 0) {
-            this.flagForDeletion = true;
-            return;
-        }
-
         if (isCurve(this.path[0])) {
             this.moveCurve(Object.create(this.path[0]));
         } else {
             this.moveLine(Object.create(this.path[0]));
         }
-        this.center = CoordHelper.getCenterWithTopLeftPoint(this.WIDTH, this.HEIGHT, this.hitbox.pos.x, this.hitbox.pos.y);
+        this.center = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
     }
 
     private moveLine(path: linePath) {
@@ -85,10 +75,11 @@ export class Shwoop {
         }
     }
 
-    shoot(currentTick: number, playerPos: point): SimpleBullet | SimpleBullet[] | null {
-        const ticksSinceCreation = currentTick - this.creationTick;
+    ticksToShoot = [1 * FPS_TARGET];//, 1.2*TICKS_PER_SECOND, 1.4*TICKS_PER_SECOND];
+    attack(): SimpleBullet | SimpleBullet[] | null {
+        const ticksSinceCreation = this.tickData.now - this.creationTick;
         if (this.ticksToShoot.includes(ticksSinceCreation)) {
-            const angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(this.center.x, this.center.y, playerPos.x, playerPos.y);
+            const angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(this.center.x, this.center.y, this.tickData.playerPos.x, this.tickData.playerPos.y);
             const leftAngle = angleToPlayer - (15) * (Math.PI / 180);
             const rightAngle = angleToPlayer + (15) * (Math.PI / 180);
             this.soundService.enemyBulletSound.play();
@@ -101,15 +92,12 @@ export class Shwoop {
         return null;
     }
 
-    hitByBullet(bullet: bullet){
-        this.health -= bullet.damage;
-    }
-
-    isDefeated(){
+    hitByBullet(pBullet: bullet){
         if(this.health <= 0){
-            return true;
+            return false;
         }
-        return false;
+        this.health -= pBullet.damage;
+        return true;
     }
 
     drawThings(ctx: CanvasRenderingContext2D){

@@ -5,6 +5,6 @@ export interface BossPhase{
     MAX_HEALTH: number,
     DURATION: number,
     currentHealth: number,
-    move(tick: number, bossPos: leftCoordHitbox, playerPos: point): void,
-    shoot(tick: number, bossPos: point, playerPos: point): SimpleBullet|SimpleBullet[]|null
+    moveScript(tick: number, bossPos: leftCoordHitbox, playerPos: point): void,
+    attackScript(tick: number, bossPos: point, playerPos: point): SimpleBullet|SimpleBullet[]|null
 }

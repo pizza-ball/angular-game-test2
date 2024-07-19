@@ -76,7 +76,7 @@ export class MidBoss1 {
         if( this.currentPhase === -1){
             this.enterScene();
         } else {
-            this.phases[this.currentPhase].move(ticksSincePhaseStart, this.hitbox, this.center);
+            this.phases[this.currentPhase].moveScript(ticksSincePhaseStart, this.hitbox, this.center);
         }
         this.center = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
     }

@@ -18,7 +18,7 @@ export class Boss1_CircleChase implements BossPhase {
 
     constructor(private soundService: SoundService){}
 
-    move(tick: number, bossPos: leftCoordHitbox, playerPos: point){
+    moveScript(tick: number, bossPos: leftCoordHitbox, playerPos: point){
         return;
     }
 
@@ -28,7 +28,7 @@ export class Boss1_CircleChase implements BossPhase {
     angleIncrement = 30;
     a_shot1Tick = 1 * FPS_TARGET;
     a_shot2Tick = FPS_TARGET/15; //every 4 frames at 60fps
-    shoot(tick: number, bossPos: point, playerPos: point) {
+    attackScript(tick: number, bossPos: point, playerPos: point) {
         this.streamingBullets.volume(this.soundService.quietVol);
         let bullets: SimpleBullet[] = [];
         if (tick % this.a_shot1Tick === 0){

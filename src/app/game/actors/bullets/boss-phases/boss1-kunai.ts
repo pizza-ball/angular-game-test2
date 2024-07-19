@@ -23,7 +23,7 @@ export class Boss1_KunaiCircle implements BossPhase{
     startPos: null | point = null;
     tickCounter = 0;
     path: any = null;
-    move(tick: number, bossPos: leftCoordHitbox, playerPos: point){
+    moveScript(tick: number, bossPos: leftCoordHitbox, playerPos: point){
         if(this.startPos === null){
             this.path = MovingStuff.generateRtoLWanderPath(bossPos);
             this.path = [MovingStuff.generateLtoRWanderPath(bossPos)[1], this.path[0], this.path[1]];
@@ -57,7 +57,7 @@ export class Boss1_KunaiCircle implements BossPhase{
     angleIncrement = 72;
     rando = 0;
     shots = 4;
-    shoot(tick: number, bossPos: point, playerPos: point){
+    attackScript(tick: number, bossPos: point, playerPos: point){
         this.streamingBullets.volume(this.soundService.quietVol);
         let bullets: SimpleBullet[] = [];
 
