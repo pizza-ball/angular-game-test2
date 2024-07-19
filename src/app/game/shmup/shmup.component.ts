@@ -245,15 +245,18 @@ export class ShmupComponent implements AfterViewInit {
   }
 
   checkForEnemySpawn(currentTick: number) {
-    if ((this.generatedSpawnTimes.length === 0) || !(this.generatedSpawnTimes[0] === currentTick)) {
+    if ((this.generatedSpawnTimes.length === 0) || 
+        !(this.generatedSpawnTimes[0] === currentTick)) {
       return;
     }
 
-    spawnMapLevel1.forEach((enemy: EnemySpawn) => {
-      if (enemy.times.includes(currentTick)) {
-        this.spawnEnemy(enemy, currentTick);
-      }
-    });
+    if(this.enemies?.[0]?.ENEMY_TYPE !== ActorList.BossGeneric){ //Prevents enemy spawns when a boss is active.
+      spawnMapLevel1.forEach((enemy: EnemySpawn) => {
+        if (enemy.times.includes(currentTick)) {
+          this.spawnEnemy(enemy, currentTick);
+        }
+      });
+    }
     this.generatedSpawnTimes.shift();
   }
 
