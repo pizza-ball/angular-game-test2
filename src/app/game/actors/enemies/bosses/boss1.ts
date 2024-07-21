@@ -11,96 +11,54 @@ import { Boss1_CircleChase } from "../../bullets/boss-phases/boss1-circle";
 import { Boss1_VandBoomerangs } from "../../bullets/boss-phases/boss1-boomer";
 import { BossPhase } from "../../bullets/boss-phases/boss-phase";
 import { Boss1_KunaiCircle } from "../../bullets/boss-phases/boss1-kunai";
+import { Boss, bossState } from "./boss-abstract";
 
-export enum bossState {
-    entering,
-    dialog,
-    pause,
-    attacking,
-    defeated,
-    leaving
-}
-
-export class Boss1 {
+export class Boss1 extends Boss {
     public id = uuidv4();
     public healthId = uuidv4();
     ENEMY_TYPE = ActorList.BossGeneric;
-    WIDTH = Units.getUnits(60);
-    HEIGHT = Units.getUnits(60);
-    START_POS = CoordHelper.getTopLeftWithCenterPoint(this.WIDTH, this.HEIGHT, Units.getPlayfieldWidth(), Units.getUnits(-50));
     ARRIVAL_DURATION = 1 * FPS_TARGET;
     PAUSE_DURATION = 2 * FPS_TARGET;
-
-    state = bossState.entering;
-    hitbox: leftCoordHitbox;
-    center: point = { x: 0, y: 0 };
-    phaseDefeatFlag = false;
-    totalDefeatFlag = false;
-    powerCount = 20;
-    pointCount = 100;
 
     phases: BossPhase[] = [
         new Boss1_KunaiCircle(this.soundService),
         new Boss1_VandBoomerangs(this.soundService),
         new Boss1_CircleChase(this.soundService)
     ];
-    currentPhase = -1;  //Phase -1 is enterScene. Doesn't have the usual phase properties.
-    phaseFrameCounter = 0;
-    phaseStartTick = 0;
-    phaseCountdown = '';
 
-    constructor(
-        private soundService: SoundService,
-        private creationTick: number,
-    ) {
-        this.hitbox = {
-            pos: { x: this.START_POS.x, y: this.START_POS.y },
-            width: this.WIDTH,
-            height: this.HEIGHT,
-        };
-        this.center = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
+    getPhaseTime(){
+        return this.exData.now - this.phaseStartTick;
     }
 
-    move(currentTick: number) {
-        if (this.state === bossState.pause) {
-            return;
-        }
-
-        const ticksSincePhaseStart = currentTick - this.phaseStartTick;
-
-        if( this.currentPhase === -1){
-            this.enterScene();
-        } else {
-            this.phases[this.currentPhase].moveScript(ticksSincePhaseStart, this.hitbox, this.center);
-        }
-        this.center = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
+    setExternalData(tick: number, playerPos: point): void {
+        this.exData.now = tick;
+        this.exData.playerPos = {x: playerPos.x, y: playerPos.y};
     }
 
-    attack(currentTick: number, playerPos: point): SimpleBullet | SimpleBullet[] | null {
-        if (this.state === bossState.pause) {
-            return null;
-        }
-
-        const ticksSincePhaseStart = currentTick - this.phaseStartTick;
-
-        if( this.currentPhase !== -1){
-            return this.phases[this.currentPhase].attackScript(ticksSincePhaseStart, this.center, playerPos);
-        }
-        return null;
-    }
-
-    assess(currentTick: number){
+    assess(){
         this.phaseDefeatFlag = false; //value reset
-
-        if (this.state === bossState.pause) {
-            //Run the pause handler. This must be called in only one place, once per frame.
-            this.pauseHandler(currentTick);
+        if(this.state === bossState.entering){
+            if (this.getPhaseTime() > this.ARRIVAL_DURATION) {
+                this.hitbox.pos.x = this.DEFAULT_POS.x;
+                this.hitbox.pos.y = this.DEFAULT_POS.y;
+                this.state = bossState.pause;
+                this.phaseStartTick = this.exData.now;
+                this.positionPhaseEndedIn = {x: this.hitbox.pos.x, y: this.hitbox.pos.y};
+            }
+        } else if (this.state === bossState.pause) {
+            if (this.getPhaseTime() > this.PAUSE_DURATION) {
+                this.hitbox.pos.x = this.DEFAULT_POS.x;
+                this.hitbox.pos.y = this.DEFAULT_POS.y;
+                this.state = bossState.attacking;
+                this.phaseStartTick = this.exData.now;
+                this.positionPhaseEndedIn = {x: this.hitbox.pos.x, y: this.hitbox.pos.y};
+                console.log("Pause over.");
+            }
             return;
         } else if (this.state === bossState.attacking){
-            const ticksSincePhaseStart = currentTick - this.phaseStartTick;
 
             //Save the timeout progress to a variable. This variable can be used to display a spellcard timer.
-            this.phaseCountdown = ((this.phases[this.currentPhase].DURATION/FPS_TARGET) - Math.round(ticksSincePhaseStart/FPS_TARGET)).toFixed(0);
+            this.phaseCountdown = ((this.phases[this.currentPhase].DURATION/FPS_TARGET) - Math.round(this.getPhaseTime()/FPS_TARGET)).toFixed(0);
 
             //Attack Defeated
             if(this.phases[this.currentPhase].currentHealth <= 0){
@@ -108,13 +66,39 @@ export class Boss1 {
             }
 
             //Attack Timeout
-            if (ticksSincePhaseStart >= this.phases[this.currentPhase].DURATION) {
+            if (this.getPhaseTime() >= this.phases[this.currentPhase].DURATION) {
                 this.moveToNextPhase(false);
             }
         }
     }
 
-    moveToNextPhase(successOrFail?: boolean) {
+    move() {
+        if( this.state === bossState.entering){
+            this.moveToDefaultPosition(this.ARRIVAL_DURATION);
+        } else if (this.state === bossState.pause){
+            this.moveToDefaultPosition(this.PAUSE_DURATION);
+        } else {
+            this.phases[this.currentPhase].moveScript(this.getPhaseTime(), this.hitbox, this.center);
+        }
+        this.center = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
+    }
+
+    attack(): SimpleBullet | SimpleBullet[] | null {
+        if (this.state !== bossState.attacking) {
+            return null;
+        }
+
+        return this.phases[this.currentPhase].attackScript(this.getPhaseTime(), this.center, this.exData.playerPos);
+    }
+
+    private moveToDefaultPosition(duration: number) {
+        console.log(`moving to ${this.DEFAULT_POS.x}, ${this.DEFAULT_POS.y}`)
+        let vel = MovingStuff.moveToDestInSetTime_Decelerate(this.positionPhaseEndedIn.x, this.positionPhaseEndedIn.y, this.DEFAULT_POS.x, this.DEFAULT_POS.y, this.getPhaseTime(), duration);
+        this.hitbox.pos.x += vel.x;
+        this.hitbox.pos.y += vel.y;
+    }
+
+    private moveToNextPhase(successOrFail: boolean) {
         DrawingStuff.deleteElementFromMemory(this.healthId);
         this.phaseCountdown = '';
         //Trigger bonus points or some other effect if the player was "successful" in the last phase
@@ -127,51 +111,18 @@ export class Boss1 {
             this.phaseDefeatFlag = true;
         }
 
-        //If the next phase doesnt exist, the boss must die (or leave?).
-        if (this.currentPhase + 1 >= this.phases.length) {
+        this.currentPhase++;
+        if (this.currentPhase >= this.phases.length) {
             //Flag the boss to be killed.
-            this.state = bossState.defeated;
-            this.totalDefeatFlag = true;
+            this.defeatFlag = true;
             return;
         }
 
         //Otherwise, we need to pause for a while before the next phase. Flag as such.
+        this.phaseStartTick = this.exData.now;
         this.state = bossState.pause
-        this.START_POS = {x: this.hitbox.pos.x, y: this.hitbox.pos.y};
+        this.positionPhaseEndedIn = {x: this.hitbox.pos.x, y: this.hitbox.pos.y};
     }
-
-    pauseHandler(currentTick: number) {
-        //Move the boss back to the default location
-        let vel = MovingStuff.moveToDestInSetTime_Decelerate(this.START_POS.x, this.START_POS.y, this.startDest.x, this.startDest.y, this.phaseFrameCounter, this.PAUSE_DURATION);
-        this.hitbox.pos.x += vel.x;
-        this.hitbox.pos.y += vel.y;
-
-        this.phaseFrameCounter++;
-        if (this.phaseFrameCounter > this.PAUSE_DURATION) {
-            this.hitbox.pos.x = this.startDest.x;
-            this.hitbox.pos.y = this.startDest.y;
-            this.phaseFrameCounter = 0;
-            this.state = bossState.attacking;
-            this.currentPhase++;
-            this.phaseStartTick = currentTick;
-            console.log("Pause over. Moving to Phase " + this.currentPhase);
-        }
-    }
-
-    startDest = CoordHelper.getTopLeftWithCenterPoint(this.WIDTH, this.HEIGHT, Units.getPlayfieldWidth() * .5, Units.getPlayfieldHeight() * .35);
-    enterScene() {
-        let vel = MovingStuff.moveToDestInSetTime_Decelerate(this.START_POS.x, this.START_POS.y, this.startDest.x, this.startDest.y, this.phaseFrameCounter, this.ARRIVAL_DURATION);
-        this.hitbox.pos.x += vel.x;
-        this.hitbox.pos.y += vel.y;
-        this.phaseFrameCounter++;
-
-        if (this.phaseFrameCounter > this.ARRIVAL_DURATION) {
-            this.hitbox.pos.x = this.startDest.x;
-            this.hitbox.pos.y = this.startDest.y;
-            this.moveToNextPhase();
-        }
-    }
-
 
     hitByBullet(bullet: bullet): boolean {
         if (this.state !== bossState.attacking ||
@@ -182,24 +133,7 @@ export class Boss1 {
 
         this.phases[this.currentPhase].currentHealth -= bullet.damage;
         return true;
-
-        //Health has been drained to 0. Move to next phase.
-        // if (this.phases[this.currentPhase].currentHealth <= 0) {
-        //     this.moveToNextPhase(true);
-        // }
     }
-
-    // isDefeated() {
-    //     if (this.state === bossState.defeated) {
-    //         return true;
-    //     }
-    //     return false;
-    // }
-
-    // wasPhaseJustDefeated() {
-    //     return this.phaseWasDefeatedThisFrame;
-    // }
-
 
     drawThings(ctx: CanvasRenderingContext2D) {
         this.drawHealthCircle(ctx);
@@ -208,7 +142,7 @@ export class Boss1 {
         }
     }
 
-    drawHealthCircle(ctx: CanvasRenderingContext2D) {
+    private drawHealthCircle(ctx: CanvasRenderingContext2D) {
         if (this.state !== bossState.attacking) {
             return;
         }

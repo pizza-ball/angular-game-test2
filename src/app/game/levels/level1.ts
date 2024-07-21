@@ -15,16 +15,16 @@ export class EnemySpawn{
 }
 
 //Test array used for trying new enemies and bosses.
-// export const spawnMapLevel1 = [
-//     {
-//         name: ActorList.Boss1,
-//         start: { x: 0, y: 0 },
-//         path: [],
-//         times: [1]
-//     },
-// ];
-
 export const spawnMapLevel1 = [
+    {
+        name: ActorList.Boss1,
+        start: { x: 0, y: 0 },
+        path: [],
+        times: [1]
+    },
+];
+
+export const spawnMapLevel1__ = [
     {
         name: ActorList.Dongler,
         start: {x: Units.getUnits(-90), y: Units.getUnits(50)},

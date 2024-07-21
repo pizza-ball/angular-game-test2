@@ -44,10 +44,14 @@
       style="position: absolute; transform: translate(-25%, -25%)" /> -->
     <div class="enemy" [style.left.px]="[enemy.hitbox.pos.x]" [style.top.px]="[enemy.hitbox.pos.y]"
       [style.width.px]="[enemy.hitbox.width]" [style.height.px]="[enemy.hitbox.height]" style="opacity: 0.5"></div>
-    <!-- <div *ngIf="enemy.phaseCountdown !== undefined && enemy.phaseCountdown !== ''">
+  </div>
+  <div *ngIf="this.boss">
+    <div class="enemy" [style.left.px]="[boss.hitbox.pos.x]" [style.top.px]="[boss.hitbox.pos.y]"
+    [style.width.px]="[boss.hitbox.width]" [style.height.px]="[boss.hitbox.height]" style="opacity: 0.5"></div>
+    <div *ngIf="this.boss.phaseCountdown !== undefined && this.boss.phaseCountdown !== ''">
       <h1 style="position: absolute; color: aliceblue; text-align: center; width: 34px;" 
-      [style.left.px]="[enemy.hitbox.pos.x+(enemy.hitbox.width/2)/2]" [style.top.px]="[enemy.hitbox.pos.y-enemy.hitbox.height]">{{enemy.phaseCountdown}}</h1>
-    </div> -->
+      [style.left.px]="[boss.hitbox.pos.x+(boss.hitbox.width/2)/2]" [style.top.px]="[boss.hitbox.pos.y-boss.hitbox.height]">{{boss.phaseCountdown}}</h1>
+    </div>
   </div>
   <div *ngFor="let deadEnemy of this.enemyDeathSprites">
     <div [ngSwitch]="deadEnemy.id" >
@@ -73,7 +77,7 @@
   <h2>yPOS: {{ player.hitbox.pos.y }}</h2> -->
   <h2>Lives {{ player.lives }}</h2>
   <h2>Power: {{ player.power.toFixed(2) }}</h2>
-  <h2>Time: {{ (stageTimeDisplay / 100).toFixed(2) }}</h2>
+  <h2>Time: {{ (stageTimeDisplay).toFixed(2) }}</h2>
   <h2>FPS: {{ frameRate }}</h2>
   <h2>Volume</h2>
   <div style="width: 100%">
