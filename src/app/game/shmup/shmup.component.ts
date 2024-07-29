@@ -38,6 +38,8 @@ import { SimpleBullet } from '../actors/bullets/simple-bullet';
 import { Enemy } from '../actors/enemies/enemy-abstract';
 import MainLoop from 'mainloop.js';
 import { Boss } from '../actors/enemies/bosses/boss-abstract';
+import { CoordHelper } from '../../helpers/coords';
+import { MidBoss1 } from '../actors/enemies/bosses/midboss1';
 
 @Component({
   selector: 'app-shmup',
@@ -173,7 +175,7 @@ export class ShmupComponent implements AfterViewInit {
       let ctx = this.canvasRef2d?.nativeElement.getContext("2d");
       if (ctx) {
         this.drawEnemyElements(ctx);
-        if(this.boss !== undefined){
+        if (this.boss !== undefined) {
           this.boss.drawThings(ctx);
         }
         //this.player.debugDrawItemMagnet(ctx);
@@ -223,6 +225,16 @@ export class ShmupComponent implements AfterViewInit {
         this.enemyBullets.push(fired);
       }
     }
+
+    //Dodges the enemy spawn preventor when a boss is active due to the dynamic nature of the enemy spawning.
+    let spawned = this.boss.spawnFriends();
+    if (spawned) {
+      if (Array.isArray(spawned)) {
+        this.enemies.push(...spawned);
+      } else {
+        this.enemies.push(spawned);
+      }
+    }
   }
 
   updateEnemies(tick: number, playerPos: point) {
@@ -231,7 +243,7 @@ export class ShmupComponent implements AfterViewInit {
 
       this.checkBulletEnemyCollision(enemy);
 
-      enemy.setTickData(tick, playerPos);
+      enemy.setExternalData(tick, playerPos);
 
       enemy.assess();
 
@@ -395,8 +407,19 @@ export class ShmupComponent implements AfterViewInit {
           this.soundServ, currentTick, spawn.start.x, spawn.start.y, this.clonePath(spawn.path),
           Units.getUnits(76), Units.getUnits(76), 5, 10));
         break;
+      case ActorList.MidBoss1:
+        this.boss = new MidBoss1(
+          this.soundServ,
+          currentTick,
+          CoordHelper.getTopLeftWithCenterPoint(Units.getUnits(60), Units.getUnits(60), Units.xFromPct(50), Units.yFromPct(-10))
+        );
+        break;
       case ActorList.Boss1:
-          this.boss = new Boss1(this.soundServ, currentTick);
+        this.boss = new Boss1(
+          this.soundServ,
+          currentTick,
+          CoordHelper.getTopLeftWithCenterPoint(Units.getUnits(60), Units.getUnits(60), Units.xFromPct(100), Units.yFromPct(-10))
+        );
         break;
       default:
         console.log("unrecognized enemy.");
@@ -424,8 +447,12 @@ export class ShmupComponent implements AfterViewInit {
 
   convertEnemyBulletsToPoints() {
     for (let i = 0; i < this.enemyBullets.length; i++) {
-      const enemy = this.enemyBullets[i];
-      this.items.push(new Point(enemy.hitbox.pos.x, enemy.hitbox.pos.y));
+      const bullet = this.enemyBullets[i];
+      //Do not convert bullets that aren't on screen. Mostly applies to rotational bullets.
+      if(CoordHelper.isHitboxOutsidePlayArea(bullet.hitbox)){
+        continue;
+      }
+      this.items.push(new Point(bullet.hitbox.pos.x, bullet.hitbox.pos.y));
     }
     this.enemyBullets = [];
   }

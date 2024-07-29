@@ -13,13 +13,18 @@ export class SimpleBullet {
     xyVel: point;
     hitbox: leftCoordHitbox;
     flagForDeletion = false;
-    minSpeed: number | undefined = undefined;
+    private minSpeed: number | undefined = undefined;
+    private maxSpeed: number | undefined = undefined;
     xSpeed = 0
     ySpeed = 0
     angleManip: number | undefined;
     angleManipDuration = 0;
     angleManipCounter = 0;
     color = "orange";
+    center = {x: 0, y: 0};
+
+    //TODO: this should be in a different class, and SimpleBullet should extend a bullet abstract
+    isRotational = false;
     constructor(
         private startPos: point,
         private angleInRadians: number,
@@ -45,10 +50,25 @@ export class SimpleBullet {
             this.accel = this.accel/FPS_TARGET;
         }
 
-        this.xyVel = MovingStuff.calculateXYVelocityWithRadians(angleInRadians, speed);
+        this.xyVel = MovingStuff.calcPointOnCircle_Radians(angleInRadians, speed);
+        this.center = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
     }
 
     move() {
+        if(this.isRotational){
+            this.xyVel = MovingStuff.calcPointOnCircle_Degrees(this.angle, this.radius);
+            const newPos = CoordHelper.getTopLeftWithCenterPoint(this.hitbox.width, this.hitbox.height, this.circCenter.x + this.xyVel.x, this.circCenter.y + this.xyVel.y);
+            this.hitbox.pos.x = newPos.x;
+            this.hitbox.pos.y = newPos.y;
+            
+            this.angle += this.angleIncr;
+            this.radius += this.radiusGrowth;
+            this.flagForDeletion = CoordHelper.isRadiusOfRotationTooLarge(this.radius);
+            const cent = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
+            this.center.x = cent.x;
+            this.center.y = cent.y;
+            return;
+        }
         if(this.accel !== undefined){
             if(this.angleManip !== undefined){
                 if(this.angleManipCounter < this.angleManipDuration){
@@ -56,10 +76,10 @@ export class SimpleBullet {
                     this.angleManipCounter++;
                 }
             }
-            this.xyVel.x = MovingStuff.calculateXVelocityWithRadians(this.angleInRadians, this.xSpeed, this.accel);
-            this.xyVel.y = MovingStuff.calculateYVelocityWithRadians(this.angleInRadians, this.ySpeed, this.accel);
             this.xSpeed += this.accel;
             this.ySpeed += this.accel;
+            this.xyVel.x = MovingStuff.calcXOnCircle_Radians(this.angleInRadians, this.xSpeed);
+            this.xyVel.y = MovingStuff.calcYOnCircle_Radians(this.angleInRadians, this.ySpeed);
 
             if(this.minSpeed !== undefined){
                 if(Math.abs(this.xSpeed) < Math.abs(this.minSpeed)){
@@ -69,20 +89,50 @@ export class SimpleBullet {
                     this.ySpeed = this.minSpeed;
                 }
             }
+
+            if(this.maxSpeed !== undefined){
+                if(Math.abs(this.xSpeed) > Math.abs(this.maxSpeed)){
+                    this.xSpeed = this.maxSpeed;
+                }
+                if(Math.abs(this.ySpeed) > Math.abs(this.maxSpeed)){
+                    this.ySpeed = this.maxSpeed;
+                }
+            }
         }
         this.hitbox.pos.x += this.xyVel.x;
         this.hitbox.pos.y += this.xyVel.y;
 
-        this.flagForDeletion = CoordHelper.isHitboxOutsidePlayArea(this.hitbox.pos.x, this.hitbox.pos.y, this.hitbox.height, this.hitbox.width);
+        this.flagForDeletion = CoordHelper.isHitboxOutsidePlayArea(this.hitbox);
+        const cent = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
+        this.center.x = cent.x;
+        this.center.y = cent.y;
     }
 
     configureMinSpeed(speed: number){
         this.minSpeed = speed;
     }
 
+    configureMaxSpeed(speed: number){
+        this.maxSpeed = speed;
+    }
+
     alterAngleWhenMoving(degrees: number, durationSeconds: number){
         this.angleManip = MovingStuff.degreesToRadians(degrees);
         this.angleManipDuration = Math.round(durationSeconds*FPS_TARGET);
         this.angleManipCounter = 0;
+    }
+
+    circCenter = {x: 0, y: 0};
+    radius = 0;
+    radiusGrowth = 0;
+    angle = 0;
+    angleIncr = 0;
+    changeToRotational(circCenter: point, r: number, rGrowth: number, angle: number, angleIncr: number){
+        this.isRotational = true;
+        this.circCenter = circCenter;
+        this.radiusGrowth = rGrowth;
+        this.angle = angle;
+        this.angleIncr = angleIncr;
+        this.radius = r;
     }
 }

@@ -14,15 +14,6 @@ export class Dongler extends Enemy {
     health = 5;
     defeatFlag = false;
     clearFlag = false;
-    tickData = {
-        now: 0,
-        playerPos: {x: 0, y: 0}
-    }
-
-    setTickData(tick: number, playerPos: point): void {
-        this.tickData.now = tick;
-        this.tickData.playerPos = {x: playerPos.x, y: playerPos.y};
-    }
 
     assess(){
         if(this.health <= 0){
@@ -42,9 +33,9 @@ export class Dongler extends Enemy {
 
     tickToShoot = 2*FPS_TARGET;
     attack(): SimpleBullet | SimpleBullet[] | null {
-        const ticksSinceCreation = this.tickData.now - this.creationTick;
+        const ticksSinceCreation = this.exData.now - this.creationTick;
         if(ticksSinceCreation === this.tickToShoot){
-            const angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(this.center.x, this.center.y, this.tickData.playerPos.x, this.tickData.playerPos.y);
+            const angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(this.center.x, this.center.y, this.exData.playerPos.x, this.exData.playerPos.y);
             this.soundService.enemyBulletSound.play();
             return new SimpleBullet(Object.create(this.center), angleToPlayer, Units.getUnits(2));
         }

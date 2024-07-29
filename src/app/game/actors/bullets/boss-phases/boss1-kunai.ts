@@ -2,6 +2,8 @@ import { leftCoordHitbox, point } from "../../../../helpers/interfaces";
 import { MovingStuff } from "../../../../helpers/moving-stuff";
 import { FPS_TARGET, Units } from "../../../globals";
 import { SoundService } from "../../../services/sound/sound.service";
+import { Boss } from "../../enemies/bosses/boss-abstract";
+import { Enemy } from "../../enemies/enemy-abstract";
 import { SimpleBullet } from "../simple-bullet";
 import { BossPhase } from "./boss-phase";
 
@@ -85,5 +87,9 @@ export class Boss1_KunaiCircle implements BossPhase{
             this.angle += 20;
         }
         return bullets;
+    }
+
+    spawnScript(tick: number, owner: Boss, playerPos: point): Enemy | Enemy[] | null {
+        return null;
     }
 }

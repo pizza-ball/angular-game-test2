@@ -2,6 +2,8 @@ import { leftCoordHitbox, point } from "../../../../helpers/interfaces";
 import { MovingStuff } from "../../../../helpers/moving-stuff";
 import { FPS_TARGET, Units } from "../../../globals";
 import { SoundService } from "../../../services/sound/sound.service";
+import { Boss } from "../../enemies/bosses/boss-abstract";
+import { Enemy } from "../../enemies/enemy-abstract";
 import { SimpleBullet } from "../simple-bullet";
 import { BossPhase } from "./boss-phase";
 
@@ -26,12 +28,12 @@ export class Boss1_CircleChase implements BossPhase {
     //Spawn a continuous stream at the player. Forces them to move around the boss.
     startAngle = 0;
     angleIncrement = 30;
-    a_shot1Tick = 1 * FPS_TARGET;
-    a_shot2Tick = FPS_TARGET/15; //every 4 frames at 60fps
+    shot1Tick = 1 * FPS_TARGET;
+    shot2Tick = FPS_TARGET/15; //every 4 frames at 60fps
     attackScript(tick: number, bossPos: point, playerPos: point) {
         this.streamingBullets.volume(this.soundService.quietVol);
         let bullets: SimpleBullet[] = [];
-        if (tick % this.a_shot1Tick === 0){
+        if (tick % this.shot1Tick === 0){
             for(let i = 0; i < 360 + this.startAngle; i += this.angleIncrement){
                 
                 bullets.push(new SimpleBullet(Object.create(bossPos), MovingStuff.degreesToRadians(i + this.startAngle), Units.getUnits(1.5)));
@@ -39,12 +41,16 @@ export class Boss1_CircleChase implements BossPhase {
             this.startAngle += 45;
         }
 
-        if (tick % this.a_shot2Tick === 0){
+        if (tick % this.shot2Tick === 0){
             this.streamingBullets.stop();
             this.streamingBullets.play();
             const angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(bossPos.x, bossPos.y, playerPos.x, playerPos.y);
             bullets.push(new SimpleBullet(Object.create(bossPos), angleToPlayer, Units.getUnits(3)));
         }
         return bullets;
+    }
+    
+    spawnScript(tick: number, owner: Boss, playerPos: point): Enemy | Enemy[] | null {
+        return null;
     }
 }

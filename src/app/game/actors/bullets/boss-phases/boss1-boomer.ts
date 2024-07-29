@@ -2,6 +2,8 @@ import { leftCoordHitbox, point } from "../../../../helpers/interfaces";
 import { MovingStuff } from "../../../../helpers/moving-stuff";
 import { FPS_TARGET, Units } from "../../../globals";
 import { SoundService } from "../../../services/sound/sound.service";
+import { Boss } from "../../enemies/bosses/boss-abstract";
+import { Enemy } from "../../enemies/enemy-abstract";
 import { SimpleBullet } from "../simple-bullet";
 import { BossPhase } from "./boss-phase";
 
@@ -24,9 +26,9 @@ export class Boss1_VandBoomerangs implements BossPhase{
 
     //Spawn aimed bullets at the player, with large gaps between
     //Spawn a wide cone of bullets at the top of the screen, the angles of which close in on the player. Restricts available space.
-    b_shot1Tick = 1 * FPS_TARGET;
-    b_shot2Tick = FPS_TARGET/30; //every 2 frames at 60fps
-    b_shot3Tick = .5 * FPS_TARGET; //every 30 frames
+    shot1Tick = 1 * FPS_TARGET;
+    shot2Tick = FPS_TARGET/30; //every 2 frames at 60fps
+    shot3Tick = .5 * FPS_TARGET; //every 30 frames
     angle_a = 225;
     angle_b = 315;
     alternater = false;
@@ -34,14 +36,14 @@ export class Boss1_VandBoomerangs implements BossPhase{
     attackScript(tick: number, bossPos: point, playerPos: point){
         this.streamingBullets.volume(this.soundService.quietVol);
         let bullets: SimpleBullet[] = [];
-        if (tick % this.b_shot1Tick === 0){
+        if (tick % this.shot1Tick === 0){
             const angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(bossPos.x, bossPos.y, playerPos.x, playerPos.y);
             let bul1 = new SimpleBullet(Object.create(bossPos), angleToPlayer, Units.getUnits(8), Units.getUnits(10), Units.getUnits(-16));
             bul1.configureMinSpeed(2);
             bullets.push(bul1);
         }
 
-        if (tick % this.b_shot2Tick === 0){
+        if (tick % this.shot2Tick === 0){
             this.streamingBullets.stop();
             this.streamingBullets.play();
             let bul1 = new SimpleBullet(Object.create(bossPos), MovingStuff.degreesToRadians(this.angle_a), Units.getUnits(8));
@@ -57,11 +59,11 @@ export class Boss1_VandBoomerangs implements BossPhase{
         }
 
         if (tick > 2.5*FPS_TARGET && 
-            (tick % this.b_shot3Tick === 0 ||
-             (tick - FPS_TARGET/20) % this.b_shot3Tick === 0 ||
-             (tick - FPS_TARGET/10) % this.b_shot3Tick === 0
+            (tick % this.shot3Tick === 0 ||
+             (tick - FPS_TARGET/20) % this.shot3Tick === 0 ||
+             (tick - FPS_TARGET/10) % this.shot3Tick === 0
             )){
-            if(tick % this.b_shot3Tick === 0){
+            if(tick % this.shot3Tick === 0){
                 this.rando = MovingStuff.getRandomPositiveInt(60);
             }
             if(this.alternater){
@@ -74,10 +76,14 @@ export class Boss1_VandBoomerangs implements BossPhase{
                 bullets.push(lAngleShot);
             }
             this.soundService.enemyBulletSound.play();
-            if((tick - FPS_TARGET/10) % this.b_shot3Tick === 0){
+            if((tick - FPS_TARGET/10) % this.shot3Tick === 0){
                 this.alternater = !this.alternater;
             }
         }
         return bullets;
+    }
+
+    spawnScript(tick: number, owner: Boss, playerPos: point): Enemy | Enemy[] | null {
+        return null;
     }
 }

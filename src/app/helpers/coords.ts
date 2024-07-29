@@ -2,12 +2,19 @@ import { Units } from "../game/globals";
 import { leftCoordHitbox, point } from "./interfaces";
 
 export class CoordHelper{
-    static isHitboxOutsidePlayArea(p1x: number, p1y: number, height: number, width: number) {
-        if ((p1x > Units.getPlayfieldWidth() ||
-            p1x + width < 0) ||
-            (p1y > Units.getPlayfieldHeight() ||
-            p1y + height < 0)
+    static isHitboxOutsidePlayArea(hitbox: leftCoordHitbox) {
+        if ((hitbox.pos.x > Units.getPlayfieldWidth() || 
+                hitbox.pos.x + hitbox.width < 0) ||
+            (hitbox.pos.y > Units.getPlayfieldHeight() ||
+                hitbox.pos.y + hitbox.height < 0)
         ) {
+            return true;
+        }
+        return false;
+    }
+
+    static isRadiusOfRotationTooLarge(radius: number) {
+        if (radius > Units.getPlayfieldHeight()) {
             return true;
         }
         return false;
@@ -20,11 +27,11 @@ export class CoordHelper{
         return false;
     }
 
-    static getCenterWithTopLeftHitbox(hitbox: leftCoordHitbox){
+    static getCenterWithTopLeftHitbox(hitbox: leftCoordHitbox): point{
         return { x: hitbox.pos.x + (hitbox.width / 2), y: hitbox.pos.y + (hitbox.height / 2)};
     }
 
-    static getCenterWithTopLeftPoint(width: number, height: number, topleftX: number, topleftY: number){
+    static getCenterWithTopLeftPoint(width: number, height: number, topleftX: number, topleftY: number): point{
         return { x: topleftX + (width / 2), y: topleftY + (height / 2)};
     }
 

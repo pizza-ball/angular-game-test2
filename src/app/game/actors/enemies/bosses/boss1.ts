@@ -12,6 +12,7 @@ import { Boss1_VandBoomerangs } from "../../bullets/boss-phases/boss1-boomer";
 import { BossPhase } from "../../bullets/boss-phases/boss-phase";
 import { Boss1_KunaiCircle } from "../../bullets/boss-phases/boss1-kunai";
 import { Boss, bossState } from "./boss-abstract";
+import { Enemy } from "../enemy-abstract";
 
 export class Boss1 extends Boss {
     public id = uuidv4();
@@ -26,49 +27,35 @@ export class Boss1 extends Boss {
         new Boss1_CircleChase(this.soundService)
     ];
 
-    getPhaseTime(){
-        return this.exData.now - this.phaseStartTick;
-    }
-
-    setExternalData(tick: number, playerPos: point): void {
-        this.exData.now = tick;
-        this.exData.playerPos = {x: playerPos.x, y: playerPos.y};
-    }
-
     assess(){
         this.phaseDefeatFlag = false; //value reset
         if(this.state === bossState.entering){
             if (this.getPhaseTime() > this.ARRIVAL_DURATION) {
                 this.hitbox.pos.x = this.DEFAULT_POS.x;
                 this.hitbox.pos.y = this.DEFAULT_POS.y;
-                this.state = bossState.pause;
-                this.phaseStartTick = this.exData.now;
-                this.positionPhaseEndedIn = {x: this.hitbox.pos.x, y: this.hitbox.pos.y};
+                this.beginPhase();
             }
         } else if (this.state === bossState.pause) {
             if (this.getPhaseTime() > this.PAUSE_DURATION) {
                 this.hitbox.pos.x = this.DEFAULT_POS.x;
                 this.hitbox.pos.y = this.DEFAULT_POS.y;
-                this.state = bossState.attacking;
-                this.phaseStartTick = this.exData.now;
-                this.positionPhaseEndedIn = {x: this.hitbox.pos.x, y: this.hitbox.pos.y};
-                console.log("Pause over.");
+                this.beginPhase();
             }
-            return;
         } else if (this.state === bossState.attacking){
-
-            //Save the timeout progress to a variable. This variable can be used to display a spellcard timer.
-            this.phaseCountdown = ((this.phases[this.currentPhase].DURATION/FPS_TARGET) - Math.round(this.getPhaseTime()/FPS_TARGET)).toFixed(0);
-
             //Attack Defeated
             if(this.phases[this.currentPhase].currentHealth <= 0){
                 this.moveToNextPhase(true);
+                return;
             }
 
             //Attack Timeout
             if (this.getPhaseTime() >= this.phases[this.currentPhase].DURATION) {
                 this.moveToNextPhase(false);
+                return;
             }
+
+            //Save the timeout progress to a variable. This variable can be used to display a spellcard timer.
+            this.phaseCountdown = ((this.phases[this.currentPhase].DURATION/FPS_TARGET) - Math.round(this.getPhaseTime()/FPS_TARGET)).toFixed(0);
         }
     }
 
@@ -98,6 +85,12 @@ export class Boss1 extends Boss {
         this.hitbox.pos.y += vel.y;
     }
 
+    private beginPhase(){
+        this.phaseStartTick = this.exData.now;
+        this.positionPhaseEndedIn = {x: this.hitbox.pos.x, y: this.hitbox.pos.y};
+        this.state = bossState.attacking;
+    }
+
     private moveToNextPhase(successOrFail: boolean) {
         DrawingStuff.deleteElementFromMemory(this.healthId);
         this.phaseCountdown = '';
@@ -118,7 +111,7 @@ export class Boss1 extends Boss {
             return;
         }
 
-        //Otherwise, we need to pause for a while before the next phase. Flag as such.
+        //Otherwise, we need to pause for a while before the next phase.
         this.phaseStartTick = this.exData.now;
         this.state = bossState.pause
         this.positionPhaseEndedIn = {x: this.hitbox.pos.x, y: this.hitbox.pos.y};

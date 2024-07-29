@@ -5,6 +5,7 @@ import { SoundService } from "../../../services/sound/sound.service";
 import { ActorList } from "../../actorlist";
 import { BossPhase } from "../../bullets/boss-phases/boss-phase";
 import { SimpleBullet } from "../../bullets/simple-bullet";
+import { Enemy } from "../enemy-abstract";
 
 export interface ExternalData_Boss {
     now: number,
@@ -31,14 +32,14 @@ export abstract class Boss {
 
     exData: ExternalData_Boss = {
         now: 0,
-        playerPos: {x: 0, y: 0}
+        playerPos: { x: 0, y: 0 }
     }
     hitbox: leftCoordHitbox;
     center: point;
     WIDTH = Units.getUnits(60);
     HEIGHT = Units.getUnits(60);
     state: bossState = bossState.entering;
-    positionPhaseEndedIn = CoordHelper.getTopLeftWithCenterPoint(this.WIDTH, this.HEIGHT, Units.getPlayfieldWidth(), Units.getUnits(-50));
+    positionPhaseEndedIn = {x: 0, y: 0};
     DEFAULT_POS = CoordHelper.getTopLeftWithCenterPoint(this.WIDTH, this.HEIGHT, Units.getPlayfieldWidth() * .5, Units.getPlayfieldHeight() * .35);
     defeatFlag = false;
     phaseDefeatFlag = false;
@@ -49,23 +50,37 @@ export abstract class Boss {
     constructor(
         protected soundService: SoundService,
         protected creationTick: number,
+        protected startPos: point,
     ) {
         this.hitbox = {
-            pos: { x: this.positionPhaseEndedIn.x, y: this.positionPhaseEndedIn.y },
+            pos: { x: startPos.x, y: startPos.y },
             width: this.WIDTH,
             height: this.HEIGHT,
         };
+        this.positionPhaseEndedIn = startPos;
         this.phaseStartTick = creationTick;
         this.center = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
     }
 
-    abstract setExternalData(tick: number, playerPos: point): void;
+    setExternalData(tick: number, playerPos: point): void {
+        this.exData.now = tick;
+        this.exData.playerPos = {x: playerPos.x, y: playerPos.y};
+    }
+
+    getPhaseTime(){
+        return this.exData.now - this.phaseStartTick;
+    }
 
     abstract assess(): void;
 
     abstract move(): void;
- 
+
     abstract attack(): SimpleBullet | SimpleBullet[] | null;
+
+    //Optional functionality. Some attacks should spawn other enemies. For bosses, this will usually be BulletDrones.
+    spawnFriends(): Enemy | Enemy[] | null {
+        return null;
+    }
 
     abstract hitByBullet(pBullet: bullet): boolean;
 

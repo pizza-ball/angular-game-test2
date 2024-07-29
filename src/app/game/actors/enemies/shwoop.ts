@@ -7,6 +7,7 @@ import { SimpleBullet } from "../bullets/simple-bullet";
 import { CoordHelper } from "../../../helpers/coords";
 import { ActorList } from "../actorlist";
 import { Enemy } from "./enemy-abstract";
+import { MoveScript } from "./movescript-default";
 
 export class Shwoop extends Enemy {
     public id = uuidv4();
@@ -14,15 +15,7 @@ export class Shwoop extends Enemy {
     health = 5;
     defeatFlag = false;
     clearFlag = false;
-    tickData = {
-        now: 0,
-        playerPos: {x: 0, y: 0}
-    }
-
-    setTickData(tick: number, playerPos: point): void {
-        this.tickData.now = tick;
-        this.tickData.playerPos = {x: playerPos.x, y: playerPos.y};
-    }
+    moveScript = new MoveScript();
 
     assess(){
         if(this.health <= 0){
@@ -34,52 +27,18 @@ export class Shwoop extends Enemy {
         }
     }
 
-    move() {
-        if (isCurve(this.path[0])) {
-            this.moveCurve(Object.create(this.path[0]));
-        } else {
-            this.moveLine(Object.create(this.path[0]));
-        }
-        this.center = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
-    }
-
-    private moveLine(path: linePath) {
-        MovingStuff.moveTowardsAtConstRate(this.hitbox.pos, path.dest, path.speed)
-        if (this.hitbox.pos.x === path.dest.x && this.hitbox.pos.y === path.dest.y) {
+    move(){
+        let isDone = this.moveScript.pathMove(this.path[0], this.hitbox, this.center);
+        if(isDone){
             this.path.shift();
-        }
-    }
-
-    lengthApproxCalc = 0;
-    distanceTraveled = 0;
-    curveStart = { x: 0, y: 0 };
-    private moveCurve(path: curvePath) {
-        if (this.lengthApproxCalc === 0) {
-            this.lengthApproxCalc = MovingStuff.approximateCurveLength(this.hitbox.pos, path.control, path.dest);
-            this.curveStart = Object.create(this.hitbox.pos);
-        }
-
-        //const deltaTime = (timestamp - lastTimestamp) / 1000;
-        //lastTimestamp = timestamp;
-
-        this.distanceTraveled += path.speed;
-        const t = this.distanceTraveled / this.lengthApproxCalc;
-
-        if (t > 1) {
-            //console.log("dest reached, resetting all local variables");
-            this.lengthApproxCalc = 0;
-            this.distanceTraveled = 0;
-            this.path.shift();
-        } else {
-            this.hitbox.pos = MovingStuff.getQuadraticBezierPoint(t, this.curveStart, path.control, path.dest);
         }
     }
 
     ticksToShoot = [1 * FPS_TARGET];//, 1.2*TICKS_PER_SECOND, 1.4*TICKS_PER_SECOND];
     attack(): SimpleBullet | SimpleBullet[] | null {
-        const ticksSinceCreation = this.tickData.now - this.creationTick;
+        const ticksSinceCreation = this.exData.now - this.creationTick;
         if (this.ticksToShoot.includes(ticksSinceCreation)) {
-            const angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(this.center.x, this.center.y, this.tickData.playerPos.x, this.tickData.playerPos.y);
+            const angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(this.center.x, this.center.y, this.exData.playerPos.x, this.exData.playerPos.y);
             const leftAngle = angleToPlayer - (15) * (Math.PI / 180);
             const rightAngle = angleToPlayer + (15) * (Math.PI / 180);
             this.soundService.enemyBulletSound.play();

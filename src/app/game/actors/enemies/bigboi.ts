@@ -16,17 +16,7 @@ export class BigBoi extends Enemy {
     health = 50;
     defeatFlag = false;
     clearFlag = false;
-    tickData = {
-        now: 0,
-        playerPos: {x: 0, y: 0}
-    }
-
     pauseCounter = 0;
-
-    setTickData(tick: number, playerPos: point): void {
-        this.tickData.now = tick;
-        this.tickData.playerPos = {x: playerPos.x, y: playerPos.y};
-    }
 
     assess(){
         if(this.health <= 0){
@@ -56,7 +46,7 @@ export class BigBoi extends Enemy {
     ticksToShoot = [1 * FPS_TARGET, 2 * FPS_TARGET, 3 * FPS_TARGET];
     angles = [45, 135, 225, 315]; // Angle calculations start from the X axis, and move clockwise towards Y. (0,1) is 90*. CAUTION: Y is inverted.
     attack(): SimpleBullet | SimpleBullet[] | null {
-        const ticksSinceCreation = this.tickData.now - this.creationTick;
+        const ticksSinceCreation = this.exData.now - this.creationTick;
         if (!this.ticksToShoot.includes(ticksSinceCreation)) {
             return null;
         }

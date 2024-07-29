@@ -293,7 +293,7 @@ export class Player {
                 this.optionDistFromPlayer = this.optionDistFromPlayer < this.MAX_DIST ? this.optionDistFromPlayer += Units.getUnits(5) : this.MAX_DIST;
             }
 
-            const positionModifiers = MovingStuff.calculateXYVelocityWithDegrees(option.relAngle, this.optionDistFromPlayer);
+            const positionModifiers = MovingStuff.calcPointOnCircle_Degrees(option.relAngle, this.optionDistFromPlayer);
             option.pos.x = this.center.x + positionModifiers.x - (option.width/2);
             option.pos.y = this.center.y + positionModifiers.y - (option.height/2);
         }

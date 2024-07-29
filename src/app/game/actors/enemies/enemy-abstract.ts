@@ -4,7 +4,7 @@ import { SoundService } from "../../services/sound/sound.service";
 import { ActorList } from "../actorlist";
 import { SimpleBullet } from "../bullets/simple-bullet";
 
-export interface TickData {
+export interface ExternalData_Enemy {
     now: number,
     playerPos: point
 }
@@ -15,11 +15,14 @@ export abstract class Enemy {
     abstract health: number;
     abstract defeatFlag: boolean;
     abstract clearFlag: boolean;
-    abstract tickData: TickData;
     hitbox: leftCoordHitbox;
     center: point;
     powerCount: number;
     pointCount: number;
+    exData: ExternalData_Enemy = {
+        now: 0,
+        playerPos: { x: 0, y: 0 }
+    }
 
 
     constructor(
@@ -40,20 +43,28 @@ export abstract class Enemy {
         };
         this.powerCount = powerCount !== undefined ? powerCount : 0;
         this.pointCount = pointCount !== undefined ? pointCount : 0;
-        this.center = {x: startX, y: startY};
+        this.center = { x: startX, y: startY };
 
         path.forEach(element => {
             element.dest = CoordHelper.getTopLeftWithCenterPoint(width, height, element.dest.x, element.dest.y)
         });
     }
 
-    abstract setTickData(tick: number, playerPos: point): void;
+    setExternalData(tick: number, playerPos: point): void {
+        this.exData.now = tick;
+        this.exData.playerPos = { x: playerPos.x, y: playerPos.y };
+    }
 
     abstract assess(): void;
 
     abstract move(): void;
- 
+
     abstract attack(): SimpleBullet | SimpleBullet[] | null;
+
+    //Optional functionality. Some enemies should spawn other enemies.
+    spawnFriends(): Enemy | Enemy[] | null {
+        return null;
+    }
 
     abstract hitByBullet(pBullet: bullet): boolean;
 

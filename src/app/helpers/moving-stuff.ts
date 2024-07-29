@@ -108,24 +108,20 @@ export class MovingStuff {
         return Math.atan2(p2y - p1y, p2x - p1x);
     }
 
-    static calculateXYVelocityWithRadians(radians: number, speed: number): point {
-        return { x: speed * Math.cos(radians), y: speed * Math.sin(radians) };
+    static calcPointOnCircle_Radians(radians: number, radius: number): point {
+        return { x: radius * Math.cos(radians), y: radius * Math.sin(radians) };
     }
 
-    static calculateXYVelocityWithRadiansAndAccel(radians: number, speed: number, accel: number): point {
-        return { x: (accel+speed) * Math.cos(radians), y: (accel+speed) * Math.sin(radians) };
+    static calcPointOnCircle_Degrees(degrees: number, radius: number): point {
+        return { x: radius * Math.cos((Math.PI / 180) * degrees), y: radius * Math.sin((Math.PI / 180) * degrees) };
     }
 
-    static calculateXYVelocityWithDegrees(degrees: number, speed: number): point {
-        return { x: speed * Math.cos((Math.PI / 180) * degrees), y: speed * Math.sin((Math.PI / 180) * degrees) };
+    static calcXOnCircle_Radians(radians: number, radius: number): number {
+        return radius * Math.cos(radians);
     }
 
-    static calculateXVelocityWithRadians(radians: number, speed: number, accel: number): number {
-        return (accel+speed) * Math.cos(radians);
-    }
-
-    static calculateYVelocityWithRadians(radians: number, speed: number, accel: number): number {
-        return (accel+speed) * Math.sin(radians);
+    static calcYOnCircle_Radians(radians: number, radius: number): number {
+        return radius * Math.sin(radians);
     }
 
     static generateLtoRWanderPath(hitbox: leftCoordHitbox){

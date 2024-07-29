@@ -7,6 +7,7 @@ export enum ActorList {
     Dongler = "Dongler",
     Shwoop = "Shwoop",
     BigBoi = "BigBoi",
+    BulletDrone = "BulletDrone",
     //Bosses
     BossGeneric = "BossGeneric",
     MidBoss1 = "MidBoss1",
