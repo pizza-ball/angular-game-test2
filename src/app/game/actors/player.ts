@@ -18,7 +18,6 @@ export enum playerState {
 }
 
 export class Player {
-    //constants. Do not alter.
     public id = uuidv4();
     DEFAULT_COLOR = "rgb(236, 129, 129)";
     PLAYSPACE = { width: 1, height: 1 };
@@ -40,8 +39,8 @@ export class Player {
     state = playerState.normal;
     color = this.DEFAULT_COLOR; //Color can change based on player state
     allowedToFire = true;
-    moveVel = Units.getUnits(7);
-    focusMoveVel = Units.getUnits(3.5);
+    moveVel = Units.getUnits(5);
+    focusMoveVel = Units.getUnits(2.5);
     focusing = false;
     power = 0;
     score = 0;

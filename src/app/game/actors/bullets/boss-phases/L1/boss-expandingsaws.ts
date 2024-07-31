@@ -1,13 +1,15 @@
-import { leftCoordHitbox, point } from "../../../../helpers/interfaces";
-import { MovingStuff } from "../../../../helpers/moving-stuff";
-import { FPS_TARGET, Units } from "../../../globals";
-import { SoundService } from "../../../services/sound/sound.service";
-import { Boss } from "../../enemies/bosses/boss-abstract";
-import { Enemy } from "../../enemies/enemy-abstract";
-import { SimpleBullet } from "../simple-bullet";
-import { BossPhase } from "./boss-phase";
+import { leftCoordHitbox, point } from "../../../../../helpers/interfaces";
+import { MovingStuff } from "../../../../../helpers/moving-stuff";
+import { FPS_TARGET, Units } from "../../../../globals";
+import { SoundService } from "../../../../services/sound/sound.service";
+import { Boss } from "../../../enemies/bosses/boss-abstract";
+import { Enemy } from "../../../enemies/enemy-abstract";
+import { BoundBullet, BoundBullet_MoveType } from "../../bound-bullet";
+import { BulletAbstract } from "../../bullet-abstract";
+import { SimpleBullet } from "../../simple-bullet";
+import { BossPhase } from "../boss-phase";
 
-export class MidBoss1_Basic implements BossPhase {
+export class Boss_ExpandingSaws implements BossPhase {
     MAX_HEALTH = 300;
     DURATION = 20 * FPS_TARGET;
 
@@ -54,30 +56,26 @@ export class MidBoss1_Basic implements BossPhase {
 
     shot1_Tick = Units.secToTick(.8);
     angleToPlayer = 0;
-    shot_bossPos = {x: 0, y: 0};
     attackScript(tick: number, bossPos: point, playerPos: point) {
         this.streamingBullets.volume(this.soundService.quietVol);
-        let bullets: SimpleBullet[] = [];
+        let bullets: BulletAbstract[] = [];
 
         if (tick % this.shot1_Tick === 0) {
-            if (tick % this.shot1_Tick === 0) {
-                this.shot_bossPos.x = bossPos.x;
-                this.shot_bossPos.y = bossPos.y;
-            }
-            this.angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(this.shot_bossPos.x, this.shot_bossPos.y, playerPos.x, playerPos.y);
+            this.angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(bossPos.x, bossPos.y, playerPos.x, playerPos.y);
 
             let buls = [
-                new SimpleBullet(Object.create(this.shot_bossPos), this.angleToPlayer, Units.getUnits(0), Units.getUnits(10), Units.getUnits(10)),
-                new SimpleBullet(Object.create(this.shot_bossPos), this.angleToPlayer - (45) * (Math.PI / 180), Units.getUnits(0), Units.getUnits(10), Units.getUnits(10)),
-                new SimpleBullet(Object.create(this.shot_bossPos), this.angleToPlayer + (45) * (Math.PI / 180), Units.getUnits(0), Units.getUnits(10), Units.getUnits(10))
+                new SimpleBullet(Object.create(bossPos), this.angleToPlayer, Units.getUnits(0), Units.getUnits(10), Units.getUnits(7)),
+                new SimpleBullet(Object.create(bossPos), this.angleToPlayer - (45) * (Math.PI / 180), Units.getUnits(0), Units.getUnits(10), Units.getUnits(7)),
+                new SimpleBullet(Object.create(bossPos), this.angleToPlayer + (45) * (Math.PI / 180), Units.getUnits(0), Units.getUnits(10), Units.getUnits(7))
             ];
             for (let bul of buls) {
-                bul.configureMaxSpeed(Units.getUnits(8));
+                bul.configureMaxSpeed(Units.getUnits(9));
 
                 for(let i = 0; i < 360; i += 45){
-                    let circBul = new SimpleBullet(bul.center, 0);
-                    circBul.changeToRotational(bul.center, Units.getUnits(20), Units.getUnits(.15), i, 3);
+                    let circBul = new BoundBullet(bul.center, BoundBullet_MoveType.circle);
+                    circBul.setCircularMovementData(Units.getUnits(20), Units.getUnits(.15), i, 3);
                     circBul.color = "pink";
+                    circBul.spriteData.sprite = "/assets/bullets/normal/bullets20.png"
                     bullets.push(circBul);
                 }
             }

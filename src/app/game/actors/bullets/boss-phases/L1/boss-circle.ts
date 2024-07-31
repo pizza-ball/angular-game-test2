@@ -1,13 +1,13 @@
-import { leftCoordHitbox, point } from "../../../../helpers/interfaces";
-import { MovingStuff } from "../../../../helpers/moving-stuff";
-import { FPS_TARGET, Units } from "../../../globals";
-import { SoundService } from "../../../services/sound/sound.service";
-import { Boss } from "../../enemies/bosses/boss-abstract";
-import { Enemy } from "../../enemies/enemy-abstract";
-import { SimpleBullet } from "../simple-bullet";
-import { BossPhase } from "./boss-phase";
+import { leftCoordHitbox, point } from "../../../../../helpers/interfaces";
+import { MovingStuff } from "../../../../../helpers/moving-stuff";
+import { FPS_TARGET, Units } from "../../../../globals";
+import { SoundService } from "../../../../services/sound/sound.service";
+import { Boss } from "../../../enemies/bosses/boss-abstract";
+import { Enemy } from "../../../enemies/enemy-abstract";
+import { SimpleBullet } from "../../simple-bullet";
+import { BossPhase } from "../boss-phase";
 
-export class Boss1_CircleChase implements BossPhase {
+export class Boss_CircleChase implements BossPhase {
     MAX_HEALTH = 300;
     DURATION = 30*FPS_TARGET;
 
@@ -35,7 +35,6 @@ export class Boss1_CircleChase implements BossPhase {
         let bullets: SimpleBullet[] = [];
         if (tick % this.shot1Tick === 0){
             for(let i = 0; i < 360 + this.startAngle; i += this.angleIncrement){
-                
                 bullets.push(new SimpleBullet(Object.create(bossPos), MovingStuff.degreesToRadians(i + this.startAngle), Units.getUnits(1.5)));
             }
             this.startAngle += 45;
@@ -45,7 +44,9 @@ export class Boss1_CircleChase implements BossPhase {
             this.streamingBullets.stop();
             this.streamingBullets.play();
             const angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(bossPos.x, bossPos.y, playerPos.x, playerPos.y);
-            bullets.push(new SimpleBullet(Object.create(bossPos), angleToPlayer, Units.getUnits(3)));
+            let bul = new SimpleBullet(Object.create(bossPos), angleToPlayer, Units.getUnits(3));
+            bul.color = "cyan";
+            bullets.push(bul);
         }
         return bullets;
     }

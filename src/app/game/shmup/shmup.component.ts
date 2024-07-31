@@ -11,7 +11,7 @@ import { CommonModule } from '@angular/common';
 import { Square } from '../../helpers/square';
 import {
   leftCoordHitbox,
-  bullet,
+  bullet as playerBullet,
   point,
   leftCoordHitboxId,
   linePath,
@@ -34,12 +34,12 @@ import { MovingStuff } from '../../helpers/moving-stuff';
 import { BigBoi } from '../actors/enemies/bigboi';
 import { Point } from '../actors/items/point';
 import { Boss1 } from '../actors/enemies/bosses/boss1';
-import { SimpleBullet } from '../actors/bullets/simple-bullet';
 import { Enemy } from '../actors/enemies/enemy-abstract';
 import MainLoop from 'mainloop.js';
 import { Boss } from '../actors/enemies/bosses/boss-abstract';
 import { CoordHelper } from '../../helpers/coords';
 import { MidBoss1 } from '../actors/enemies/bosses/midboss1';
+import { BulletAbstract as Bullet } from '../actors/bullets/bullet-abstract';
 
 @Component({
   selector: 'app-shmup',
@@ -52,6 +52,7 @@ import { MidBoss1 } from '../actors/enemies/bosses/midboss1';
 })
 
 export class ShmupComponent implements AfterViewInit {
+  DISPLAY_HITBOXES = false;
   gamePaused = false;
   shmupStyle = {
     width: Units.getPlayfieldWidth(),
@@ -72,10 +73,10 @@ export class ShmupComponent implements AfterViewInit {
 
   volumeSliderChoice = 20;
 
-  playerBullets: bullet[] = [];
+  playerBullets: playerBullet[] = [];
   enemies: Enemy[] = [];
   boss: Boss | undefined;
-  enemyBullets: SimpleBullet[] = [];
+  enemyBullets: Bullet[] = [];
   enemyDeathSprites: leftCoordHitboxId[] = [];
   items: (Point | PowerPoint)[] = [];
 
@@ -436,7 +437,7 @@ export class ShmupComponent implements AfterViewInit {
     for (let i = 0; i < this.items.length; i++) {
       this.items[i].move(this.player.center.x, this.player.center.y);
 
-      //deletes enemies that have finished their path
+      //deletes items that have finished their path
       if (this.items[i].flagForDeletion) {
         //this.items[i].cleanUp(this.canvasRef2d?.nativeElement.getContext("2d"));
         this.items.splice(i, 1);
@@ -494,7 +495,12 @@ export class ShmupComponent implements AfterViewInit {
         continue; //item is now in range to scoop. obviously it's not colliding with the player. Move to next item early.
       }
 
-      let playerSquare = new Square(this.player.hitbox);
+      const expandedHitbox: leftCoordHitbox = {
+        pos: {x: this.player.hitbox.pos.x-this.player.hitbox.width, y: this.player.hitbox.pos.y-this.player.hitbox.height},
+        width: this.player.hitbox.width*2,
+        height: this.player.hitbox.height*2
+      };
+      let playerSquare = new Square(expandedHitbox);
       if (Square.checkSquareOverlap(itemSquare, playerSquare)) {
         //destroy the item, add the item's value to the player
         if (item.ITEM_TYPE === "point") {

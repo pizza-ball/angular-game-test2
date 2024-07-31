@@ -1,15 +1,15 @@
-import { leftCoordHitbox, point } from "../../../../helpers/interfaces";
-import { MovingStuff } from "../../../../helpers/moving-stuff";
-import { FPS_TARGET, Units } from "../../../globals";
-import { SoundService } from "../../../services/sound/sound.service";
-import { Boss } from "../../enemies/bosses/boss-abstract";
-import { Enemy } from "../../enemies/enemy-abstract";
-import { SimpleBullet } from "../simple-bullet";
-import { BossPhase } from "./boss-phase";
+import { leftCoordHitbox, point } from "../../../../../helpers/interfaces";
+import { MovingStuff } from "../../../../../helpers/moving-stuff";
+import { FPS_TARGET, Units } from "../../../../globals";
+import { SoundService } from "../../../../services/sound/sound.service";
+import { Boss } from "../../../enemies/bosses/boss-abstract";
+import { Enemy } from "../../../enemies/enemy-abstract";
+import { SimpleBullet } from "../../simple-bullet";
+import { BossPhase } from "../boss-phase";
 
-export class Boss1_KunaiCircle implements BossPhase{
+export class Boss_KunaiCircles implements BossPhase{
     MAX_HEALTH = 300;
-    DURATION = 30*FPS_TARGET;
+    DURATION = 20*FPS_TARGET;
 
     currentHealth = this.MAX_HEALTH;
     streamingBullets = new Howl({
@@ -78,6 +78,7 @@ export class Boss1_KunaiCircle implements BossPhase{
                     for (let j = 0; j < this.shots; j++) {
                         let bul = new SimpleBullet(Object.create(bossPos), (Math.PI/180)*angleClone, Units.getUnits(3));
                         bul.color = "cyan";
+                        bul.spriteData.sprite = "/assets/bullets/normal/bullets24.png";
                         bullets.push(bul);
                         angleClone += 3+this.shots;
                     }

@@ -1,15 +1,17 @@
-import { leftCoordHitbox, point } from "../../../../helpers/interfaces";
-import { MovingStuff } from "../../../../helpers/moving-stuff";
-import { FPS_TARGET, Units } from "../../../globals";
-import { SoundService } from "../../../services/sound/sound.service";
-import { Boss } from "../../enemies/bosses/boss-abstract";
-import { Enemy } from "../../enemies/enemy-abstract";
-import { SimpleBullet } from "../simple-bullet";
-import { BossPhase } from "./boss-phase";
+import { leftCoordHitbox, point } from "../../../../../helpers/interfaces";
+import { MovingStuff } from "../../../../../helpers/moving-stuff";
+import { FPS_TARGET, Units } from "../../../../globals";
+import { SoundService } from "../../../../services/sound/sound.service";
+import { Boss } from "../../../enemies/bosses/boss-abstract";
+import { Enemy } from "../../../enemies/enemy-abstract";
+import { BoundBullet, BoundBullet_MoveType } from "../../bound-bullet";
+import { BulletAbstract } from "../../bullet-abstract";
+import { SimpleBullet } from "../../simple-bullet";
+import { BossPhase } from "../boss-phase";
 
-export class MidBoss1_SpiralGaps implements BossPhase {
+export class Boss_SpiralGaps implements BossPhase {
     MAX_HEALTH = 400;
-    DURATION = 20 * FPS_TARGET;
+    DURATION = 30 * FPS_TARGET;
 
     currentHealth = this.MAX_HEALTH;
     streamingBullets = new Howl({
@@ -31,7 +33,7 @@ export class MidBoss1_SpiralGaps implements BossPhase {
     startAngle = 0;
     attackScript(tick: number, bossPos: point, playerPos: point) {
         this.streamingBullets.volume(this.soundService.quietVol);
-        let bullets: SimpleBullet[] = [];
+        let bullets: BulletAbstract[] = [];
 
         if ( tick > Units.secToTick(2) &&
             (tick % this.shot1_Tick === 0 ||
@@ -97,27 +99,31 @@ export class MidBoss1_SpiralGaps implements BossPhase {
             tick % this.shot2_Tick === 0) {
             for(let i = 0; i < 360 + this.startAngle; i += 45){
                 for(let j = 0; j<4; j++){
-                    let bul = new SimpleBullet({x: Units.xFromPct(50), y: Units.yFromPct(30)}, 0);
-                    bul.changeToRotational({x: Units.xFromPct(50), y: Units.yFromPct(30)}, Units.getUnits(-30), Units.getUnits(1), (i + this.startAngle)+(j*3), .4);
+                    let bul = new BoundBullet({x: Units.xFromPct(50), y: Units.yFromPct(30)}, BoundBullet_MoveType.circle);
+                    bul.setCircularMovementData(Units.getUnits(-30), Units.getUnits(1), (i + this.startAngle)+(j*3), .4);
                     bul.color = "pink";
+                    bul.spriteData.sprite = "/assets/bullets/normal/bullets21.png";
                     bullets.push(bul);
                 }
                 for(let j = 0; j<4; j++){
-                    let bul = new SimpleBullet({x: Units.xFromPct(50), y: Units.yFromPct(30)}, 0);
-                    bul.changeToRotational({x: Units.xFromPct(50), y: Units.yFromPct(30)}, Units.getUnits(10), Units.getUnits(1), (i + this.startAngle)+(j*3), -.4);
+                    let bul = new BoundBullet({x: Units.xFromPct(50), y: Units.yFromPct(30)}, BoundBullet_MoveType.circle);
+                    bul.setCircularMovementData(Units.getUnits(10), Units.getUnits(1), (i + this.startAngle)+(j*3), -.4);
                     bul.color = "pink";
+                    bul.spriteData.sprite = "/assets/bullets/normal/bullets21.png";
                     bullets.push(bul);
                 }
                 for(let j = 0; j<4; j++){
-                    let bul = new SimpleBullet({x: Units.xFromPct(50), y: Units.yFromPct(30)}, 0);
-                    bul.changeToRotational({x: Units.xFromPct(50), y: Units.yFromPct(30)}, Units.getUnits(-10), Units.getUnits(1), (i + this.startAngle)+(j*3), .4);
+                    let bul = new BoundBullet({x: Units.xFromPct(50), y: Units.yFromPct(30)}, BoundBullet_MoveType.circle);
+                    bul.setCircularMovementData(Units.getUnits(-10), Units.getUnits(1), (i + this.startAngle)+(j*3), .4);
                     bul.color = "pink";
+                    bul.spriteData.sprite = "/assets/bullets/normal/bullets21.png";
                     bullets.push(bul);
                 }
                 for(let j = 0; j<4; j++){
-                    let bul = new SimpleBullet({x: Units.xFromPct(50), y: Units.yFromPct(30)}, 0);
-                    bul.changeToRotational({x: Units.xFromPct(50), y: Units.yFromPct(30)}, Units.getUnits(35), Units.getUnits(1), (i + this.startAngle)+(j*3), -.4);
+                    let bul = new BoundBullet({x: Units.xFromPct(50), y: Units.yFromPct(30)}, BoundBullet_MoveType.circle);
+                    bul.setCircularMovementData(Units.getUnits(35), Units.getUnits(1), (i + this.startAngle)+(j*3), -.4);
                     bul.color = "pink";
+                    bul.spriteData.sprite = "/assets/bullets/normal/bullets21.png";
                     bullets.push(bul);
                 }
             }

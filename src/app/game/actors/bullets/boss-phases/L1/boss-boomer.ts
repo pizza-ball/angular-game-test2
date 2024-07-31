@@ -1,13 +1,13 @@
-import { leftCoordHitbox, point } from "../../../../helpers/interfaces";
-import { MovingStuff } from "../../../../helpers/moving-stuff";
-import { FPS_TARGET, Units } from "../../../globals";
-import { SoundService } from "../../../services/sound/sound.service";
-import { Boss } from "../../enemies/bosses/boss-abstract";
-import { Enemy } from "../../enemies/enemy-abstract";
-import { SimpleBullet } from "../simple-bullet";
-import { BossPhase } from "./boss-phase";
+import { leftCoordHitbox, point } from "../../../../../helpers/interfaces";
+import { MovingStuff } from "../../../../../helpers/moving-stuff";
+import { FPS_TARGET, Units } from "../../../../globals";
+import { SoundService } from "../../../../services/sound/sound.service";
+import { Boss } from "../../../enemies/bosses/boss-abstract";
+import { Enemy } from "../../../enemies/enemy-abstract";
+import { SimpleBullet } from "../../simple-bullet";
+import { BossPhase } from "../boss-phase";
 
-export class Boss1_VandBoomerangs implements BossPhase{
+export class Boss_VandBoomerangs implements BossPhase{
     MAX_HEALTH = 300;
     DURATION = 30*FPS_TARGET;
 
@@ -48,6 +48,8 @@ export class Boss1_VandBoomerangs implements BossPhase{
             this.streamingBullets.play();
             let bul1 = new SimpleBullet(Object.create(bossPos), MovingStuff.degreesToRadians(this.angle_a), Units.getUnits(8));
             let bul2 = new SimpleBullet(Object.create(bossPos), MovingStuff.degreesToRadians(this.angle_b), Units.getUnits(8));
+            bul1.color = "cyan";
+            bul2.color = "cyan";
             bullets.push(bul1);
             bullets.push(bul2);
             if(this.angle_a > 125){
@@ -69,10 +71,12 @@ export class Boss1_VandBoomerangs implements BossPhase{
             if(this.alternater){
                 let rAngleShot = new SimpleBullet(Object.create(bossPos), MovingStuff.degreesToRadians(270 + this.rando), Units.getUnits(3), Units.getUnits(20), Units.getUnits(2));
                 rAngleShot.alterAngleWhenMoving(3.2, 1);
+                rAngleShot.color = "pink";
                 bullets.push(rAngleShot);
             } else {
                 let lAngleShot = new SimpleBullet(Object.create(bossPos), MovingStuff.degreesToRadians(270 - this.rando), Units.getUnits(3), Units.getUnits(20), Units.getUnits(2));
                 lAngleShot.alterAngleWhenMoving(-3.2, 1);
+                lAngleShot.color = "pink";
                 bullets.push(lAngleShot);
             }
             this.soundService.enemyBulletSound.play();

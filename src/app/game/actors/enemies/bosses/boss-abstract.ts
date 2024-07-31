@@ -4,6 +4,7 @@ import { Units } from "../../../globals";
 import { SoundService } from "../../../services/sound/sound.service";
 import { ActorList } from "../../actorlist";
 import { BossPhase } from "../../bullets/boss-phases/boss-phase";
+import { BulletAbstract } from "../../bullets/bullet-abstract";
 import { SimpleBullet } from "../../bullets/simple-bullet";
 import { Enemy } from "../enemy-abstract";
 
@@ -75,7 +76,7 @@ export abstract class Boss {
 
     abstract move(): void;
 
-    abstract attack(): SimpleBullet | SimpleBullet[] | null;
+    abstract attack(): BulletAbstract | BulletAbstract[] | null;
 
     //Optional functionality. Some attacks should spawn other enemies. For bosses, this will usually be BulletDrones.
     spawnFriends(): Enemy | Enemy[] | null {

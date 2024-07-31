@@ -7,12 +7,15 @@ import { SimpleBullet } from "../../bullets/simple-bullet";
 import { v4 as uuidv4 } from 'uuid';
 import { ActorList } from "../../actorlist";
 import { SoundService } from "../../../services/sound/sound.service";
-import { Boss1_CircleChase } from "../../bullets/boss-phases/boss1-circle";
-import { Boss1_VandBoomerangs } from "../../bullets/boss-phases/boss1-boomer";
+import { Boss_CircleChase } from "../../bullets/boss-phases/L1/boss-circle";
+import { Boss_VandBoomerangs } from "../../bullets/boss-phases/L1/boss-boomer";
 import { BossPhase } from "../../bullets/boss-phases/boss-phase";
-import { Boss1_KunaiCircle } from "../../bullets/boss-phases/boss1-kunai";
+import { Boss_KunaiCircles } from "../../bullets/boss-phases/L1/boss-kunai";
 import { Boss, bossState } from "./boss-abstract";
 import { Enemy } from "../enemy-abstract";
+import { Boss_Cross } from "../../bullets/boss-phases/L1/boss-cross";
+import { Boss_SpiralGaps } from "../../bullets/boss-phases/L1/boss-spiralgaps";
+import { BulletAbstract } from "../../bullets/bullet-abstract";
 
 export class Boss1 extends Boss {
     public id = uuidv4();
@@ -22,9 +25,10 @@ export class Boss1 extends Boss {
     PAUSE_DURATION = 2 * FPS_TARGET;
 
     phases: BossPhase[] = [
-        new Boss1_KunaiCircle(this.soundService),
-        new Boss1_VandBoomerangs(this.soundService),
-        new Boss1_CircleChase(this.soundService)
+        new Boss_CircleChase(this.soundService),
+        new Boss_Cross(this.soundService),
+        new Boss_VandBoomerangs(this.soundService),
+        new Boss_SpiralGaps(this.soundService)
     ];
 
     assess(){
@@ -70,7 +74,7 @@ export class Boss1 extends Boss {
         this.center = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
     }
 
-    attack(): SimpleBullet | SimpleBullet[] | null {
+    attack(): BulletAbstract | BulletAbstract[] | null {
         if (this.state !== bossState.attacking) {
             return null;
         }
@@ -79,7 +83,6 @@ export class Boss1 extends Boss {
     }
 
     private moveToDefaultPosition(duration: number) {
-        console.log(`moving to ${this.DEFAULT_POS.x}, ${this.DEFAULT_POS.y}`)
         let vel = MovingStuff.moveToDestInSetTime_Decelerate(this.positionPhaseEndedIn.x, this.positionPhaseEndedIn.y, this.DEFAULT_POS.x, this.DEFAULT_POS.y, this.getPhaseTime(), duration);
         this.hitbox.pos.x += vel.x;
         this.hitbox.pos.y += vel.y;

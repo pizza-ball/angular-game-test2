@@ -9,25 +9,25 @@ import { ActorList } from "../../actorlist";
 import { BossPhase } from "../../bullets/boss-phases/boss-phase";
 import { Boss, bossState } from "./boss-abstract";
 import { Enemy } from "../enemy-abstract";
-import { MidBoss1_SpiralGaps } from "../../bullets/boss-phases/midboss1-spiralgaps";
-import { MidBoss1_Basic } from "../../bullets/boss-phases/midboss1-basic";
+import { Boss_ExpandingSaws } from "../../bullets/boss-phases/L1/boss-expandingsaws";
+import { Boss_KunaiCircles } from "../../bullets/boss-phases/L1/boss-kunai";
+import { BulletAbstract } from "../../bullets/bullet-abstract";
 
 //Time breakdown:
-//60 seconds on phases
+//40 seconds on phases
 //2 seconds on phase pauses
 //1 second on arrival
-//Total: 63 seconds.
+//Total: 43 seconds.
 export class MidBoss1 extends Boss {
     public id = uuidv4();
     public healthId = uuidv4();
     ENEMY_TYPE = ActorList.BossGeneric;
     ARRIVAL_DURATION = 1 * FPS_TARGET;
     PAUSE_DURATION = 2 * FPS_TARGET;
-
-    //should contain 2 30 second attack phases.
+    
     phases: BossPhase[] = [
-        new MidBoss1_Basic(this.soundService),
-        new MidBoss1_SpiralGaps(this.soundService)
+        new Boss_KunaiCircles(this.soundService),
+        new Boss_ExpandingSaws(this.soundService)
     ];
 
     assess() {
@@ -73,7 +73,7 @@ export class MidBoss1 extends Boss {
         this.center = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
     }
 
-    attack(): SimpleBullet | SimpleBullet[] | null {
+    attack(): BulletAbstract | BulletAbstract[] | null {
         if (this.state !== bossState.attacking) {
             return null;
         }

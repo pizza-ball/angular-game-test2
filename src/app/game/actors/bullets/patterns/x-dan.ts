@@ -12,7 +12,9 @@ export class Danmaku {
             for (let j = 0; j < shots; j++) {
                 const distFromEnemy = MovingStuff.calcPointOnCircle_Degrees(angleClone, Units.getUnits(50));
                 const spawnLocation = { x: origin.x - distFromEnemy.x, y: origin.y - distFromEnemy.y}; //subtract instead of add to create cool effect
-                bulletsToSpawn.push(new SimpleBullet(Object.create(spawnLocation), (Math.PI/180)*angleClone, Units.getUnits(4), Units.getUnits(25)));
+                let bul = new SimpleBullet(Object.create(spawnLocation), (Math.PI/180)*angleClone, Units.getUnits(4), Units.getUnits(25))
+                bul.spriteData.sprite = "/assets/bullets/bubbles/bubble2.png"
+                bulletsToSpawn.push(bul);
                 angleClone += density+shots;
             }
         }

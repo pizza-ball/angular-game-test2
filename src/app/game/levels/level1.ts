@@ -17,7 +17,7 @@ export class EnemySpawn {
 //Test array used for trying new enemies and bosses.
 export const spawnMapLevel12 = [
     {
-        name: ActorList.MidBoss1,
+        name: ActorList.Boss1,
         start: { x: 0, y: 0 },
         path: [],
         times: [1]
@@ -256,7 +256,6 @@ export const spawnMapLevel1 = [
         ],
         times: SpawnHelper.spawnTimeGenerator(35, 4, 6, 75)
     },
-    
     {
         name: ActorList.Boss1,
         start: { x: 0, y: 0 },

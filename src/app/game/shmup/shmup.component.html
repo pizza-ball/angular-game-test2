@@ -6,8 +6,11 @@
   <canvas #2DCanvas id="2DCanvas" style="position: absolute; overflow: hidden;">
   </canvas>
   <!--Pre-loads these asset-->
-  <img src="/assets/ratufo.gif" />
-  <img src="/assets/CheeseCannon.gif" />
+  <img src="/assets/bullets/bubbles/bubble1.png" />
+  <img src="/assets/bullets/bubbles/bubble2.png" />
+  <img src="/assets/bullets/normal/bullets24.png" />
+  <img src="/assets/bullets/normal/bullets20.png" />
+  <img src="/assets/bullets/normal/bullets21.png" />
   <!-- <div id="shmupZoneBackgroundLayer1" style="margin-top: -400px" [style.width.px]="[shmupWidthPx]"
     [style.height.px]="[shmupHeightPx * 3]" [style.animation-play-state]="animationState"></div> -->
   <!-- <div
@@ -38,7 +41,10 @@
       [style.width.px]="[bullet.hitbox.width]" [style.height.px]="[bullet.hitbox.height]"></div>
   </div>
   <div *ngFor="let bullet of this.enemyBullets">
-    <div class="enemybullet" [ngStyle]="{'background-color': bullet.color}" [style.left.px]="[bullet.hitbox.pos.x]"
+    <img [src]="[bullet.spriteData.sprite]" [style.left.px]="[bullet.spriteData.hitbox.pos.x]" [style.top.px]="[bullet.spriteData.hitbox.pos.y]"
+      [style.width.px]="[bullet.spriteData.hitbox.width]" [style.height.px]="[bullet.spriteData.hitbox.height]"
+      style="position: absolute;" />
+    <div *ngIf="DISPLAY_HITBOXES" class="enemybullet" [ngStyle]="{'background-color': bullet.color}" [style.left.px]="[bullet.hitbox.pos.x]"
       [style.top.px]="[bullet.hitbox.pos.y]" [style.width.px]="[bullet.hitbox.width]"
       [style.height.px]="[bullet.hitbox.height]"></div>
   </div>
@@ -88,6 +94,7 @@
   <h2>Power: {{ player.power.toFixed(2) }}</h2>
   <h2>Time: {{ (stageTimeDisplay).toFixed(2) }}</h2>
   <h2>FPS: {{ frameRate }}</h2>
+  <button (click)="DISPLAY_HITBOXES = !DISPLAY_HITBOXES">Hitbox Toggle</button>
   <h2>Volume</h2>
   <div style="width: 100%">
     <input [ngStyle]="{'width': sideBarStyle.volumeBarWidth, 'height': sideBarStyle.volumeBarHeight}" type="range"

@@ -1,18 +1,15 @@
-// simpleBullet is a bullet aimed at a set point, and moves linearly towards it with a set speed. 
-
 import { CoordHelper } from "../../../helpers/coords";
 import { leftCoordHitbox, point } from "../../../helpers/interfaces";
 import { MovingStuff } from "../../../helpers/moving-stuff";
 import { FPS_TARGET, Units } from "../../globals";
+import { BulletAbstract } from "./bullet-abstract";
 
-// Very basic projectile.
-export class SimpleBullet {
+export class SimpleBullet extends BulletAbstract {
     DEFAULT_WIDTH = Units.getUnits(10);
     DEFAULT_HEIGHT = Units.getUnits(10);
     DEFAULT_SPEED = Units.getUnits(5);
     xyVel: point;
     hitbox: leftCoordHitbox;
-    flagForDeletion = false;
     private minSpeed: number | undefined = undefined;
     private maxSpeed: number | undefined = undefined;
     xSpeed = 0
@@ -20,11 +17,18 @@ export class SimpleBullet {
     angleManip: number | undefined;
     angleManipDuration = 0;
     angleManipCounter = 0;
+    spriteData = {
+        sprite: "/assets/bullets/normal/bullets31.png",
+        hitbox: {
+            pos: {x:0, y:0},
+            width: 0,
+            height: 0,
+        }
+    }
     color = "orange";
     center = {x: 0, y: 0};
 
-    //TODO: this should be in a different class, and SimpleBullet should extend a bullet abstract
-    isRotational = false;
+    autoDelete = true;
     constructor(
         private startPos: point,
         private angleInRadians: number,
@@ -32,6 +36,7 @@ export class SimpleBullet {
         size?: number,
         private accel?: number
     ) {
+        super();
         speed = speed !== undefined ? speed : this.DEFAULT_SPEED;
         let width = size !== undefined ? size : this.DEFAULT_WIDTH;
         let height = size !== undefined ? size : this.DEFAULT_HEIGHT;
@@ -41,6 +46,12 @@ export class SimpleBullet {
             width: width,
             height: height,
         };
+
+        this.spriteData.hitbox = {
+            pos: CoordHelper.getTopLeftWithCenterPoint(width*2.5, height*2.5, startPos.x, startPos.y),
+            width: width*2.5,
+            height: height*2.5,
+        }
 
         this.xSpeed = speed;
         this.ySpeed = speed;
@@ -55,20 +66,6 @@ export class SimpleBullet {
     }
 
     move() {
-        if(this.isRotational){
-            this.xyVel = MovingStuff.calcPointOnCircle_Degrees(this.angle, this.radius);
-            const newPos = CoordHelper.getTopLeftWithCenterPoint(this.hitbox.width, this.hitbox.height, this.circCenter.x + this.xyVel.x, this.circCenter.y + this.xyVel.y);
-            this.hitbox.pos.x = newPos.x;
-            this.hitbox.pos.y = newPos.y;
-            
-            this.angle += this.angleIncr;
-            this.radius += this.radiusGrowth;
-            this.flagForDeletion = CoordHelper.isRadiusOfRotationTooLarge(this.radius);
-            const cent = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
-            this.center.x = cent.x;
-            this.center.y = cent.y;
-            return;
-        }
         if(this.accel !== undefined){
             if(this.angleManip !== undefined){
                 if(this.angleManipCounter < this.angleManipDuration){
@@ -102,10 +99,13 @@ export class SimpleBullet {
         this.hitbox.pos.x += this.xyVel.x;
         this.hitbox.pos.y += this.xyVel.y;
 
-        this.flagForDeletion = CoordHelper.isHitboxOutsidePlayArea(this.hitbox);
+        if(this.autoDelete){
+            this.flagForDeletion = CoordHelper.isHitboxOutsidePlayArea(this.hitbox);
+        }
         const cent = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
         this.center.x = cent.x;
         this.center.y = cent.y;
+        this.moveSprite();
     }
 
     configureMinSpeed(speed: number){
@@ -121,18 +121,14 @@ export class SimpleBullet {
         this.angleManipDuration = Math.round(durationSeconds*FPS_TARGET);
         this.angleManipCounter = 0;
     }
+    
+    setAutoDeleted(v: boolean){
+        this.autoDelete = v;
+    }
 
-    circCenter = {x: 0, y: 0};
-    radius = 0;
-    radiusGrowth = 0;
-    angle = 0;
-    angleIncr = 0;
-    changeToRotational(circCenter: point, r: number, rGrowth: number, angle: number, angleIncr: number){
-        this.isRotational = true;
-        this.circCenter = circCenter;
-        this.radiusGrowth = rGrowth;
-        this.angle = angle;
-        this.angleIncr = angleIncr;
-        this.radius = r;
+    private moveSprite(){
+        const newPos = CoordHelper.getTopLeftWithCenterPoint(this.spriteData.hitbox.width, this.spriteData.hitbox.height, this.center.x, this.center.y);
+        this.spriteData.hitbox.pos.x = newPos.x;
+        this.spriteData.hitbox.pos.y = newPos.y;
     }
 }
