@@ -117,7 +117,7 @@ export class SimpleBullet extends BulletAbstract {
     }
 
     alterAngleWhenMoving(degrees: number, durationSeconds: number){
-        this.angleManip = MovingStuff.degreesToRadians(degrees);
+        this.angleManip = MovingStuff.degToRad(degrees);
         this.angleManipDuration = Math.round(durationSeconds*FPS_TARGET);
         this.angleManipCounter = 0;
     }

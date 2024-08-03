@@ -3,7 +3,7 @@ import { DrawingStuff } from "../../../helpers/drawing-stuff";
 import { bullet, leftCoordHitbox, linePath, point } from "../../../helpers/interfaces";
 import { MovingStuff } from "../../../helpers/moving-stuff";
 import { DEBUG_MODE, FPS_TARGET, Units } from "../../globals";
-import { Danmaku } from "../bullets/patterns/x-dan";
+import { Danmaku } from "../bullets/patterns/danmaku";
 import { SimpleBullet } from "../bullets/simple-bullet";
 import { v4 as uuidv4 } from 'uuid';
 import { ActorList } from "../actorlist";

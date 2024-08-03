@@ -43,8 +43,8 @@
   <div *ngFor="let bullet of this.enemyBullets">
     <img [src]="[bullet.spriteData.sprite]" [style.left.px]="[bullet.spriteData.hitbox.pos.x]" [style.top.px]="[bullet.spriteData.hitbox.pos.y]"
       [style.width.px]="[bullet.spriteData.hitbox.width]" [style.height.px]="[bullet.spriteData.hitbox.height]"
-      style="position: absolute;" />
-    <div *ngIf="DISPLAY_HITBOXES" class="enemybullet" [ngStyle]="{'background-color': bullet.color}" [style.left.px]="[bullet.hitbox.pos.x]"
+      [ngStyle]="{'z-index': bullet.overlap}" style="position: absolute;" />
+    <div *ngIf="DISPLAY_HITBOXES" class="enemybullet" [ngStyle]="{'background-color': bullet.color, 'z-index': 1000}" [style.left.px]="[bullet.hitbox.pos.x]"
       [style.top.px]="[bullet.hitbox.pos.y]" [style.width.px]="[bullet.hitbox.width]"
       [style.height.px]="[bullet.hitbox.height]"></div>
   </div>

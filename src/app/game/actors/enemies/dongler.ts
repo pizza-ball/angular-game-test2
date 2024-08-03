@@ -7,6 +7,8 @@ import { SimpleBullet } from "../bullets/simple-bullet";
 import { v4 as uuidv4 } from 'uuid';
 import { ActorList } from "../actorlist";
 import { Enemy } from "./enemy-abstract";
+import { Danmaku } from "../bullets/patterns/danmaku";
+import { BulletAbstract } from "../bullets/bullet-abstract";
 
 export class Dongler extends Enemy {
     public id = uuidv4();
@@ -31,13 +33,23 @@ export class Dongler extends Enemy {
         this.center = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
     }
 
+    //TODO: reintroduce this firing code when done testing
+    // tickToShoot = 2*FPS_TARGET;
+    // attack(): SimpleBullet | SimpleBullet[] | null {
+    //     const ticksSinceCreation = this.exData.now - this.creationTick;
+    //     if(ticksSinceCreation === this.tickToShoot){
+    //         const angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(this.center.x, this.center.y, this.exData.playerPos.x, this.exData.playerPos.y);
+    //         this.soundService.enemyBulletSound.play();
+    //         return new SimpleBullet(Object.create(this.center), angleToPlayer, Units.getUnits(2));
+    //     }
+    //     return null;
+    // }
+
     tickToShoot = 2*FPS_TARGET;
-    attack(): SimpleBullet | SimpleBullet[] | null {
+    attack(): BulletAbstract | BulletAbstract[] | null {
         const ticksSinceCreation = this.exData.now - this.creationTick;
         if(ticksSinceCreation === this.tickToShoot){
-            const angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(this.center.x, this.center.y, this.exData.playerPos.x, this.exData.playerPos.y);
-            this.soundService.enemyBulletSound.play();
-            return new SimpleBullet(Object.create(this.center), angleToPlayer, Units.getUnits(2));
+            return Danmaku.cubeMeme(this.center, this.exData.playerPos);
         }
         return null;
     }

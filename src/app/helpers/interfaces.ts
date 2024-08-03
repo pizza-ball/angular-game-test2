@@ -3,6 +3,12 @@ export interface point {
   y: number;
 }
 
+export interface point3d {
+  x: number;
+  y: number;
+  z: number;
+}
+
 export interface leftCoordHitbox {
   pos: point,
   width: number;

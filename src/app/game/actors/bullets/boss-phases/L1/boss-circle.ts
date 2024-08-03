@@ -35,7 +35,7 @@ export class Boss_CircleChase implements BossPhase {
         let bullets: SimpleBullet[] = [];
         if (tick % this.shot1Tick === 0){
             for(let i = 0; i < 360 + this.startAngle; i += this.angleIncrement){
-                bullets.push(new SimpleBullet(Object.create(bossPos), MovingStuff.degreesToRadians(i + this.startAngle), Units.getUnits(1.5)));
+                bullets.push(new SimpleBullet(Object.create(bossPos), MovingStuff.degToRad(i + this.startAngle), Units.getUnits(1.5)));
             }
             this.startAngle += 45;
         }

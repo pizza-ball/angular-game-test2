@@ -2,6 +2,7 @@ import { CoordHelper } from "../../../helpers/coords";
 import { bullet, curvePath, leftCoordHitbox, linePath, point } from "../../../helpers/interfaces";
 import { SoundService } from "../../services/sound/sound.service";
 import { ActorList } from "../actorlist";
+import { BulletAbstract } from "../bullets/bullet-abstract";
 import { SimpleBullet } from "../bullets/simple-bullet";
 
 export interface ExternalData_Enemy {
@@ -59,7 +60,7 @@ export abstract class Enemy {
 
     abstract move(): void;
 
-    abstract attack(): SimpleBullet | SimpleBullet[] | null;
+    abstract attack(): BulletAbstract | BulletAbstract[] | null;
 
     //Optional functionality. Some enemies should spawn other enemies.
     spawnFriends(): Enemy | Enemy[] | null {

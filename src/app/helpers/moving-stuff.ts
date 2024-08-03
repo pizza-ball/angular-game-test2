@@ -3,7 +3,7 @@ import { CoordHelper } from "./coords";
 import { leftCoordHitbox, point } from "./interfaces";
 
 export class MovingStuff {
-    static degreesToRadians(angle: number){
+    static degToRad(angle: number){
         return (Math.PI/180)*angle;
     }
 

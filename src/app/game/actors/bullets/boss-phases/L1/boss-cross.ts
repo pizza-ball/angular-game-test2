@@ -57,7 +57,7 @@ export class Boss_Cross implements BossPhase{
         if (tick > this.moveDur &&
             tick % this.shot1_Tick === 0) {
 
-            let buls = [new SimpleBullet(Object.create(bossPos), MovingStuff.degreesToRadians(90), Units.getUnits(1.5), Units.getUnits(10))];
+            let buls = [new SimpleBullet(Object.create(bossPos), MovingStuff.degToRad(90), Units.getUnits(1.5), Units.getUnits(10))];
             for (let bul of buls) {
                 bul.setAutoDeleted(false);
                 for(let i = 0; i < 360; i += 90){
@@ -89,10 +89,10 @@ export class Boss_Cross implements BossPhase{
             const startPos4 = {x: Units.xFromPct(100-(25-this.shot2_pct)), y: Units.yFromPct(-10)};
             
             let buls = [
-                new SimpleBullet(Object.create(startPos1), MovingStuff.degreesToRadians(90), Units.getUnits(2), Units.getUnits(40), Units.getUnits(2)),
-                new SimpleBullet(Object.create(startPos2), MovingStuff.degreesToRadians(90), Units.getUnits(2), Units.getUnits(40), Units.getUnits(2)),
-                new SimpleBullet(Object.create(startPos3), MovingStuff.degreesToRadians(90), Units.getUnits(2), Units.getUnits(40), Units.getUnits(2)),
-                new SimpleBullet(Object.create(startPos4), MovingStuff.degreesToRadians(90), Units.getUnits(2), Units.getUnits(40), Units.getUnits(2))
+                new SimpleBullet(Object.create(startPos1), MovingStuff.degToRad(90), Units.getUnits(2), Units.getUnits(40), Units.getUnits(2)),
+                new SimpleBullet(Object.create(startPos2), MovingStuff.degToRad(90), Units.getUnits(2), Units.getUnits(40), Units.getUnits(2)),
+                new SimpleBullet(Object.create(startPos3), MovingStuff.degToRad(90), Units.getUnits(2), Units.getUnits(40), Units.getUnits(2)),
+                new SimpleBullet(Object.create(startPos4), MovingStuff.degToRad(90), Units.getUnits(2), Units.getUnits(40), Units.getUnits(2))
             ];
 
             for(let bul of buls){
@@ -113,7 +113,7 @@ export class Boss_Cross implements BossPhase{
             const startPos = {x: Units.xFromPct(30+MovingStuff.getRandomPositiveInt(Units.getUnits(40))), y: Units.yFromPct(0)};
             
             let buls = [
-                new SimpleBullet(Object.create(startPos), MovingStuff.degreesToRadians(90), Units.getUnits(3), Units.getUnits(8)),
+                new SimpleBullet(Object.create(startPos), MovingStuff.degToRad(90), Units.getUnits(3), Units.getUnits(8)),
             ];
 
             bullets.push(...buls);

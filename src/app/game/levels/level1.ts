@@ -34,19 +34,20 @@ export const spawnMapLevel1 = [
                 speed: Units.getUnits(3),
             } as linePath
         ],
-        times: SpawnHelper.spawnTimeGenerator(2, 2, 1, 7)
+        //times: SpawnHelper.spawnTimeGenerator(2, 2, 1, 7)
+        times: SpawnHelper.spawnTimeGenerator(2, 1, 1, 2.2)
     },
-    {
-        name: ActorList.Dongler,
-        start: { x: Units.getPlayfieldWidth() + Units.getUnits(90), y: Units.getUnits(50) },
-        path: [
-            {
-                dest: { x: Units.getUnits(-60), y: Units.getUnits(400) },
-                speed: Units.getUnits(3),
-            }
-        ],
-        times: SpawnHelper.spawnTimeGenerator(2.5, 2, 1, 7.5)
-    },
+    // {
+    //     name: ActorList.Dongler,
+    //     start: { x: Units.getPlayfieldWidth() + Units.getUnits(90), y: Units.getUnits(50) },
+    //     path: [
+    //         {
+    //             dest: { x: Units.getUnits(-60), y: Units.getUnits(400) },
+    //             speed: Units.getUnits(3),
+    //         }
+    //     ],
+    //     times: SpawnHelper.spawnTimeGenerator(2.5, 2, 1, 7.5)
+    // },
     {
         name: ActorList.Shwoop,
         start: { x: Units.getPlayfieldWidth() * .85, y: Units.getUnits(-50) },

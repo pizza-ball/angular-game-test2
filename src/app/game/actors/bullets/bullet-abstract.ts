@@ -8,6 +8,7 @@ export abstract class BulletAbstract{
         hitbox: leftCoordHitbox
     };
     flagForDeletion = false;
+    overlap = 1;
 
     abstract move(): void;
 }
