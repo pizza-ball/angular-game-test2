@@ -1,5 +1,5 @@
-import { CoordHelper } from "../../../../helpers/coords";
 import { bullet, leftCoordHitbox, point } from "../../../../helpers/interfaces";
+import { Helper } from "../../../../helpers/moving-stuff";
 import { Units } from "../../../globals";
 import { SoundService } from "../../../services/sound/sound.service";
 import { ActorList } from "../../actorlist";
@@ -41,7 +41,7 @@ export abstract class Boss {
     HEIGHT = Units.getUnits(60);
     state: bossState = bossState.entering;
     positionPhaseEndedIn = {x: 0, y: 0};
-    DEFAULT_POS = CoordHelper.getTopLeftWithCenterPoint(this.WIDTH, this.HEIGHT, Units.getPlayfieldWidth() * .5, Units.getPlayfieldHeight() * .35);
+    DEFAULT_POS = Helper.getTopLeftWithCenterPoint(this.WIDTH, this.HEIGHT, Units.getPlayfieldWidth() * .5, Units.getPlayfieldHeight() * .35);
     defeatFlag = false;
     phaseDefeatFlag = false;
     currentPhase = 0;
@@ -60,7 +60,7 @@ export abstract class Boss {
         };
         this.positionPhaseEndedIn = startPos;
         this.phaseStartTick = creationTick;
-        this.center = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
+        this.center = Helper.getCenterWithTopLeftHitbox(this.hitbox);
     }
 
     setExternalData(tick: number, playerPos: point): void {

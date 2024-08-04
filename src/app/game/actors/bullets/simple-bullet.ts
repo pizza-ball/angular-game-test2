@@ -1,6 +1,5 @@
-import { CoordHelper } from "../../../helpers/coords";
 import { leftCoordHitbox, point } from "../../../helpers/interfaces";
-import { MovingStuff } from "../../../helpers/moving-stuff";
+import { Helper } from "../../../helpers/moving-stuff";
 import { FPS_TARGET, Units } from "../../globals";
 import { BulletAbstract } from "./bullet-abstract";
 
@@ -42,13 +41,13 @@ export class SimpleBullet extends BulletAbstract {
         let height = size !== undefined ? size : this.DEFAULT_HEIGHT;
 
         this.hitbox = {
-            pos: CoordHelper.getTopLeftWithCenterPoint(width, height, startPos.x, startPos.y),
+            pos: Helper.getTopLeftWithCenterPoint(width, height, startPos.x, startPos.y),
             width: width,
             height: height,
         };
 
         this.spriteData.hitbox = {
-            pos: CoordHelper.getTopLeftWithCenterPoint(width*2.5, height*2.5, startPos.x, startPos.y),
+            pos: Helper.getTopLeftWithCenterPoint(width*2.5, height*2.5, startPos.x, startPos.y),
             width: width*2.5,
             height: height*2.5,
         }
@@ -61,8 +60,8 @@ export class SimpleBullet extends BulletAbstract {
             this.accel = this.accel/FPS_TARGET;
         }
 
-        this.xyVel = MovingStuff.calcPointOnCircle_Radians(angleInRadians, speed);
-        this.center = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
+        this.xyVel = Helper.calcPointOnCircle_Radians(angleInRadians, speed);
+        this.center = Helper.getCenterWithTopLeftHitbox(this.hitbox);
     }
 
     move() {
@@ -75,8 +74,8 @@ export class SimpleBullet extends BulletAbstract {
             }
             this.xSpeed += this.accel;
             this.ySpeed += this.accel;
-            this.xyVel.x = MovingStuff.calcXOnCircle_Radians(this.angleInRadians, this.xSpeed);
-            this.xyVel.y = MovingStuff.calcYOnCircle_Radians(this.angleInRadians, this.ySpeed);
+            this.xyVel.x = Helper.calcXOnCircle_Radians(this.angleInRadians, this.xSpeed);
+            this.xyVel.y = Helper.calcYOnCircle_Radians(this.angleInRadians, this.ySpeed);
 
             if(this.minSpeed !== undefined){
                 if(Math.abs(this.xSpeed) < Math.abs(this.minSpeed)){
@@ -100,9 +99,9 @@ export class SimpleBullet extends BulletAbstract {
         this.hitbox.pos.y += this.xyVel.y;
 
         if(this.autoDelete){
-            this.flagForDeletion = CoordHelper.isHitboxOutsidePlayArea(this.hitbox);
+            this.flagForDeletion = Helper.isHitboxOutsidePlayArea(this.hitbox);
         }
-        const cent = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
+        const cent = Helper.getCenterWithTopLeftHitbox(this.hitbox);
         this.center.x = cent.x;
         this.center.y = cent.y;
         this.moveSprite();
@@ -117,7 +116,7 @@ export class SimpleBullet extends BulletAbstract {
     }
 
     alterAngleWhenMoving(degrees: number, durationSeconds: number){
-        this.angleManip = MovingStuff.degToRad(degrees);
+        this.angleManip = Helper.degToRad(degrees);
         this.angleManipDuration = Math.round(durationSeconds*FPS_TARGET);
         this.angleManipCounter = 0;
     }
@@ -127,7 +126,7 @@ export class SimpleBullet extends BulletAbstract {
     }
 
     private moveSprite(){
-        const newPos = CoordHelper.getTopLeftWithCenterPoint(this.spriteData.hitbox.width, this.spriteData.hitbox.height, this.center.x, this.center.y);
+        const newPos = Helper.getTopLeftWithCenterPoint(this.spriteData.hitbox.width, this.spriteData.hitbox.height, this.center.x, this.center.y);
         this.spriteData.hitbox.pos.x = newPos.x;
         this.spriteData.hitbox.pos.y = newPos.y;
     }

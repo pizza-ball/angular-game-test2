@@ -29,15 +29,14 @@ import { Dongler } from '../actors/enemies/dongler';
 import { ActorList } from '../actors/actorlist';
 import { Shwoop } from '../actors/enemies/shwoop';
 import { PowerPoint } from '../actors/items/power';
-import { DrawingStuff } from '../../helpers/drawing-stuff';
-import { MovingStuff } from '../../helpers/moving-stuff';
+import { CanvasDraw } from '../../helpers/canvas-draw';
+import { Helper } from '../../helpers/moving-stuff';
 import { BigBoi } from '../actors/enemies/bigboi';
 import { Point } from '../actors/items/point';
 import { Boss1 } from '../actors/enemies/bosses/boss1';
 import { Enemy } from '../actors/enemies/enemy-abstract';
 import MainLoop from 'mainloop.js';
 import { Boss } from '../actors/enemies/bosses/boss-abstract';
-import { CoordHelper } from '../../helpers/coords';
 import { MidBoss1 } from '../actors/enemies/bosses/midboss1';
 import { BulletAbstract as Bullet } from '../actors/bullets/bullet-abstract';
 
@@ -181,7 +180,7 @@ export class ShmupComponent implements AfterViewInit {
         }
         //this.player.debugDrawItemMagnet(ctx);
         this.player.debugDrawItemMagnet(ctx);
-        DrawingStuff.clearCanvasAndRedraw(ctx);
+        CanvasDraw.clearCanvasAndRedraw(ctx);
       }
     }
     this.frameRate = MainLoop.getFPS().toFixed(2);
@@ -412,14 +411,14 @@ export class ShmupComponent implements AfterViewInit {
         this.boss = new MidBoss1(
           this.soundServ,
           currentTick,
-          CoordHelper.getTopLeftWithCenterPoint(Units.getUnits(60), Units.getUnits(60), Units.xFromPct(50), Units.yFromPct(-10))
+          Helper.getTopLeftWithCenterPoint(Units.getUnits(60), Units.getUnits(60), Units.xFromPct(50), Units.yFromPct(-10))
         );
         break;
       case ActorList.Boss1:
         this.boss = new Boss1(
           this.soundServ,
           currentTick,
-          CoordHelper.getTopLeftWithCenterPoint(Units.getUnits(60), Units.getUnits(60), Units.xFromPct(100), Units.yFromPct(-10))
+          Helper.getTopLeftWithCenterPoint(Units.getUnits(60), Units.getUnits(60), Units.xFromPct(100), Units.yFromPct(-10))
         );
         break;
       default:
@@ -450,7 +449,7 @@ export class ShmupComponent implements AfterViewInit {
     for (let i = 0; i < this.enemyBullets.length; i++) {
       const bullet = this.enemyBullets[i];
       //Do not convert bullets that aren't on screen. Mostly applies to rotational bullets.
-      if(CoordHelper.isHitboxOutsidePlayArea(bullet.hitbox)){
+      if(Helper.isHitboxOutsidePlayArea(bullet.hitbox)){
         continue;
       }
       this.items.push(new Point(bullet.hitbox.pos.x, bullet.hitbox.pos.y));
@@ -460,14 +459,14 @@ export class ShmupComponent implements AfterViewInit {
 
   dropItems(enemy: Enemy | Boss) {
     for (let i = 0; i < enemy.powerCount; i++) {
-      const xPosRando = enemy.center.x + MovingStuff.getRandomInt(enemy.hitbox.width);
-      const yPosRando = enemy.center.y + MovingStuff.getRandomInt(enemy.hitbox.height);
+      const xPosRando = enemy.center.x + Helper.getRandomInt(enemy.hitbox.width);
+      const yPosRando = enemy.center.y + Helper.getRandomInt(enemy.hitbox.height);
       this.items.push(new PowerPoint(xPosRando, yPosRando));
     }
 
     for (let i = 0; i < enemy.pointCount; i++) {
-      const xPosRando = enemy.center.x + MovingStuff.getRandomInt(enemy.hitbox.width);
-      const yPosRando = enemy.center.y + MovingStuff.getRandomInt(enemy.hitbox.height);
+      const xPosRando = enemy.center.x + Helper.getRandomInt(enemy.hitbox.width);
+      const yPosRando = enemy.center.y + Helper.getRandomInt(enemy.hitbox.height);
       this.items.push(new Point(xPosRando, yPosRando));
     }
   }

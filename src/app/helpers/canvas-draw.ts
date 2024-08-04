@@ -1,7 +1,7 @@
 import { point } from "./interfaces";
 import { v4 } from 'uuid';
 
-export class DrawingStuff {
+export class CanvasDraw {
     //saves a record of each function call for faster re-draw potential
     static callRecord: any[] = [];
     static callRecordMap: Map<string, any> = new Map<string, any>();

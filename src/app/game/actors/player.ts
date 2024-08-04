@@ -1,7 +1,6 @@
-import { CoordHelper } from "../../helpers/coords";
-import { DrawingStuff } from "../../helpers/drawing-stuff";
+import { CanvasDraw } from "../../helpers/canvas-draw";
 import { bullet, leftCoordHitbox, leftCoordHitboxId, point } from "../../helpers/interfaces";
-import { MovingStuff } from "../../helpers/moving-stuff";
+import { Helper } from "../../helpers/moving-stuff";
 import { Square } from "../../helpers/square";
 import { DEBUG_MODE, FPS_TARGET, Units } from "../globals";
 import { InputService } from "../services/input/input.service";
@@ -26,8 +25,8 @@ export class Player {
     SPRITE_DIMENSIONS = { width: Units.getUnits(30), height: Units.getUnits(50) };
     START_POS: point = { x: Units.getPlayfieldWidth()/2, y: Units.getPlayfieldHeight()*.8 };
     HITBOX_START_POS: point = {
-        x: CoordHelper.getCenterWithTopLeftPoint(this.SPRITE_DIMENSIONS.width, this.SPRITE_DIMENSIONS.height, this.START_POS.x, this.START_POS.y).x - this.WIDTH / 2,
-        y: CoordHelper.getCenterWithTopLeftPoint(this.SPRITE_DIMENSIONS.width, this.SPRITE_DIMENSIONS.height, this.START_POS.x, this.START_POS.y).y - this.HEIGHT / 2,
+        x: Helper.getCenterWithTopLeftPoint(this.SPRITE_DIMENSIONS.width, this.SPRITE_DIMENSIONS.height, this.START_POS.x, this.START_POS.y).x - this.WIDTH / 2,
+        y: Helper.getCenterWithTopLeftPoint(this.SPRITE_DIMENSIONS.width, this.SPRITE_DIMENSIONS.height, this.START_POS.x, this.START_POS.y).y - this.HEIGHT / 2,
     };
     RESPAWN_TIME = 3 * FPS_TARGET;
     DEFAULT_ITEMMAG_RADIUS = Units.getUnits(80);
@@ -62,7 +61,7 @@ export class Player {
         this.PLAYSPACE.width = playSpaceWidth;
         this.PLAYSPACE.height = playSpaceHeight;
 
-        this.center = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
+        this.center = Helper.getCenterWithTopLeftHitbox(this.hitbox);
     }
 
     handleMovement() {
@@ -112,7 +111,7 @@ export class Player {
             this.SPRITE_DIMENSIONS.height / 2 -
             this.hitbox.height / 2;
 
-        this.center = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
+        this.center = Helper.getCenterWithTopLeftHitbox(this.hitbox);
 
         this.checkIfAboveItemCollectionLine();
         this.moveOptions();
@@ -203,7 +202,7 @@ export class Player {
                 let option = this.powerOptions[i];
 
                 //shoot a bullet from the position of this option
-                let center = CoordHelper.getCenterWithTopLeftHitbox(option);
+                let center = Helper.getCenterWithTopLeftHitbox(option);
                 let optionShot: bullet = {
                     hitbox: {
                         pos: {
@@ -292,7 +291,7 @@ export class Player {
                 this.optionDistFromPlayer = this.optionDistFromPlayer < this.MAX_DIST ? this.optionDistFromPlayer += Units.getUnits(5) : this.MAX_DIST;
             }
 
-            const positionModifiers = MovingStuff.calcPointOnCircle_Degrees(option.relAngle, this.optionDistFromPlayer);
+            const positionModifiers = Helper.calcPointOnCircle_Degrees(option.relAngle, this.optionDistFromPlayer);
             option.pos.x = this.center.x + positionModifiers.x - (option.width/2);
             option.pos.y = this.center.y + positionModifiers.y - (option.height/2);
         }
@@ -358,13 +357,13 @@ export class Player {
     }
 
     debugDrawItemMagnet(ctx: CanvasRenderingContext2D) {
-        DrawingStuff.deleteElementFromMemory(this.id);
-        DrawingStuff.requestCircleDraw(this.id, ctx, this.center.x, this.center.y, this.itemMagnetismRadius);
+        CanvasDraw.deleteElementFromMemory(this.id);
+        CanvasDraw.requestCircleDraw(this.id, ctx, this.center.x, this.center.y, this.itemMagnetismRadius);
     }
 
     cleanUp(ctx: CanvasRenderingContext2D) {
         if (DEBUG_MODE) {
-            DrawingStuff.deleteElementFromMemory(this.id);
+            CanvasDraw.deleteElementFromMemory(this.id);
         }
     }
 }

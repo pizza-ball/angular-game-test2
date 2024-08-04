@@ -1,5 +1,5 @@
 import { leftCoordHitbox, point } from "../../../../../helpers/interfaces";
-import { MovingStuff } from "../../../../../helpers/moving-stuff";
+import { Helper } from "../../../../../helpers/moving-stuff";
 import { FPS_TARGET, Units } from "../../../../globals";
 import { SoundService } from "../../../../services/sound/sound.service";
 import { Boss } from "../../../enemies/bosses/boss-abstract";
@@ -46,7 +46,7 @@ export class Boss_SpiralGaps implements BossPhase {
             if (tick % this.shot1_Tick === 0) {
                 this.shot_bossPos.x = bossPos.x;
                 this.shot_bossPos.y = bossPos.y;
-                this.angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(this.shot_bossPos.x, this.shot_bossPos.y, playerPos.x, playerPos.y);
+                this.angleToPlayer = Helper.calculateRadianAngleBetweenTwoPoints(this.shot_bossPos.x, this.shot_bossPos.y, playerPos.x, playerPos.y);
             }
             let buls = [
                 new SimpleBullet(Object.create(this.shot_bossPos), this.angleToPlayer, Units.getUnits(3), Units.getUnits(10), Units.getUnits(5)),
@@ -75,7 +75,7 @@ export class Boss_SpiralGaps implements BossPhase {
             if (tOffset % this.shot1_Tick === 0) {
                 this.shot_bossPos.x = bossPos.x;
                 this.shot_bossPos.y = bossPos.y;
-                this.angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(this.shot_bossPos.x, this.shot_bossPos.y, playerPos.x, playerPos.y);
+                this.angleToPlayer = Helper.calculateRadianAngleBetweenTwoPoints(this.shot_bossPos.x, this.shot_bossPos.y, playerPos.x, playerPos.y);
             }
             let buls = [
                 new SimpleBullet(Object.create(this.shot_bossPos), this.angleToPlayer - (5) * (Math.PI / 180), Units.getUnits(3), Units.getUnits(10), Units.getUnits(5)),

@@ -1,7 +1,6 @@
-import { CoordHelper } from "../../../helpers/coords";
-import { DrawingStuff } from "../../../helpers/drawing-stuff";
+import { CanvasDraw } from "../../../helpers/canvas-draw";
 import { bullet, leftCoordHitbox, linePath, point } from "../../../helpers/interfaces";
-import { MovingStuff } from "../../../helpers/moving-stuff";
+import { Helper } from "../../../helpers/moving-stuff";
 import { DEBUG_MODE, FPS_TARGET, Units } from "../../globals";
 import { Danmaku } from "../bullets/patterns/danmaku";
 import { SimpleBullet } from "../bullets/simple-bullet";
@@ -31,7 +30,7 @@ export class BigBoi extends Enemy {
     move() {
         if (this.hitbox.pos.x !== this.path[0].dest.x || this.hitbox.pos.y !== this.path[0].dest.y) {
             //console.log("we should be moving towards " + this.path[0]);
-            MovingStuff.moveTowardsAtConstRate(this.hitbox.pos, this.path[0].dest, this.path[0].speed);
+            Helper.moveTowardsAtConstRate(this.hitbox.pos, this.path[0].dest, this.path[0].speed);
         } else {
             if (this.path[0].pauseTimeInSec !== undefined && this.path[0].pauseTimeInSec !== 0 && this.pauseCounter / FPS_TARGET < this.path[0].pauseTimeInSec) {
                 this.pauseCounter++;
@@ -40,7 +39,7 @@ export class BigBoi extends Enemy {
                 this.pauseCounter = 0;
             }
         }
-        this.center = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
+        this.center = Helper.getCenterWithTopLeftHitbox(this.hitbox);
     }
 
     ticksToShoot = [1 * FPS_TARGET, 2 * FPS_TARGET, 3 * FPS_TARGET];
@@ -75,14 +74,14 @@ export class BigBoi extends Enemy {
     called = false;
     debugDrawPath(ctx: CanvasRenderingContext2D) {
         if (!this.called) {
-            DrawingStuff.requestLineDraw(this.id, ctx, this.startX, this.startY, this.path[0].dest.x, this.path[0].dest.y);
+            CanvasDraw.requestLineDraw(this.id, ctx, this.startX, this.startY, this.path[0].dest.x, this.path[0].dest.y);
             this.called = true;
         }
     }
 
     cleanUp() {
         if (DEBUG_MODE) {
-            DrawingStuff.deleteElementFromMemory(this.id);
+            CanvasDraw.deleteElementFromMemory(this.id);
         }
     }
 }

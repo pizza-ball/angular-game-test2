@@ -1,5 +1,5 @@
-import { CoordHelper } from "../../../helpers/coords";
 import { bullet, curvePath, leftCoordHitbox, linePath, point } from "../../../helpers/interfaces";
+import { Helper } from "../../../helpers/moving-stuff";
 import { SoundService } from "../../services/sound/sound.service";
 import { ActorList } from "../actorlist";
 import { BulletAbstract } from "../bullets/bullet-abstract";
@@ -38,7 +38,7 @@ export abstract class Enemy {
         pointCount?: number
     ) {
         this.hitbox = {
-            pos: CoordHelper.getTopLeftWithCenterPoint(width, height, startX, startY),
+            pos: Helper.getTopLeftWithCenterPoint(width, height, startX, startY),
             width: width,
             height: height,
         };
@@ -47,7 +47,7 @@ export abstract class Enemy {
         this.center = { x: startX, y: startY };
 
         path.forEach(element => {
-            element.dest = CoordHelper.getTopLeftWithCenterPoint(width, height, element.dest.x, element.dest.y)
+            element.dest = Helper.getTopLeftWithCenterPoint(width, height, element.dest.x, element.dest.y)
         });
     }
 

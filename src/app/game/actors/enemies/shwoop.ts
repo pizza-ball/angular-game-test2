@@ -1,10 +1,9 @@
 import { bullet, curvePath, isCurve, leftCoordHitbox, linePath, point } from "../../../helpers/interfaces";
-import { MovingStuff } from "../../../helpers/moving-stuff";
+import { Helper } from "../../../helpers/moving-stuff";
 import { DEBUG_MODE, FPS_TARGET } from "../../globals";
-import { DrawingStuff } from "../../../helpers/drawing-stuff";
+import { CanvasDraw } from "../../../helpers/canvas-draw";
 import { v4 as uuidv4 } from 'uuid';
 import { SimpleBullet } from "../bullets/simple-bullet";
-import { CoordHelper } from "../../../helpers/coords";
 import { ActorList } from "../actorlist";
 import { Enemy } from "./enemy-abstract";
 import { MoveScript } from "./movescript-default";
@@ -38,7 +37,7 @@ export class Shwoop extends Enemy {
     attack(): SimpleBullet | SimpleBullet[] | null {
         const ticksSinceCreation = this.exData.now - this.creationTick;
         if (this.ticksToShoot.includes(ticksSinceCreation)) {
-            const angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(this.center.x, this.center.y, this.exData.playerPos.x, this.exData.playerPos.y);
+            const angleToPlayer = Helper.calculateRadianAngleBetweenTwoPoints(this.center.x, this.center.y, this.exData.playerPos.x, this.exData.playerPos.y);
             const leftAngle = angleToPlayer - (15) * (Math.PI / 180);
             const rightAngle = angleToPlayer + (15) * (Math.PI / 180);
             this.soundService.enemyBulletSound.play();
@@ -71,10 +70,10 @@ export class Shwoop extends Enemy {
         if (!this.called) {
             this.path.forEach(segment => {
                 if (isCurve(segment)) {
-                    DrawingStuff.requestCurveDraw(this.id, ctx, startPoint.x, startPoint.y, segment.dest.x, segment.dest.y, segment.control.x, segment.control.y);
+                    CanvasDraw.requestCurveDraw(this.id, ctx, startPoint.x, startPoint.y, segment.dest.x, segment.dest.y, segment.control.x, segment.control.y);
                     startPoint = segment.dest;
                 } else {
-                    DrawingStuff.requestLineDraw(this.id, ctx, startPoint.x, startPoint.y, segment.dest.x, segment.dest.y);
+                    CanvasDraw.requestLineDraw(this.id, ctx, startPoint.x, startPoint.y, segment.dest.x, segment.dest.y);
                     startPoint = segment.dest;
                 }
             });
@@ -84,7 +83,7 @@ export class Shwoop extends Enemy {
 
     cleanUp() {
         if (DEBUG_MODE) {
-            DrawingStuff.deleteElementFromMemory(this.id);
+            CanvasDraw.deleteElementFromMemory(this.id);
         }
     }
 }

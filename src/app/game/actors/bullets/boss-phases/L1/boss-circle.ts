@@ -1,5 +1,5 @@
 import { leftCoordHitbox, point } from "../../../../../helpers/interfaces";
-import { MovingStuff } from "../../../../../helpers/moving-stuff";
+import { Helper } from "../../../../../helpers/moving-stuff";
 import { FPS_TARGET, Units } from "../../../../globals";
 import { SoundService } from "../../../../services/sound/sound.service";
 import { Boss } from "../../../enemies/bosses/boss-abstract";
@@ -35,7 +35,7 @@ export class Boss_CircleChase implements BossPhase {
         let bullets: SimpleBullet[] = [];
         if (tick % this.shot1Tick === 0){
             for(let i = 0; i < 360 + this.startAngle; i += this.angleIncrement){
-                bullets.push(new SimpleBullet(Object.create(bossPos), MovingStuff.degToRad(i + this.startAngle), Units.getUnits(1.5)));
+                bullets.push(new SimpleBullet(Object.create(bossPos), Helper.degToRad(i + this.startAngle), Units.getUnits(1.5)));
             }
             this.startAngle += 45;
         }
@@ -43,7 +43,7 @@ export class Boss_CircleChase implements BossPhase {
         if (tick % this.shot2Tick === 0){
             this.streamingBullets.stop();
             this.streamingBullets.play();
-            const angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(bossPos.x, bossPos.y, playerPos.x, playerPos.y);
+            const angleToPlayer = Helper.calculateRadianAngleBetweenTwoPoints(bossPos.x, bossPos.y, playerPos.x, playerPos.y);
             let bul = new SimpleBullet(Object.create(bossPos), angleToPlayer, Units.getUnits(3));
             bul.color = "cyan";
             bullets.push(bul);

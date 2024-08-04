@@ -1,7 +1,6 @@
-import { CoordHelper } from "../../../helpers/coords";
-import { DrawingStuff } from "../../../helpers/drawing-stuff";
+import { CanvasDraw } from "../../../helpers/canvas-draw";
 import { bullet, leftCoordHitbox, linePath, point } from "../../../helpers/interfaces";
-import { MovingStuff } from "../../../helpers/moving-stuff";
+import { Helper } from "../../../helpers/moving-stuff";
 import { DEBUG_MODE, FPS_TARGET, Units } from "../../globals";
 import { SimpleBullet } from "../bullets/simple-bullet";
 import { v4 as uuidv4 } from 'uuid';
@@ -28,9 +27,9 @@ export class Dongler extends Enemy {
     }
 
     move() {
-        MovingStuff.moveTowardsAtConstRate(this.hitbox.pos, this.path[0].dest, this.path[0].speed);
+        Helper.moveTowardsAtConstRate(this.hitbox.pos, this.path[0].dest, this.path[0].speed);
 
-        this.center = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
+        this.center = Helper.getCenterWithTopLeftHitbox(this.hitbox);
     }
 
     //TODO: reintroduce this firing code when done testing
@@ -71,14 +70,14 @@ export class Dongler extends Enemy {
     called = false;
     debugDrawPath(ctx: CanvasRenderingContext2D){
         if(!this.called){
-            DrawingStuff.requestLineDraw(this.id, ctx, this.startX, this.startY, this.path[0].dest.x, this.path[0].dest.y);
+            CanvasDraw.requestLineDraw(this.id, ctx, this.startX, this.startY, this.path[0].dest.x, this.path[0].dest.y);
             this.called = true;
         }
     }
 
     cleanUp(){
         if(DEBUG_MODE){
-            DrawingStuff.deleteElementFromMemory(this.id);
+            CanvasDraw.deleteElementFromMemory(this.id);
         }
     }
 }

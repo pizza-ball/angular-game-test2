@@ -1,6 +1,5 @@
-import { CoordHelper } from "../../../helpers/coords";
 import { leftCoordHitbox, point } from "../../../helpers/interfaces";
-import { MovingStuff } from "../../../helpers/moving-stuff";
+import { Helper } from "../../../helpers/moving-stuff";
 import { FPS_TARGET, Units } from "../../globals";
 import { BulletAbstract } from "./bullet-abstract";
 import { Danmaku } from "./patterns/danmaku";
@@ -39,18 +38,18 @@ export class BoundBullet extends BulletAbstract {
         let height = size !== undefined ? size : this.DEFAULT_HEIGHT;
 
         this.hitbox = {
-            pos: CoordHelper.getTopLeftWithCenterPoint(width, height, 0, 0),
+            pos: Helper.getTopLeftWithCenterPoint(width, height, 0, 0),
             width: width,
             height: height,
         };
 
         this.spriteData.hitbox = {
-            pos: CoordHelper.getTopLeftWithCenterPoint(width*2.5, height*2.5, 0, 0),
+            pos: Helper.getTopLeftWithCenterPoint(width*2.5, height*2.5, 0, 0),
             width: width*2.5,
             height: height*2.5,
         }
 
-        this.center = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
+        this.center = Helper.getCenterWithTopLeftHitbox(this.hitbox);
     }
 
     move() {
@@ -73,17 +72,17 @@ export class BoundBullet extends BulletAbstract {
             console.error("ERROR: attempting BoundBullet circularMove without setting movement config.");
             return;
         }
-        const xyVel = MovingStuff.calcPointOnCircle_Degrees(this.circularCfg.angle, this.circularCfg.radius);
-        const newPos = CoordHelper.getTopLeftWithCenterPoint(this.hitbox.width, this.hitbox.height, this.owner.x + xyVel.x, this.owner.y + xyVel.y);
+        const xyVel = Helper.calcPointOnCircle_Degrees(this.circularCfg.angle, this.circularCfg.radius);
+        const newPos = Helper.getTopLeftWithCenterPoint(this.hitbox.width, this.hitbox.height, this.owner.x + xyVel.x, this.owner.y + xyVel.y);
         this.hitbox.pos.x = newPos.x;
         this.hitbox.pos.y = newPos.y;
 
         this.circularCfg.angle += this.circularCfg.angleIncr;
         this.circularCfg.radius += this.circularCfg.radiusGrowth;
         if (this.autoDelete) {
-            this.flagForDeletion = CoordHelper.isRadiusOfRotationTooLarge(this.circularCfg.radius);
+            this.flagForDeletion = Helper.isRadiusOfRotationTooLarge(this.circularCfg.radius);
         }
-        const cent = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
+        const cent = Helper.getCenterWithTopLeftHitbox(this.hitbox);
         this.center.x = cent.x;
         this.center.y = cent.y;
         this.moveSprite();
@@ -103,23 +102,27 @@ export class BoundBullet extends BulletAbstract {
         vertId: '',
         w: 0,
         h: 0,
-        z: 0,
+        pointZ: 0,
         wRate: 0,
         hRate: 0,
         wCur: 0,
-        hCur: 0,
+        hCur: 0
+    }
+
+    public cubeRotateCfg = {
         xrCur: 0,
         yrCur: 0,
         zrCur: 0,
-        xrChange: 0,
-        yrChange: 0,
-        zrChange: 0,
+        xrRate: 0,
+        yrRate: 0,
+        zrRate: 0
     }
+
     OG_WIDTH = 15;
     OG_HEIGHT = 15;
     private cubeMove() {
         if(!this.cubeCfg.vertId){
-            console.error("ERROR: attempting BoundBullet cubeMove without setting movement config.");
+            console.error("ERROR: attempting BoundBullet cubeMove without setting dimensions.");
             return;
         }
 
@@ -129,10 +132,10 @@ export class BoundBullet extends BulletAbstract {
         this.hitbox.height = this.OG_HEIGHT;
 
         //reposition the point to (0,0) for rotation calculation
-        let p = {x: this.center.x - this.owner.x, y: this.center.y - this.owner.y, z: this.cubeCfg.z};
+        let p = {x: this.center.x - this.owner.x, y: this.center.y - this.owner.y, z: this.cubeCfg.pointZ};
 
         //Calculates the new position of this point relative to (0,0)
-        let result3D = Danmaku.rotateCubeVertex(p, this.cubeCfg.xrCur, this.cubeCfg.yrCur, this.cubeCfg.zrCur);
+        let result3D = Helper.rotateVertex(p, this.cubeRotateCfg.xrCur, this.cubeRotateCfg.yrCur, this.cubeRotateCfg.zrCur);
 
         //Re-positions the point relative to the owner
         result3D.x = result3D.x + this.owner.x;
@@ -145,17 +148,17 @@ export class BoundBullet extends BulletAbstract {
         this.overlap = Math.round(scale*10);
 
         //Set the hitbox and center again for drawing.
-        const newHB = CoordHelper.getTopLeftWithCenterPoint(this.hitbox.width, this.hitbox.height, result3D.x, result3D.y);
+        const newHB = Helper.getTopLeftWithCenterPoint(this.hitbox.width, this.hitbox.height, result3D.x, result3D.y);
         this.hitbox.pos.x = newHB.x;
         this.hitbox.pos.y = newHB.y;
-        const cent = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
+        const cent = Helper.getCenterWithTopLeftHitbox(this.hitbox);
         this.center.x = cent.x;
         this.center.y = cent.y;
 
         //adjust all angles.
-        this.cubeCfg.xrCur += this.cubeCfg.xrChange;
-        this.cubeCfg.yrCur += this.cubeCfg.yrChange;
-        this.cubeCfg.zrCur += this.cubeCfg.zrChange;
+        this.cubeRotateCfg.xrCur += this.cubeRotateCfg.xrRate;
+        this.cubeRotateCfg.yrCur += this.cubeRotateCfg.yrRate;
+        this.cubeRotateCfg.zrCur += this.cubeRotateCfg.zrRate;
 
         this.moveSprite();
 
@@ -174,46 +177,49 @@ export class BoundBullet extends BulletAbstract {
         }
     }
 
-    setCubeMovementData(vertexId: string, z: number, w: number, h: number, wRate: number, hRate: number, xrs: number, yrs: number, zrs: number, xrc: number, yrc: number, zrc: number){
+    setCubeDimensionData(vertexId: string, z: number, w: number, h: number, wRate: number, hRate: number){
         this.cubeCfg = {
             vertId: vertexId,
             w: w,
             h: h,
-            z: z,
+            pointZ: z,
             wRate: wRate,
             hRate: hRate,
             wCur: 0,
-            hCur: 0,
+            hCur: 0
+        }
+    }
+
+    setCubeRotateData(xrs: number, yrs: number, zrs: number, xrc: number, yrc: number, zrc: number){
+        this.cubeRotateCfg = {
             xrCur: xrs,
             yrCur: yrs,
             zrCur: zrs,
-            xrChange: xrc,
-            yrChange: yrc,
-            zrChange: zrc,
+            xrRate: xrc,
+            yrRate: yrc,
+            zrRate: zrc,
         }
-
-        //this.resetVertexPosition(vertexId, w, h);
     }
     
     private resetVertexPosition(vertexId: string, w: number, h: number) {
         switch (vertexId) {
-            case 'f0':
-            case 'b0':
+            case 'v0':
+            case 'v4':
                 this.center.x = this.owner.x - w / 2;
                 this.center.y = this.owner.y - h / 2;
                 break;
-            case 'f1':
-            case 'b1':
+            case 'v1':
+            case 'v5':
                 this.center.x = this.owner.x + w / 2;
                 this.center.y = this.owner.y - h / 2;
                 break;
-            case 'f2':
-            case 'b2':
+            case 'v2':
+            case 'v6':
                 this.center.x = this.owner.x - w / 2;
                 this.center.y = this.owner.y + h / 2;
                 break;
-            case 'f3':
-            case 'b3':
+            case 'v3':
+            case 'v7':
                 this.center.x = this.owner.x + w / 2;
                 this.center.y = this.owner.y + h / 2;
                 break;
@@ -227,7 +233,7 @@ export class BoundBullet extends BulletAbstract {
     private moveSprite(){
         this.spriteData.hitbox.width = this.hitbox.width*2.5;
         this.spriteData.hitbox.height = this.hitbox.height*2.5;
-        const newPos = CoordHelper.getTopLeftWithCenterPoint(this.spriteData.hitbox.width, this.spriteData.hitbox.height, this.center.x, this.center.y);
+        const newPos = Helper.getTopLeftWithCenterPoint(this.spriteData.hitbox.width, this.spriteData.hitbox.height, this.center.x, this.center.y);
         this.spriteData.hitbox.pos.x = newPos.x;
         this.spriteData.hitbox.pos.y = newPos.y;
     }

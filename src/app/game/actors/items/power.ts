@@ -1,6 +1,6 @@
-import { CoordHelper } from "../../../helpers/coords";
+
 import { leftCoordHitbox, point } from "../../../helpers/interfaces";
-import { MovingStuff } from "../../../helpers/moving-stuff";
+import { Helper } from "../../../helpers/moving-stuff";
 import { Square } from "../../../helpers/square";
 import { FPS_TARGET } from "../../globals";
 
@@ -35,12 +35,12 @@ export class PowerPoint {
         let sec = this.tickCounter/FPS_TARGET;
 
         if(this.flagForCollection){
-            let velXY = MovingStuff.xyVelTowards(this.collectSpeed, this.hitbox.pos, {x: playerX, y: playerY});
+            let velXY = Helper.xyVelTowards(this.collectSpeed, this.hitbox.pos, {x: playerX, y: playerY});
             this.hitbox.pos.x += velXY.x;
             this.hitbox.pos.y += velXY.y;
         } else {
             this.hitbox.pos.y -= Math.max(this.speed - (this.fallAccel*sec), this.capFallSpeed);
-            this.flagForDeletion = CoordHelper.isHitboxisBelowBottomBound(this.hitbox.pos.y);
+            this.flagForDeletion = Helper.isHitboxisBelowBottomBound(this.hitbox.pos.y);
         }
     }
 }

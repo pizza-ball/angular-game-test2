@@ -1,5 +1,5 @@
 import { leftCoordHitbox, point } from "../../../../../helpers/interfaces";
-import { MovingStuff } from "../../../../../helpers/moving-stuff";
+import { Helper } from "../../../../../helpers/moving-stuff";
 import { FPS_TARGET, Units } from "../../../../globals";
 import { SoundService } from "../../../../services/sound/sound.service";
 import { Boss } from "../../../enemies/bosses/boss-abstract";
@@ -27,11 +27,11 @@ export class Boss_KunaiCircles implements BossPhase{
     path: any = null;
     moveScript(tick: number, bossPos: leftCoordHitbox, playerPos: point){
         if(this.startPos === null){
-            this.path = MovingStuff.generateRtoLWanderPath(bossPos);
-            this.path = [MovingStuff.generateLtoRWanderPath(bossPos)[1], this.path[0], this.path[1]];
+            this.path = Helper.generateRtoLWanderPath(bossPos);
+            this.path = [Helper.generateLtoRWanderPath(bossPos)[1], this.path[0], this.path[1]];
             this.startPos = {x: bossPos.pos.x, y: bossPos.pos.y};
         }
-        let vel = MovingStuff.moveToDestInSetTime_Decelerate(this.startPos.x, this.startPos.y, this.path[0].dest.x, this.path[0].dest.y, this.tickCounter, this.path[0].time);
+        let vel = Helper.moveToDestInSetTime_Decelerate(this.startPos.x, this.startPos.y, this.path[0].dest.x, this.path[0].dest.y, this.tickCounter, this.path[0].time);
         bossPos.pos.x += vel.x;
         bossPos.pos.y += vel.y;
         this.tickCounter++;
@@ -43,9 +43,9 @@ export class Boss_KunaiCircles implements BossPhase{
             this.path.splice(0, 1);
             if(this.path.length <= 0){
                 if(bossPos.pos.x < Units.getPlayfieldWidth()*.4){
-                    this.path = MovingStuff.generateLtoRWanderPath(bossPos);
+                    this.path = Helper.generateLtoRWanderPath(bossPos);
                 } else {
-                    this.path = MovingStuff.generateRtoLWanderPath(bossPos);
+                    this.path = Helper.generateRtoLWanderPath(bossPos);
                 }
             }
             this.tickCounter = 0;

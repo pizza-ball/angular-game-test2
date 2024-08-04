@@ -1,6 +1,6 @@
 import { CoordHelper } from "../../../helpers/coords";
 import { point, bullet, linePath, curvePath } from "../../../helpers/interfaces";
-import { MovingStuff } from "../../../helpers/moving-stuff";
+import { Helper } from "../../../helpers/moving-stuff";
 import { FPS_TARGET, Units } from "../../globals";
 import { SoundService } from "../../services/sound/sound.service";
 import { ActorList } from "../actorlist";

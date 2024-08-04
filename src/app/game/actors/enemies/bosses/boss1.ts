@@ -1,7 +1,6 @@
-import { CoordHelper } from "../../../../helpers/coords";
-import { DrawingStuff } from "../../../../helpers/drawing-stuff";
+import { CanvasDraw } from "../../../../helpers/canvas-draw";
 import { bullet, leftCoordHitbox, linePath, point } from "../../../../helpers/interfaces";
-import { MovingStuff } from "../../../../helpers/moving-stuff";
+import { Helper } from "../../../../helpers/moving-stuff";
 import { DEBUG_MODE, FPS_TARGET, Units } from "../../../globals";
 import { SimpleBullet } from "../../bullets/simple-bullet";
 import { v4 as uuidv4 } from 'uuid';
@@ -71,7 +70,7 @@ export class Boss1 extends Boss {
         } else {
             this.phases[this.currentPhase].moveScript(this.getPhaseTime(), this.hitbox, this.center);
         }
-        this.center = CoordHelper.getCenterWithTopLeftHitbox(this.hitbox);
+        this.center = Helper.getCenterWithTopLeftHitbox(this.hitbox);
     }
 
     attack(): BulletAbstract | BulletAbstract[] | null {
@@ -83,7 +82,7 @@ export class Boss1 extends Boss {
     }
 
     private moveToDefaultPosition(duration: number) {
-        let vel = MovingStuff.moveToDestInSetTime_Decelerate(this.positionPhaseEndedIn.x, this.positionPhaseEndedIn.y, this.DEFAULT_POS.x, this.DEFAULT_POS.y, this.getPhaseTime(), duration);
+        let vel = Helper.moveToDestInSetTime_Decelerate(this.positionPhaseEndedIn.x, this.positionPhaseEndedIn.y, this.DEFAULT_POS.x, this.DEFAULT_POS.y, this.getPhaseTime(), duration);
         this.hitbox.pos.x += vel.x;
         this.hitbox.pos.y += vel.y;
     }
@@ -95,7 +94,7 @@ export class Boss1 extends Boss {
     }
 
     private moveToNextPhase(successOrFail: boolean) {
-        DrawingStuff.deleteElementFromMemory(this.healthId);
+        CanvasDraw.deleteElementFromMemory(this.healthId);
         this.phaseCountdown = '';
         //Trigger bonus points or some other effect if the player was "successful" in the last phase
         if (successOrFail !== undefined) {
@@ -144,8 +143,8 @@ export class Boss1 extends Boss {
         }
         const healthPercent = this.phases[this.currentPhase].currentHealth / this.phases[this.currentPhase].MAX_HEALTH;
 
-        DrawingStuff.deleteElementFromMemory(this.healthId);
-        DrawingStuff.requestHealthDraw(this.healthId, ctx, this.center.x, this.center.y, 80, healthPercent);
+        CanvasDraw.deleteElementFromMemory(this.healthId);
+        CanvasDraw.requestHealthDraw(this.healthId, ctx, this.center.x, this.center.y, 80, healthPercent);
     }
 
     called = false;
@@ -158,8 +157,8 @@ export class Boss1 extends Boss {
 
     cleanUp() {
         if (DEBUG_MODE) {
-            DrawingStuff.deleteElementFromMemory(this.id);
+            CanvasDraw.deleteElementFromMemory(this.id);
         }
-        DrawingStuff.deleteElementFromMemory(this.healthId);
+        CanvasDraw.deleteElementFromMemory(this.healthId);
     }
 }
