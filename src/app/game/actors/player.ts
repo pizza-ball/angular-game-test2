@@ -7,6 +7,7 @@ import { InputService } from "../services/input/input.service";
 import { SoundService } from "../services/sound/sound.service";
 import { v4 as uuidv4 } from 'uuid';
 import { ActorList } from "./actorlist";
+import { DeathFlare } from "./effects/death-flare";
 
 export enum playerState {
     normal = 'normal',
@@ -226,7 +227,7 @@ export class Player {
         return null;
     }
 
-    checkBulletPlayerCollision(bullets: any[], deathSprites: leftCoordHitboxId[]) {
+    checkBulletPlayerCollision(bullets: any[], deathSprites: DeathFlare[]) {
         for (let bullet of bullets) {
             let bulletSquare = new Square(bullet.hitbox);
             let playerSquare = new Square(this.hitbox);
@@ -240,18 +241,14 @@ export class Player {
         }
     }
 
-    killPlayer(deathSprites: leftCoordHitboxId[]) {
+    killPlayer(deathSprites: DeathFlare[]) {
         this.state = playerState.dead;
         this.lives--;
         this.hidden = true;
 
-        let hitboxCopy = {
-            id: ActorList.Player,
-            pos: { x: this.hitbox.pos.x, y: this.hitbox.pos.y },
-            width: this.hitbox.width,
-            height: this.hitbox.height,
-        };
-        deathSprites.push(hitboxCopy);
+        const death = new DeathFlare(this.center, this.SPRITE_DIMENSIONS.height*4, this.SPRITE_DIMENSIONS.height*4);
+        death.sprite = "/assets/miscsprites/deathexplode1.png";
+        deathSprites.push(death);
 
         if (this.lives > 0) {
             setTimeout(() => {

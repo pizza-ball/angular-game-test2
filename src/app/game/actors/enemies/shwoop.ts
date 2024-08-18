@@ -3,7 +3,7 @@ import { Helper } from "../../../helpers/moving-stuff";
 import { DEBUG_MODE, FPS_TARGET } from "../../globals";
 import { CanvasDraw } from "../../../helpers/canvas-draw";
 import { v4 as uuidv4 } from 'uuid';
-import { SimpleBullet } from "../bullets/simple-bullet";
+import { SoloBullet } from "../bullets/solo-bullet";
 import { ActorList } from "../actorlist";
 import { Enemy } from "./enemy-abstract";
 import { MoveScript } from "./movescript-default";
@@ -14,7 +14,7 @@ export class Shwoop extends Enemy {
     health = 5;
     defeatFlag = false;
     clearFlag = false;
-    moveScript = new MoveScript();
+    moveScript = new MoveScript({x: this.startX, y: this.startY});
 
     assess(){
         if(this.health <= 0){
@@ -34,7 +34,7 @@ export class Shwoop extends Enemy {
     }
 
     ticksToShoot = [1 * FPS_TARGET];//, 1.2*TICKS_PER_SECOND, 1.4*TICKS_PER_SECOND];
-    attack(): SimpleBullet | SimpleBullet[] | null {
+    attack(): SoloBullet | SoloBullet[] | null {
         const ticksSinceCreation = this.exData.now - this.creationTick;
         if (this.ticksToShoot.includes(ticksSinceCreation)) {
             const angleToPlayer = Helper.calculateRadianAngleBetweenTwoPoints(this.center.x, this.center.y, this.exData.playerPos.x, this.exData.playerPos.y);
@@ -42,9 +42,9 @@ export class Shwoop extends Enemy {
             const rightAngle = angleToPlayer + (15) * (Math.PI / 180);
             this.soundService.enemyBulletSound.play();
             return [
-                new SimpleBullet(Object.create(this.center), angleToPlayer),
-                new SimpleBullet(Object.create(this.center), leftAngle),
-                new SimpleBullet(Object.create(this.center), rightAngle)
+                new SoloBullet(Object.create(this.center), angleToPlayer),
+                new SoloBullet(Object.create(this.center), leftAngle),
+                new SoloBullet(Object.create(this.center), rightAngle)
             ];
         }
         return null;

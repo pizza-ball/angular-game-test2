@@ -6,7 +6,7 @@ import { Boss } from "../../../enemies/bosses/boss-abstract";
 import { Enemy } from "../../../enemies/enemy-abstract";
 import { BoundBullet, BoundBullet_MoveType } from "../../bound-bullet";
 import { BulletAbstract } from "../../bullet-abstract";
-import { SimpleBullet } from "../../simple-bullet";
+import { SoloBullet } from "../../solo-bullet";
 import { BossPhase } from "../boss-phase";
 
 export class Boss_ExpandingSaws implements BossPhase {
@@ -64,9 +64,9 @@ export class Boss_ExpandingSaws implements BossPhase {
             this.angleToPlayer = Helper.calculateRadianAngleBetweenTwoPoints(bossPos.x, bossPos.y, playerPos.x, playerPos.y);
 
             let buls = [
-                new SimpleBullet(Object.create(bossPos), this.angleToPlayer, Units.getUnits(0), Units.getUnits(10), Units.getUnits(7)),
-                new SimpleBullet(Object.create(bossPos), this.angleToPlayer - (45) * (Math.PI / 180), Units.getUnits(0), Units.getUnits(10), Units.getUnits(7)),
-                new SimpleBullet(Object.create(bossPos), this.angleToPlayer + (45) * (Math.PI / 180), Units.getUnits(0), Units.getUnits(10), Units.getUnits(7))
+                new SoloBullet(Object.create(bossPos), this.angleToPlayer, Units.getUnits(0), Units.getUnits(10), Units.getUnits(7)),
+                new SoloBullet(Object.create(bossPos), this.angleToPlayer - (45) * (Math.PI / 180), Units.getUnits(0), Units.getUnits(10), Units.getUnits(7)),
+                new SoloBullet(Object.create(bossPos), this.angleToPlayer + (45) * (Math.PI / 180), Units.getUnits(0), Units.getUnits(10), Units.getUnits(7))
             ];
             for (let bul of buls) {
                 bul.configureMaxSpeed(Units.getUnits(9));

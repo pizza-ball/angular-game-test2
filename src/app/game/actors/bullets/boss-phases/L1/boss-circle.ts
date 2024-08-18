@@ -4,7 +4,7 @@ import { FPS_TARGET, Units } from "../../../../globals";
 import { SoundService } from "../../../../services/sound/sound.service";
 import { Boss } from "../../../enemies/bosses/boss-abstract";
 import { Enemy } from "../../../enemies/enemy-abstract";
-import { SimpleBullet } from "../../simple-bullet";
+import { SoloBullet } from "../../solo-bullet";
 import { BossPhase } from "../boss-phase";
 
 export class Boss_CircleChase implements BossPhase {
@@ -32,10 +32,10 @@ export class Boss_CircleChase implements BossPhase {
     shot2Tick = FPS_TARGET/15; //every 4 frames at 60fps
     attackScript(tick: number, bossPos: point, playerPos: point) {
         this.streamingBullets.volume(this.soundService.quietVol);
-        let bullets: SimpleBullet[] = [];
+        let bullets: SoloBullet[] = [];
         if (tick % this.shot1Tick === 0){
             for(let i = 0; i < 360 + this.startAngle; i += this.angleIncrement){
-                bullets.push(new SimpleBullet(Object.create(bossPos), Helper.degToRad(i + this.startAngle), Units.getUnits(1.5)));
+                bullets.push(new SoloBullet(Object.create(bossPos), Helper.degToRad(i + this.startAngle), Units.getUnits(1.5)));
             }
             this.startAngle += 45;
         }
@@ -44,7 +44,7 @@ export class Boss_CircleChase implements BossPhase {
             this.streamingBullets.stop();
             this.streamingBullets.play();
             const angleToPlayer = Helper.calculateRadianAngleBetweenTwoPoints(bossPos.x, bossPos.y, playerPos.x, playerPos.y);
-            let bul = new SimpleBullet(Object.create(bossPos), angleToPlayer, Units.getUnits(3));
+            let bul = new SoloBullet(Object.create(bossPos), angleToPlayer, Units.getUnits(3));
             bul.color = "cyan";
             bullets.push(bul);
         }

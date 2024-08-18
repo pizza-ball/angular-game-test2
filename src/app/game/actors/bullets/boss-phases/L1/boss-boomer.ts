@@ -4,7 +4,7 @@ import { FPS_TARGET, Units } from "../../../../globals";
 import { SoundService } from "../../../../services/sound/sound.service";
 import { Boss } from "../../../enemies/bosses/boss-abstract";
 import { Enemy } from "../../../enemies/enemy-abstract";
-import { SimpleBullet } from "../../simple-bullet";
+import { SoloBullet } from "../../solo-bullet";
 import { BossPhase } from "../boss-phase";
 
 export class Boss_VandBoomerangs implements BossPhase{
@@ -35,10 +35,10 @@ export class Boss_VandBoomerangs implements BossPhase{
     rando = 0;
     attackScript(tick: number, bossPos: point, playerPos: point){
         this.streamingBullets.volume(this.soundService.quietVol);
-        let bullets: SimpleBullet[] = [];
+        let bullets: SoloBullet[] = [];
         if (tick % this.shot1Tick === 0){
             const angleToPlayer = Helper.calculateRadianAngleBetweenTwoPoints(bossPos.x, bossPos.y, playerPos.x, playerPos.y);
-            let bul1 = new SimpleBullet(Object.create(bossPos), angleToPlayer, Units.getUnits(8), Units.getUnits(10), Units.getUnits(-16));
+            let bul1 = new SoloBullet(Object.create(bossPos), angleToPlayer, Units.getUnits(8), Units.getUnits(10), Units.getUnits(-16));
             bul1.configureMinSpeed(2);
             bullets.push(bul1);
         }
@@ -46,8 +46,8 @@ export class Boss_VandBoomerangs implements BossPhase{
         if (tick % this.shot2Tick === 0){
             this.streamingBullets.stop();
             this.streamingBullets.play();
-            let bul1 = new SimpleBullet(Object.create(bossPos), Helper.degToRad(this.angle_a), Units.getUnits(8));
-            let bul2 = new SimpleBullet(Object.create(bossPos), Helper.degToRad(this.angle_b), Units.getUnits(8));
+            let bul1 = new SoloBullet(Object.create(bossPos), Helper.degToRad(this.angle_a), Units.getUnits(8));
+            let bul2 = new SoloBullet(Object.create(bossPos), Helper.degToRad(this.angle_b), Units.getUnits(8));
             bul1.color = "cyan";
             bul2.color = "cyan";
             bullets.push(bul1);
@@ -69,12 +69,12 @@ export class Boss_VandBoomerangs implements BossPhase{
                 this.rando = Helper.getRandomPositiveInt(60);
             }
             if(this.alternater){
-                let rAngleShot = new SimpleBullet(Object.create(bossPos), Helper.degToRad(270 + this.rando), Units.getUnits(3), Units.getUnits(20), Units.getUnits(2));
+                let rAngleShot = new SoloBullet(Object.create(bossPos), Helper.degToRad(270 + this.rando), Units.getUnits(3), Units.getUnits(20), Units.getUnits(2));
                 rAngleShot.alterAngleWhenMoving(3.2, 1);
                 rAngleShot.color = "pink";
                 bullets.push(rAngleShot);
             } else {
-                let lAngleShot = new SimpleBullet(Object.create(bossPos), Helper.degToRad(270 - this.rando), Units.getUnits(3), Units.getUnits(20), Units.getUnits(2));
+                let lAngleShot = new SoloBullet(Object.create(bossPos), Helper.degToRad(270 - this.rando), Units.getUnits(3), Units.getUnits(20), Units.getUnits(2));
                 lAngleShot.alterAngleWhenMoving(-3.2, 1);
                 lAngleShot.color = "pink";
                 bullets.push(lAngleShot);

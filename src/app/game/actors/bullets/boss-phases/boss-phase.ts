@@ -2,7 +2,7 @@ import { leftCoordHitbox, point } from "../../../../helpers/interfaces";
 import { Boss } from "../../enemies/bosses/boss-abstract";
 import { Enemy } from "../../enemies/enemy-abstract";
 import { BulletAbstract } from "../bullet-abstract";
-import { SimpleBullet } from "../simple-bullet";
+import { SoloBullet } from "../solo-bullet";
 
 export interface BossPhase{
     MAX_HEALTH: number,

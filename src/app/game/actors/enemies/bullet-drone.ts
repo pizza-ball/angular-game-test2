@@ -4,7 +4,7 @@ import { Helper } from "../../../helpers/moving-stuff";
 import { FPS_TARGET, Units } from "../../globals";
 import { SoundService } from "../../services/sound/sound.service";
 import { ActorList } from "../actorlist";
-import { SimpleBullet } from "../bullets/simple-bullet";
+import { SoloBullet } from "../bullets/solo-bullet";
 import { Boss } from "./bosses/boss-abstract";
 import { Enemy, ExternalData_Enemy } from "./enemy-abstract";
 import { v4 as uuidv4 } from 'uuid';
@@ -47,15 +47,15 @@ export class BulletDrone extends Enemy{
     }
 
     tickToShoot = 2 * FPS_TARGET;
-    attack(): SimpleBullet | SimpleBullet[] | null {
+    attack(): SoloBullet | SoloBullet[] | null {
         if (this.exData.now % this.tickToShoot ||
             (this.exData.now - FPS_TARGET/20) % this.tickToShoot ||
             (this.exData.now - FPS_TARGET/10) % this.tickToShoot
         ){
             if(this.hitbox.pos.x < Units.xFromPct(50)){
-                return new SimpleBullet(Object.create(this.center), 0);
+                return new SoloBullet(Object.create(this.center), 0);
             } else {
-                return new SimpleBullet(Object.create(this.center), 180);
+                return new SoloBullet(Object.create(this.center), 180);
             }
         }
         return null;

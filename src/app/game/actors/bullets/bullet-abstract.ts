@@ -7,8 +7,13 @@ export abstract class BulletAbstract{
         sprite: string,
         hitbox: leftCoordHitbox
     };
+    protected hitboxToSpriteScale = 2.5;
     flagForDeletion = false;
     overlap = 1;
 
     abstract move(): void;
+    abstract changeHitboxToSpriteScale(scale: number): void;
+    spawnMore(): BulletAbstract[] | null{
+        return null;
+    };
 }

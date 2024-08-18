@@ -4,7 +4,7 @@ import { FPS_TARGET, Units } from "../../../../globals";
 import { SoundService } from "../../../../services/sound/sound.service";
 import { Boss } from "../../../enemies/bosses/boss-abstract";
 import { Enemy } from "../../../enemies/enemy-abstract";
-import { SimpleBullet } from "../../simple-bullet";
+import { SoloBullet } from "../../solo-bullet";
 import { BossPhase } from "../boss-phase";
 
 export class Boss_KunaiCircles implements BossPhase{
@@ -61,14 +61,14 @@ export class Boss_KunaiCircles implements BossPhase{
     shots = 4;
     attackScript(tick: number, bossPos: point, playerPos: point){
         this.streamingBullets.volume(this.soundService.quietVol);
-        let bullets: SimpleBullet[] = [];
+        let bullets: SoloBullet[] = [];
 
         if (tick % this.shot1Tick === 0){
             if(this.alternater){
                 for(let i = this.angle; i < 360 + this.angle; i += this.angleIncrement){
                     let angleClone = i - (3*this.shots);
                     for (let j = 0; j < this.shots; j++) {
-                        bullets.push(new SimpleBullet(Object.create(bossPos), (Math.PI/180)*angleClone, Units.getUnits(3)));
+                        bullets.push(new SoloBullet(Object.create(bossPos), (Math.PI/180)*angleClone, Units.getUnits(3)));
                         angleClone += 3+this.shots;
                     }
                 }
@@ -76,7 +76,7 @@ export class Boss_KunaiCircles implements BossPhase{
                 for(let i = -this.angle; i > -360 - this.angle; i -= this.angleIncrement){
                     let angleClone = i - (3*this.shots);
                     for (let j = 0; j < this.shots; j++) {
-                        let bul = new SimpleBullet(Object.create(bossPos), (Math.PI/180)*angleClone, Units.getUnits(3));
+                        let bul = new SoloBullet(Object.create(bossPos), (Math.PI/180)*angleClone, Units.getUnits(3));
                         bul.color = "cyan";
                         bul.spriteData.sprite = "/assets/bullets/normal/bullets24.png";
                         bullets.push(bul);
@@ -86,6 +86,8 @@ export class Boss_KunaiCircles implements BossPhase{
             }
             this.alternater = !this.alternater;
             this.angle += 20;
+            this.streamingBullets.stop();
+            this.streamingBullets.play();
         }
         return bullets;
     }

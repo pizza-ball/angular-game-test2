@@ -9,8 +9,17 @@
   <img src="/assets/bullets/bubbles/bubble1.png" />
   <img src="/assets/bullets/bubbles/bubble2.png" />
   <img src="/assets/bullets/normal/bullets24.png" />
+  <img src="/assets/bullets/normal/bullets19.png" />
   <img src="/assets/bullets/normal/bullets20.png" />
   <img src="/assets/bullets/normal/bullets21.png" />
+  <img src="/assets/bullets/normal/bullets31.png" />
+  <img src="/assets/bullets/laser/block9.png" />
+  <img src="/assets/bullets/player/fireball_blurred.png" />
+  <img src="/assets/bullets/player/fireball_destroy.png" />
+  <img src="/assets/miscsprites/deathexplode1.png" />
+  <img src="/assets/miscsprites/deathexplode2.png" />
+  <img src="/assets/miscsprites/deathexplode3.png" />
+  <img src="/assets/miscsprites/deathexplode4.png" />
   <!-- <div id="shmupZoneBackgroundLayer1" style="margin-top: -400px" [style.width.px]="[shmupWidthPx]"
     [style.height.px]="[shmupHeightPx * 3]" [style.animation-play-state]="animationState"></div> -->
   <!-- <div
@@ -37,8 +46,11 @@
       [style.top.px]="[option.pos.y]" [style.width.px]="[option.width]" [style.height.px]="[option.height]"></div>
   </div>
   <div *ngFor="let bullet of this.playerBullets">
-    <div class="bullet" [style.left.px]="[bullet.hitbox.pos.x]" [style.top.px]="[bullet.hitbox.pos.y]"
+    <div class="bulletHB" [style.left.px]="[bullet.hitbox.pos.x]" [style.top.px]="[bullet.hitbox.pos.y]"
       [style.width.px]="[bullet.hitbox.width]" [style.height.px]="[bullet.hitbox.height]"></div>
+      <img class="bullet" src="/assets/bullets/player/fireball_blurred.png" 
+      [style.left.px]="[bullet.hitbox.pos.x]" [style.top.px]="[bullet.hitbox.pos.y]"
+      [style.width.px]="[bullet.hitbox.width]" [style.height.px]="[bullet.hitbox.height]"/>
   </div>
   <div *ngFor="let bullet of this.enemyBullets">
     <img [src]="[bullet.spriteData.sprite]" [style.left.px]="[bullet.spriteData.hitbox.pos.x]" [style.top.px]="[bullet.spriteData.hitbox.pos.y]"
@@ -68,16 +80,10 @@
       style="opacity: 0.2; background-color: red; position: absolute;"></div>
   </div>
   <div *ngFor="let deadEnemy of this.enemyDeathSprites">
-    <div [ngSwitch]="deadEnemy.id">
-      <div *ngSwitchCase="'BigBoi'" class="bigDeathShape" [style.left.px]="[deadEnemy.pos.x + deadEnemy.width/2]"
-        [style.top.px]="[deadEnemy.pos.y]"></div>
-      <div *ngSwitchCase="'Boss1'" class="bigDeathShape" [style.left.px]="[deadEnemy.pos.x + deadEnemy.width/2]"
-        [style.top.px]="[deadEnemy.pos.y]"></div>
-      <div *ngSwitchCase="'Player'" class="playerDeathShape" [style.left.px]="[deadEnemy.pos.x + deadEnemy.width/2]"
-        [style.top.px]="[deadEnemy.pos.y]"></div>
-      <div *ngSwitchDefault class="smallDeathShape" [style.left.px]="[deadEnemy.pos.x + deadEnemy.width/2]"
-        [style.top.px]="[deadEnemy.pos.y]"></div>
-    </div>
+    <img [src]="[deadEnemy.sprite]" 
+    [style.left.px]="[deadEnemy.topleft.x]" [style.top.px]="[deadEnemy.topleft.y]" 
+    [style.width.px]="[deadEnemy.width]" [style.height.px]="[deadEnemy.height]" [style.opacity]="[deadEnemy.opacity]"
+    style="position: absolute;" [ngStyle]="{'opacity': deadEnemy.opacity}"/>
   </div>
   <div *ngFor="let item of this.items">
     <div class="item" [style.left.px]="[item.hitbox.pos.x]" [style.top.px]="[item.hitbox.pos.y]"
@@ -85,6 +91,11 @@
       [ngStyle]="{'background-color': item.COLOR}"></div>
   </div>
 </div>
+<!-- Fake shmupzone that covers the section of screen with black while the real one is loading -->
+<div id="shmupZone" [ngStyle]="{'margin-top.px': shmupStyle.marginTop, 'margin-left.px': shmupStyle.marginLeft}"
+[style.width.px]="shmupStyle.width" [style.height.px]="shmupStyle.height" style="background-color: black;"
+*ngIf="!loading"></div>
+
 <div id="statsZone"
   [ngStyle]="{'width': sideBarStyle.width, 'height': sideBarStyle.height, 'margin-left.px': sideBarStyle.marginLeft, 'margin-top.px': sideBarStyle.marginTop}">
   <h1 style="color: aliceblue">TYPESHIP</h1>

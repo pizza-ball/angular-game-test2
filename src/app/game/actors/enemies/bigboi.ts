@@ -3,7 +3,7 @@ import { bullet, leftCoordHitbox, linePath, point } from "../../../helpers/inter
 import { Helper } from "../../../helpers/moving-stuff";
 import { DEBUG_MODE, FPS_TARGET, Units } from "../../globals";
 import { Danmaku } from "../bullets/patterns/danmaku";
-import { SimpleBullet } from "../bullets/simple-bullet";
+import { SoloBullet } from "../bullets/solo-bullet";
 import { v4 as uuidv4 } from 'uuid';
 import { ActorList } from "../actorlist";
 import { Enemy } from "./enemy-abstract";
@@ -29,8 +29,8 @@ export class BigBoi extends Enemy {
 
     move() {
         if (this.hitbox.pos.x !== this.path[0].dest.x || this.hitbox.pos.y !== this.path[0].dest.y) {
-            //console.log("we should be moving towards " + this.path[0]);
-            Helper.moveTowardsAtConstRate(this.hitbox.pos, this.path[0].dest, this.path[0].speed);
+            let p = this.path[0] as linePath;
+            Helper.moveTowardsAtConstRate(this.hitbox.pos, p.dest, p.speed);
         } else {
             if (this.path[0].pauseTimeInSec !== undefined && this.path[0].pauseTimeInSec !== 0 && this.pauseCounter / FPS_TARGET < this.path[0].pauseTimeInSec) {
                 this.pauseCounter++;
@@ -44,7 +44,7 @@ export class BigBoi extends Enemy {
 
     ticksToShoot = [1 * FPS_TARGET, 2 * FPS_TARGET, 3 * FPS_TARGET];
     angles = [45, 135, 225, 315]; // Angle calculations start from the X axis, and move clockwise towards Y. (0,1) is 90*. CAUTION: Y is inverted.
-    attack(): SimpleBullet | SimpleBullet[] | null {
+    attack(): SoloBullet | SoloBullet[] | null {
         const ticksSinceCreation = this.exData.now - this.creationTick;
         if (!this.ticksToShoot.includes(ticksSinceCreation)) {
             return null;

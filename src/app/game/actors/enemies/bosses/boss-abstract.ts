@@ -5,7 +5,7 @@ import { SoundService } from "../../../services/sound/sound.service";
 import { ActorList } from "../../actorlist";
 import { BossPhase } from "../../bullets/boss-phases/boss-phase";
 import { BulletAbstract } from "../../bullets/bullet-abstract";
-import { SimpleBullet } from "../../bullets/simple-bullet";
+import { SoloBullet } from "../../bullets/solo-bullet";
 import { Enemy } from "../enemy-abstract";
 
 export interface ExternalData_Boss {

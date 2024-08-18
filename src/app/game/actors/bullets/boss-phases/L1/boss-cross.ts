@@ -6,7 +6,8 @@ import { Boss } from "../../../enemies/bosses/boss-abstract";
 import { Enemy } from "../../../enemies/enemy-abstract";
 import { BoundBullet } from "../../bound-bullet";
 import { BulletAbstract } from "../../bullet-abstract";
-import { SimpleBullet } from "../../simple-bullet";
+import { Danmaku } from "../../patterns/danmaku";
+import { SoloBullet } from "../../solo-bullet";
 import { BossPhase } from "../boss-phase";
 
 export class Boss_Cross implements BossPhase{
@@ -34,7 +35,7 @@ export class Boss_Cross implements BossPhase{
         if(tick === 0){
             this.phaseStartPos.x = bossPos.pos.x;
             this.phaseStartPos.y = bossPos.pos.y;
-            this.phaseDest = Helper.getTopLeftWithCenterPoint(bossPos.width, bossPos.height, Units.xFromPct(50), Units.yFromPct(20));
+            this.phaseDest = Helper.getTopLeftWithCenterPoint(bossPos.width, bossPos.height, Units.xFromPct(50), Units.yFromPct(15));
         }
         let vel = Helper.moveToDestInSetTime_Decelerate(this.phaseStartPos.x, this.phaseStartPos.y, this.phaseDest.x, this.phaseDest.y, tick, this.moveDur);
         bossPos.pos.x += vel.x;
@@ -56,7 +57,7 @@ export class Boss_Cross implements BossPhase{
         if (tick > this.moveDur &&
             tick % this.shot1_Tick === 0) {
 
-            let buls = [new SimpleBullet(Object.create(bossPos), Helper.degToRad(90), Units.getUnits(1.5), Units.getUnits(10))];
+            let buls = [new SoloBullet(Object.create(bossPos), Helper.degToRad(90), Units.getUnits(1.5), Units.getUnits(10))];
             for (let bul of buls) {
                 bul.setAutoDeleted(false);
                 for(let i = 0; i < 360; i += 90){
@@ -88,10 +89,10 @@ export class Boss_Cross implements BossPhase{
             const startPos4 = {x: Units.xFromPct(100-(25-this.shot2_pct)), y: Units.yFromPct(-10)};
             
             let buls = [
-                new SimpleBullet(Object.create(startPos1), Helper.degToRad(90), Units.getUnits(2), Units.getUnits(40), Units.getUnits(2)),
-                new SimpleBullet(Object.create(startPos2), Helper.degToRad(90), Units.getUnits(2), Units.getUnits(40), Units.getUnits(2)),
-                new SimpleBullet(Object.create(startPos3), Helper.degToRad(90), Units.getUnits(2), Units.getUnits(40), Units.getUnits(2)),
-                new SimpleBullet(Object.create(startPos4), Helper.degToRad(90), Units.getUnits(2), Units.getUnits(40), Units.getUnits(2))
+                new SoloBullet(Object.create(startPos1), Helper.degToRad(90), Units.getUnits(2), Units.getUnits(25), Units.getUnits(2)),
+                new SoloBullet(Object.create(startPos2), Helper.degToRad(90), Units.getUnits(2), Units.getUnits(25), Units.getUnits(2)),
+                new SoloBullet(Object.create(startPos3), Helper.degToRad(90), Units.getUnits(2), Units.getUnits(25), Units.getUnits(2)),
+                new SoloBullet(Object.create(startPos4), Helper.degToRad(90), Units.getUnits(2), Units.getUnits(25), Units.getUnits(2))
             ];
 
             for(let bul of buls){
@@ -106,13 +107,15 @@ export class Boss_Cross implements BossPhase{
             buls[3].spriteData.sprite = "/assets/bullets/bubbles/bubble1.png";
 
             bullets.push(...buls);
+            this.streamingBullets.stop();
+            this.streamingBullets.play();
         }
 
         if (tick % this.shot3_Tick === 0) {
             const startPos = {x: Units.xFromPct(30+Helper.getRandomPositiveInt(Units.getUnits(40))), y: Units.yFromPct(0)};
             
             let buls = [
-                new SimpleBullet(Object.create(startPos), Helper.degToRad(90), Units.getUnits(3), Units.getUnits(8)),
+                new SoloBullet(Object.create(startPos), Helper.degToRad(90), Units.getUnits(3), Units.getUnits(8)),
             ];
 
             bullets.push(...buls);

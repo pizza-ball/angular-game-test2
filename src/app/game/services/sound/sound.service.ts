@@ -19,7 +19,7 @@ export class SoundService {
 
   track1 = new Howl({
     src: [
-      this.soundsDirectory + 'INextra.mp3',
+      this.soundsDirectory + 'music/lolkstage1.mp3',
     ],
   });
   currentTrack = this.track1;

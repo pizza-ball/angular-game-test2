@@ -6,7 +6,7 @@ import { Boss } from "../../../enemies/bosses/boss-abstract";
 import { Enemy } from "../../../enemies/enemy-abstract";
 import { BoundBullet, BoundBullet_MoveType } from "../../bound-bullet";
 import { BulletAbstract } from "../../bullet-abstract";
-import { SimpleBullet } from "../../simple-bullet";
+import { SoloBullet } from "../../solo-bullet";
 import { BossPhase } from "../boss-phase";
 
 export class Boss_SpiralGaps implements BossPhase {
@@ -49,9 +49,9 @@ export class Boss_SpiralGaps implements BossPhase {
                 this.angleToPlayer = Helper.calculateRadianAngleBetweenTwoPoints(this.shot_bossPos.x, this.shot_bossPos.y, playerPos.x, playerPos.y);
             }
             let buls = [
-                new SimpleBullet(Object.create(this.shot_bossPos), this.angleToPlayer, Units.getUnits(3), Units.getUnits(10), Units.getUnits(5)),
-                new SimpleBullet(Object.create(this.shot_bossPos), this.angleToPlayer - (10) * (Math.PI / 180), Units.getUnits(3), Units.getUnits(10), Units.getUnits(5)),
-                new SimpleBullet(Object.create(this.shot_bossPos), this.angleToPlayer + (10) * (Math.PI / 180), Units.getUnits(3), Units.getUnits(10), Units.getUnits(5))
+                new SoloBullet(Object.create(this.shot_bossPos), this.angleToPlayer, Units.getUnits(3), Units.getUnits(10), Units.getUnits(5)),
+                new SoloBullet(Object.create(this.shot_bossPos), this.angleToPlayer - (10) * (Math.PI / 180), Units.getUnits(3), Units.getUnits(10), Units.getUnits(5)),
+                new SoloBullet(Object.create(this.shot_bossPos), this.angleToPlayer + (10) * (Math.PI / 180), Units.getUnits(3), Units.getUnits(10), Units.getUnits(5))
             ];
             for (let bul of buls) {
                 bul.configureMaxSpeed(Units.getUnits(4));
@@ -78,10 +78,10 @@ export class Boss_SpiralGaps implements BossPhase {
                 this.angleToPlayer = Helper.calculateRadianAngleBetweenTwoPoints(this.shot_bossPos.x, this.shot_bossPos.y, playerPos.x, playerPos.y);
             }
             let buls = [
-                new SimpleBullet(Object.create(this.shot_bossPos), this.angleToPlayer - (5) * (Math.PI / 180), Units.getUnits(3), Units.getUnits(10), Units.getUnits(5)),
-                new SimpleBullet(Object.create(this.shot_bossPos), this.angleToPlayer + (5) * (Math.PI / 180), Units.getUnits(3), Units.getUnits(10), Units.getUnits(5)),
-                new SimpleBullet(Object.create(this.shot_bossPos), this.angleToPlayer - (15) * (Math.PI / 180), Units.getUnits(3), Units.getUnits(10), Units.getUnits(5)),
-                new SimpleBullet(Object.create(this.shot_bossPos), this.angleToPlayer + (15) * (Math.PI / 180), Units.getUnits(3), Units.getUnits(10), Units.getUnits(5))
+                new SoloBullet(Object.create(this.shot_bossPos), this.angleToPlayer - (5) * (Math.PI / 180), Units.getUnits(3), Units.getUnits(10), Units.getUnits(5)),
+                new SoloBullet(Object.create(this.shot_bossPos), this.angleToPlayer + (5) * (Math.PI / 180), Units.getUnits(3), Units.getUnits(10), Units.getUnits(5)),
+                new SoloBullet(Object.create(this.shot_bossPos), this.angleToPlayer - (15) * (Math.PI / 180), Units.getUnits(3), Units.getUnits(10), Units.getUnits(5)),
+                new SoloBullet(Object.create(this.shot_bossPos), this.angleToPlayer + (15) * (Math.PI / 180), Units.getUnits(3), Units.getUnits(10), Units.getUnits(5))
             ];
             for (let bul of buls) {
                 bul.configureMaxSpeed(Units.getUnits(4));
@@ -130,6 +130,7 @@ export class Boss_SpiralGaps implements BossPhase {
             this.startAngle += 22;
             // this.streamingBullets.stop();
             // this.streamingBullets.play();
+            this.soundService.enemyBulletSound.play();
         }
 
         return bullets;

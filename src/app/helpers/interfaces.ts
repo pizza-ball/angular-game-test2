@@ -43,6 +43,16 @@ export interface curvePath {
   pauseTimeInSec?: number
 }
 
+export interface linePath_Decelerate {
+  dest: point,
+  durationInTicks: number,
+  pauseTimeInSec?: number
+}
+
 export function isCurve(object: any): object is curvePath {
   return 'control' in object;
+}
+
+export function isTimed(object: any): object is linePath_Decelerate {
+  return 'durationInTicks' in object;
 }

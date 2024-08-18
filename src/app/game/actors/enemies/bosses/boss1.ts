@@ -2,7 +2,7 @@ import { CanvasDraw } from "../../../../helpers/canvas-draw";
 import { bullet, leftCoordHitbox, linePath, point } from "../../../../helpers/interfaces";
 import { Helper } from "../../../../helpers/moving-stuff";
 import { DEBUG_MODE, FPS_TARGET, Units } from "../../../globals";
-import { SimpleBullet } from "../../bullets/simple-bullet";
+import { SoloBullet } from "../../bullets/solo-bullet";
 import { v4 as uuidv4 } from 'uuid';
 import { ActorList } from "../../actorlist";
 import { SoundService } from "../../../services/sound/sound.service";

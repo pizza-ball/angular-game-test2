@@ -2,7 +2,7 @@ import { CanvasDraw } from "../../../../helpers/canvas-draw";
 import { bullet } from "../../../../helpers/interfaces";
 import { Helper } from "../../../../helpers/moving-stuff";
 import { DEBUG_MODE, FPS_TARGET } from "../../../globals";
-import { SimpleBullet } from "../../bullets/simple-bullet";
+import { SoloBullet } from "../../bullets/solo-bullet";
 import { v4 as uuidv4 } from 'uuid';
 import { ActorList } from "../../actorlist";
 import { BossPhase } from "../../bullets/boss-phases/boss-phase";
@@ -85,7 +85,6 @@ export class MidBoss1 extends Boss {
     }
 
     private moveToDefaultPosition(duration: number) {
-        console.log(`moving to ${this.DEFAULT_POS.x}, ${this.DEFAULT_POS.y}`)
         let vel = Helper.moveToDestInSetTime_Decelerate(this.positionPhaseEndedIn.x, this.positionPhaseEndedIn.y, this.DEFAULT_POS.x, this.DEFAULT_POS.y, this.getPhaseTime(), duration);
         this.hitbox.pos.x += vel.x;
         this.hitbox.pos.y += vel.y;

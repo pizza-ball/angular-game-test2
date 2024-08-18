@@ -18,15 +18,16 @@ export class BoundBullet extends BulletAbstract {
     spriteData = {
         sprite: "/assets/bullets/normal/bullets31.png",
         hitbox: {
-            pos: {x:0, y:0},
+            pos: { x: 0, y: 0 },
             width: 0,
             height: 0,
         }
     }
     color = "orange";
-    center = {x: 0, y: 0};
+    center = { x: 0, y: 0 };
 
     autoDelete = true;
+    autoDeleteTimer = 0;
 
     constructor(
         public owner: point,
@@ -44,53 +45,66 @@ export class BoundBullet extends BulletAbstract {
         };
 
         this.spriteData.hitbox = {
-            pos: Helper.getTopLeftWithCenterPoint(width*2.5, height*2.5, 0, 0),
-            width: width*2.5,
-            height: height*2.5,
+            pos: Helper.getTopLeftWithCenterPoint(width * this.hitboxToSpriteScale, height * this.hitboxToSpriteScale, 0, 0),
+            width: width * this.hitboxToSpriteScale,
+            height: height * this.hitboxToSpriteScale,
         }
 
         this.center = Helper.getCenterWithTopLeftHitbox(this.hitbox);
     }
 
     move() {
-        if(this.moveType === BoundBullet_MoveType.circle){
+        if (this.moveType === BoundBullet_MoveType.circle) {
             this.circularMove();
-        } else if(this.moveType === BoundBullet_MoveType.cube){
+        } else if (this.moveType === BoundBullet_MoveType.cube) {
             this.cubeMove();
         }
     }
 
     public circularCfg = {
         initialized: false,
+        curRadius: 0,
         radius: 0,
         radiusGrowth: 0,
         angle: 0,
         angleIncr: 0
     }
     private circularMove() {
-        if(!this.circularCfg.initialized){
+        if (!this.circularCfg.initialized) {
             console.error("ERROR: attempting BoundBullet circularMove without setting movement config.");
             return;
         }
-        const xyVel = Helper.calcPointOnCircle_Degrees(this.circularCfg.angle, this.circularCfg.radius);
+        const xyVel = Helper.calcPointOnCircle_Degrees(this.circularCfg.angle, this.circularCfg.curRadius);
         const newPos = Helper.getTopLeftWithCenterPoint(this.hitbox.width, this.hitbox.height, this.owner.x + xyVel.x, this.owner.y + xyVel.y);
         this.hitbox.pos.x = newPos.x;
         this.hitbox.pos.y = newPos.y;
 
         this.circularCfg.angle += this.circularCfg.angleIncr;
         this.circularCfg.radius += this.circularCfg.radiusGrowth;
-        if (this.autoDelete) {
+
+        this.autoDeleteTimer++;
+        if (this.autoDelete && this.autoDeleteTimer > Units.secToTick(2)) {
             this.flagForDeletion = Helper.isRadiusOfRotationTooLarge(this.circularCfg.radius);
         }
+
         const cent = Helper.getCenterWithTopLeftHitbox(this.hitbox);
         this.center.x = cent.x;
         this.center.y = cent.y;
-        this.moveSprite();
+        this.positionSprite();
+
+        //Expands the bullets out from the center point instead of instantly appearing in their set radius
+        if (this.circularCfg.curRadius < this.circularCfg.radius) {
+            this.circularCfg.curRadius += Units.getUnits(4);
+            if (this.circularCfg.curRadius > this.circularCfg.radius) {
+                this.circularCfg.curRadius = this.circularCfg.radius;
+            }
+        }
     }
 
-    setCircularMovementData(r: number, rGrowth: number, angle: number, angleIncr: number){
+    setCircularMovementData(r: number, rGrowth: number, angle: number, angleIncr: number) {
         this.circularCfg = {
             initialized: true,
+            curRadius: 0,
             radius: r,
             radiusGrowth: rGrowth,
             angle: angle,
@@ -118,10 +132,10 @@ export class BoundBullet extends BulletAbstract {
         zrRate: 0
     }
 
-    OG_WIDTH = 15;
-    OG_HEIGHT = 15;
+    OG_WIDTH = 10;
+    OG_HEIGHT = 10;
     private cubeMove() {
-        if(!this.cubeCfg.vertId){
+        if (!this.cubeCfg.vertId) {
             console.error("ERROR: attempting BoundBullet cubeMove without setting dimensions.");
             return;
         }
@@ -132,20 +146,20 @@ export class BoundBullet extends BulletAbstract {
         this.hitbox.height = this.OG_HEIGHT;
 
         //reposition the point to (0,0) for rotation calculation
-        let p = {x: this.center.x - this.owner.x, y: this.center.y - this.owner.y, z: this.cubeCfg.pointZ};
+        let p = { x: this.center.x - this.owner.x, y: this.center.y - this.owner.y, z: this.cubeCfg.pointZ };
 
         //Calculates the new position of this point relative to (0,0)
         let result3D = Helper.rotateVertex(p, this.cubeRotateCfg.xrCur, this.cubeRotateCfg.yrCur, this.cubeRotateCfg.zrCur);
 
         //Re-positions the point relative to the owner
         result3D.x = result3D.x + this.owner.x;
-        result3D.y = result3D.y + this.owner.y; 
+        result3D.y = result3D.y + this.owner.y;
 
         //adjust SCALE to simulate depth. 0 is normal size. Z axis scales to... 300?
-        const scale =  (result3D.z/300)+1; //gets a percentage scaling factor
-        this.hitbox.width = this.hitbox.width*scale;
-        this.hitbox.height = this.hitbox.height*scale;
-        this.overlap = Math.round(scale*10);
+        const scale = (result3D.z / Units.getUnits(300)) + 1; //gets a percentage scaling factor
+        this.hitbox.width = this.hitbox.width * scale;
+        this.hitbox.height = this.hitbox.height * scale;
+        this.overlap = Math.round(scale * 10);
 
         //Set the hitbox and center again for drawing.
         const newHB = Helper.getTopLeftWithCenterPoint(this.hitbox.width, this.hitbox.height, result3D.x, result3D.y);
@@ -160,24 +174,29 @@ export class BoundBullet extends BulletAbstract {
         this.cubeRotateCfg.yrCur += this.cubeRotateCfg.yrRate;
         this.cubeRotateCfg.zrCur += this.cubeRotateCfg.zrRate;
 
-        this.moveSprite();
+        this.positionSprite();
 
         //Expands the bullets out from the center point instead of instantly appearing in their set width/height
-        if(this.cubeCfg.hCur < this.cubeCfg.h){
+        if (this.cubeCfg.hCur < this.cubeCfg.h) {
             this.cubeCfg.hCur += this.cubeCfg.hRate;
-            if(this.cubeCfg.hCur > this.cubeCfg.h){
+            if (this.cubeCfg.hCur > this.cubeCfg.h) {
                 this.cubeCfg.hCur = this.cubeCfg.h;
             }
         }
-        if(this.cubeCfg.wCur < this.cubeCfg.w){
+        if (this.cubeCfg.wCur < this.cubeCfg.w) {
             this.cubeCfg.wCur += this.cubeCfg.wRate;
-            if(this.cubeCfg.wCur > this.cubeCfg.w){
+            if (this.cubeCfg.wCur > this.cubeCfg.w) {
                 this.cubeCfg.wCur = this.cubeCfg.w;
             }
         }
+
+        this.autoDeleteTimer++;
+        if (this.autoDelete && this.autoDeleteTimer > Units.secToTick(2)) {
+            this.flagForDeletion = Helper.isHitboxOutsidePlayArea(this.hitbox);
+        }
     }
 
-    setCubeDimensionData(vertexId: string, z: number, w: number, h: number, wRate: number, hRate: number){
+    setCubeDimensionData(vertexId: string, z: number, w: number, h: number, wRate: number, hRate: number) {
         this.cubeCfg = {
             vertId: vertexId,
             w: w,
@@ -190,17 +209,18 @@ export class BoundBullet extends BulletAbstract {
         }
     }
 
-    setCubeRotateData(xrs: number, yrs: number, zrs: number, xrc: number, yrc: number, zrc: number){
+    //NOTE: rotation rates are "this far in 1 second"
+    setCubeRotateData(xrs: number, yrs: number, zrs: number, xrc: number, yrc: number, zrc: number) {
         this.cubeRotateCfg = {
             xrCur: xrs,
             yrCur: yrs,
             zrCur: zrs,
-            xrRate: xrc,
-            yrRate: yrc,
-            zrRate: zrc,
+            xrRate: xrc / FPS_TARGET, //Scales angle change rate to framerate
+            yrRate: yrc / FPS_TARGET,
+            zrRate: zrc / FPS_TARGET,
         }
     }
-    
+
     private resetVertexPosition(vertexId: string, w: number, h: number) {
         switch (vertexId) {
             case 'v0':
@@ -226,15 +246,20 @@ export class BoundBullet extends BulletAbstract {
         }
     }
 
-    setAutoDeleted(v: boolean){
+    setAutoDeleted(v: boolean) {
         this.autoDelete = v;
     }
 
-    private moveSprite(){
-        this.spriteData.hitbox.width = this.hitbox.width*2.5;
-        this.spriteData.hitbox.height = this.hitbox.height*2.5;
+    private positionSprite() {
+        this.spriteData.hitbox.width = this.hitbox.width * this.hitboxToSpriteScale;
+        this.spriteData.hitbox.height = this.hitbox.height * this.hitboxToSpriteScale;
         const newPos = Helper.getTopLeftWithCenterPoint(this.spriteData.hitbox.width, this.spriteData.hitbox.height, this.center.x, this.center.y);
         this.spriteData.hitbox.pos.x = newPos.x;
         this.spriteData.hitbox.pos.y = newPos.y;
+    }
+
+    changeHitboxToSpriteScale(scale: number){
+        this.hitboxToSpriteScale = scale;
+        this.positionSprite();
     }
 }

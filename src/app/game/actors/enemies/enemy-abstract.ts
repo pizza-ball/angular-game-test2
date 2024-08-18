@@ -1,9 +1,9 @@
-import { bullet, curvePath, leftCoordHitbox, linePath, point } from "../../../helpers/interfaces";
+import { bullet, curvePath, leftCoordHitbox, linePath, linePath_Decelerate, point } from "../../../helpers/interfaces";
 import { Helper } from "../../../helpers/moving-stuff";
 import { SoundService } from "../../services/sound/sound.service";
 import { ActorList } from "../actorlist";
 import { BulletAbstract } from "../bullets/bullet-abstract";
-import { SimpleBullet } from "../bullets/simple-bullet";
+import { SoloBullet } from "../bullets/solo-bullet";
 
 export interface ExternalData_Enemy {
     now: number,
@@ -16,6 +16,7 @@ export abstract class Enemy {
     abstract health: number;
     abstract defeatFlag: boolean;
     abstract clearFlag: boolean;
+    shouldDropItems = true;
     hitbox: leftCoordHitbox;
     center: point;
     powerCount: number;
@@ -31,7 +32,7 @@ export abstract class Enemy {
         protected creationTick: number,
         protected startX: number,
         protected startY: number,
-        protected path: (linePath | curvePath)[],
+        protected path: (linePath | curvePath | linePath_Decelerate)[],
         width: number,
         height: number,
         powerCount?: number,

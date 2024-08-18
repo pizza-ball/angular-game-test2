@@ -16,6 +16,7 @@ import {
   leftCoordHitboxId,
   linePath,
   curvePath,
+  linePath_Decelerate,
 } from '../../helpers/interfaces';
 import { FormsModule } from '@angular/forms';
 import { InputService } from '../services/input/input.service';
@@ -38,7 +39,9 @@ import { Enemy } from '../actors/enemies/enemy-abstract';
 import MainLoop from 'mainloop.js';
 import { Boss } from '../actors/enemies/bosses/boss-abstract';
 import { MidBoss1 } from '../actors/enemies/bosses/midboss1';
-import { BulletAbstract as Bullet } from '../actors/bullets/bullet-abstract';
+import { BulletAbstract } from '../actors/bullets/bullet-abstract';
+import { LaserShip } from '../actors/enemies/laser-ship';
+import { DeathFlare } from '../actors/effects/death-flare';
 
 @Component({
   selector: 'app-shmup',
@@ -75,12 +78,13 @@ export class ShmupComponent implements AfterViewInit {
   playerBullets: playerBullet[] = [];
   enemies: Enemy[] = [];
   boss: Boss | undefined;
-  enemyBullets: Bullet[] = [];
-  enemyDeathSprites: leftCoordHitboxId[] = [];
+  enemyBullets: BulletAbstract[] = [];
+  enemyDeathSprites: DeathFlare[] = [];
   items: (Point | PowerPoint)[] = [];
 
   stageTimeDisplay = 0;
   tick = 0;
+  //tick = Units.secToTick(27.5);
   tickCountLastSecond = 0;
   frameRate = '';
   animationState = 'running';
@@ -99,6 +103,7 @@ export class ShmupComponent implements AfterViewInit {
     this.player = new Player(inputServ, soundServ, Units.getPlayfieldWidth(), Units.getPlayfieldHeight());
   }
 
+  loading = false;
   async ngAfterViewInit() {
     if (this.canvasRef) {
       this.scene = this.bgService.CreateScene(this.canvasRef.nativeElement);
@@ -119,9 +124,11 @@ export class ShmupComponent implements AfterViewInit {
       this.soundServ.toggleMusicPause(val);
     });
 
-    //MainLoop.setSimulationTimestep(60);
+    //MainLoop.setMaxAllowedFPS(FPS_TARGET);
+    //MainLoop.setSimulationTimestep(FPS_TARGET);
     MainLoop.setUpdate(this.update.bind(this)).start();
-    this.soundServ.muteAudioToggle();
+    //this.soundServ.muteAudioToggle();
+    this.loading = true;
   }
 
   async waitForSoundsToLoad() {
@@ -145,7 +152,6 @@ export class ShmupComponent implements AfterViewInit {
 
   update() {
     // const t0 = performance.now();
-    this.inputServ.gamepadHandler();
 
     this.animationState = this.gamePaused ? 'paused' : 'running';
 
@@ -164,13 +170,17 @@ export class ShmupComponent implements AfterViewInit {
       this.updateBoss(this.tick, this.player.center)
       this.updateEnemies(this.tick, this.player.center);
 
-      this.player.handleMovement();
       this.moveItems();
-      this.handlePlayerShooting();
       this.movePlayerBullets();
       this.moveEnemyBullets();
       this.player.checkBulletPlayerCollision(this.enemyBullets, this.enemyDeathSprites);
       this.checkItemPlayerCollision();
+
+      this.animateEffects();
+
+      //Handle player input last, so they are prevented from interacting with about-to-vanish entities
+      this.player.handleMovement();
+      this.handlePlayerShooting();
 
       let ctx = this.canvasRef2d?.nativeElement.getContext("2d");
       if (ctx) {
@@ -183,6 +193,8 @@ export class ShmupComponent implements AfterViewInit {
         CanvasDraw.clearCanvasAndRedraw(ctx);
       }
     }
+
+    this.inputServ.gamepadHandler();
     this.frameRate = MainLoop.getFPS().toFixed(2);
     this.change.detectChanges();
 
@@ -248,7 +260,7 @@ export class ShmupComponent implements AfterViewInit {
       enemy.assess();
 
       if (enemy.defeatFlag) {
-        this.killEnemy(enemy);
+        this.killEnemy(enemy, enemy.shouldDropItems);
         this.enemies.splice(i, 1);
         i--;
         continue;//Enemy is dead, no need to move or attack
@@ -296,32 +308,24 @@ export class ShmupComponent implements AfterViewInit {
     }
   }
 
-  killEnemy(enemy: Enemy) {
+  killEnemy(enemy: Enemy, dropItems: boolean) {
 
-    let dataForDeathSprite = {
-      id: enemy.ENEMY_TYPE,
-      pos: { x: enemy.hitbox.pos.x, y: enemy.hitbox.pos.y },
-      width: enemy.hitbox.width,
-      height: enemy.hitbox.height,
-    };
+    const death = new DeathFlare(enemy.center, enemy.hitbox.width * 4, enemy.hitbox.height * 4);
 
-    this.enemyDeathSprites.push(dataForDeathSprite);
+    this.enemyDeathSprites.push(death);
     this.soundServ.enemyDeath.play();
-    this.dropItems(enemy);
+    if (dropItems) {
+      this.dropItems(enemy);
+    }
 
     enemy.cleanUp();
   }
 
   killBoss(boss: Boss) {
 
-    let dataForDeathSprite = {
-      id: boss.ENEMY_TYPE,
-      pos: { x: boss.hitbox.pos.x, y: boss.hitbox.pos.y },
-      width: boss.hitbox.width,
-      height: boss.hitbox.height,
-    };
+    const death = new DeathFlare(boss.center, boss.hitbox.width * 4, boss.hitbox.height * 4);
 
-    this.enemyDeathSprites.push(dataForDeathSprite);
+    this.enemyDeathSprites.push(death);
     this.soundServ.bossKill.play();
     this.dropItems(boss);
 
@@ -347,8 +351,13 @@ export class ShmupComponent implements AfterViewInit {
   }
 
   moveEnemyBullets() {
+    let newBullets = [];
     for (let i = 0; i < this.enemyBullets.length; i++) {
       this.enemyBullets[i].move();
+      let buls = this.enemyBullets[i].spawnMore();
+      if (buls) {
+        newBullets.push(...buls);
+      }
 
       if (this.enemyBullets[i].flagForDeletion) {
         //this.enemyBullets[i].cleanUp(this.canvasRef2d?.nativeElement.getContext("2d"));
@@ -356,6 +365,8 @@ export class ShmupComponent implements AfterViewInit {
         i--;
       }
     }
+
+    this.enemyBullets.push(...newBullets);
   }
 
   collectSpawnTimesAndConvertToTicks() {
@@ -375,19 +386,21 @@ export class ShmupComponent implements AfterViewInit {
   }
 
   checkForEnemySpawn(currentTick: number) {
-    if ((this.generatedSpawnTimes.length === 0) ||
-      !(this.generatedSpawnTimes[0] === currentTick)) {
-      return;
-    }
+    // Optimization. Probably not necessary.
+    // if ((this.generatedSpawnTimes.length === 0) ||
+    //   !(this.generatedSpawnTimes[0] === currentTick)) {
+    //   return;
+    // }
 
-    if (this.boss === undefined) { //Prevents enemy spawns when a boss becomes active.
+    if (this.boss === undefined) { //Prevents STAGE BASED enemy spawns when a boss becomes active.
       spawnMapLevel1.forEach((enemy: EnemySpawn) => {
         if (enemy.times.includes(currentTick)) {
           this.spawnEnemy(enemy, currentTick);
         }
       });
     }
-    this.generatedSpawnTimes.shift();
+    // Another part of the optimization.
+    // this.generatedSpawnTimes.shift();
   }
 
   spawnEnemy(spawn: EnemySpawn, currentTick: number) {
@@ -407,12 +420,26 @@ export class ShmupComponent implements AfterViewInit {
           this.soundServ, currentTick, spawn.start.x, spawn.start.y, this.clonePath(spawn.path),
           Units.getUnits(76), Units.getUnits(76), 5, 10));
         break;
+      case ActorList.LaserShip:
+        this.enemies.push(new LaserShip(
+          this.soundServ, currentTick, spawn.start.x, spawn.start.y, this.clonePath(spawn.path),
+          Units.getUnits(60), Units.getUnits(60), 5, 10));
+        break;
       case ActorList.MidBoss1:
         this.boss = new MidBoss1(
           this.soundServ,
           currentTick,
           Helper.getTopLeftWithCenterPoint(Units.getUnits(60), Units.getUnits(60), Units.xFromPct(50), Units.yFromPct(-10))
         );
+        //Clear all enemies and bullets next frame.
+        for (let bullet of this.enemyBullets) {
+          bullet.flagForDeletion = true;
+        }
+        console.log(this.enemyBullets.length);
+        for (let enemy of this.enemies) {
+          enemy.shouldDropItems = false;
+          enemy.defeatFlag = true;
+        }
         break;
       case ActorList.Boss1:
         this.boss = new Boss1(
@@ -420,6 +447,14 @@ export class ShmupComponent implements AfterViewInit {
           currentTick,
           Helper.getTopLeftWithCenterPoint(Units.getUnits(60), Units.getUnits(60), Units.xFromPct(100), Units.yFromPct(-10))
         );
+        //Clear all enemies and bullets next frame.
+        for (let enemy of this.enemies) {
+          enemy.shouldDropItems = false;
+          enemy.defeatFlag = true;
+        }
+        for (let bullet of this.enemyBullets) {
+          bullet.flagForDeletion = true;
+        }
         break;
       default:
         console.log("unrecognized enemy.");
@@ -427,7 +462,7 @@ export class ShmupComponent implements AfterViewInit {
   }
 
   //Deep copy of path must be created, otherwise actors of the same spawn time will share and alter path data.
-  clonePath(path: (linePath | curvePath)[]) {
+  clonePath(path: (linePath | curvePath | linePath_Decelerate)[]) {
     let pathString = JSON.stringify(path);
     return JSON.parse(pathString);
   }
@@ -448,11 +483,14 @@ export class ShmupComponent implements AfterViewInit {
   convertEnemyBulletsToPoints() {
     for (let i = 0; i < this.enemyBullets.length; i++) {
       const bullet = this.enemyBullets[i];
-      //Do not convert bullets that aren't on screen. Mostly applies to rotational bullets.
-      if(Helper.isHitboxOutsidePlayArea(bullet.hitbox)){
+      //Do not convert bullets that aren't on screen. 
+      //Mostly applies to rotational bullets that like to venture a little off screen.
+      if (Helper.isHitboxOutsidePlayArea(bullet.hitbox)) {
         continue;
       }
-      this.items.push(new Point(bullet.hitbox.pos.x, bullet.hitbox.pos.y));
+      let item = new Point(bullet.hitbox.pos.x, bullet.hitbox.pos.y);
+      item.flagForCollection = true;
+      this.items.push(item);
     }
     this.enemyBullets = [];
   }
@@ -495,9 +533,9 @@ export class ShmupComponent implements AfterViewInit {
       }
 
       const expandedHitbox: leftCoordHitbox = {
-        pos: {x: this.player.hitbox.pos.x-this.player.hitbox.width, y: this.player.hitbox.pos.y-this.player.hitbox.height},
-        width: this.player.hitbox.width*2,
-        height: this.player.hitbox.height*2
+        pos: { x: this.player.hitbox.pos.x - this.player.hitbox.width, y: this.player.hitbox.pos.y - this.player.hitbox.height },
+        width: this.player.hitbox.width * 2,
+        height: this.player.hitbox.height * 2
       };
       let playerSquare = new Square(expandedHitbox);
       if (Square.checkSquareOverlap(itemSquare, playerSquare)) {
@@ -512,6 +550,19 @@ export class ShmupComponent implements AfterViewInit {
         }
         this.items.splice(i, 1);
         i--;
+      }
+    }
+  }
+
+  animateEffects() {
+    //Animate the death sprites
+    for (let i = 0; i < this.enemyDeathSprites.length; i++) {
+      this.enemyDeathSprites[i].animate();
+
+      if (this.enemyDeathSprites[i].deleteMe) {
+        this.enemyDeathSprites.splice(i, 1);
+        i--;
+        continue;
       }
     }
   }

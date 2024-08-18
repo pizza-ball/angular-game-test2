@@ -37,7 +37,7 @@ export class Helper {
         const v0 = 2 * (distTotal / frameTotal);
         const a = -2 * distTotal / (frameTotal * frameTotal);
 
-        const steps = 4;
+        const steps = 4; //Increases accuracy of calculations.
 
         let velx = 0;
         let vely = 0;

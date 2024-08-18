@@ -2,7 +2,7 @@ import { CanvasDraw } from "../../../helpers/canvas-draw";
 import { bullet, leftCoordHitbox, linePath, point } from "../../../helpers/interfaces";
 import { Helper } from "../../../helpers/moving-stuff";
 import { DEBUG_MODE, FPS_TARGET, Units } from "../../globals";
-import { SimpleBullet } from "../bullets/simple-bullet";
+import { SoloBullet } from "../bullets/solo-bullet";
 import { v4 as uuidv4 } from 'uuid';
 import { ActorList } from "../actorlist";
 import { Enemy } from "./enemy-abstract";
@@ -27,28 +27,19 @@ export class Dongler extends Enemy {
     }
 
     move() {
-        Helper.moveTowardsAtConstRate(this.hitbox.pos, this.path[0].dest, this.path[0].speed);
+        let p = this.path[0] as linePath;
+        Helper.moveTowardsAtConstRate(this.hitbox.pos, p.dest, p.speed);
 
         this.center = Helper.getCenterWithTopLeftHitbox(this.hitbox);
     }
 
-    //TODO: reintroduce this firing code when done testing
-    // tickToShoot = 2*FPS_TARGET;
-    // attack(): SimpleBullet | SimpleBullet[] | null {
-    //     const ticksSinceCreation = this.exData.now - this.creationTick;
-    //     if(ticksSinceCreation === this.tickToShoot){
-    //         const angleToPlayer = MovingStuff.calculateRadianAngleBetweenTwoPoints(this.center.x, this.center.y, this.exData.playerPos.x, this.exData.playerPos.y);
-    //         this.soundService.enemyBulletSound.play();
-    //         return new SimpleBullet(Object.create(this.center), angleToPlayer, Units.getUnits(2));
-    //     }
-    //     return null;
-    // }
-
     tickToShoot = 2*FPS_TARGET;
-    attack(): BulletAbstract | BulletAbstract[] | null {
+    attack(): SoloBullet | SoloBullet[] | null {
         const ticksSinceCreation = this.exData.now - this.creationTick;
         if(ticksSinceCreation === this.tickToShoot){
-            return Danmaku.cubeMeme(this.center, this.exData.playerPos);
+            const angleToPlayer = Helper.calculateRadianAngleBetweenTwoPoints(this.center.x, this.center.y, this.exData.playerPos.x, this.exData.playerPos.y);
+            this.soundService.enemyBulletSound.play();
+            return new SoloBullet(Object.create(this.center), angleToPlayer, Units.getUnits(2));
         }
         return null;
     }
